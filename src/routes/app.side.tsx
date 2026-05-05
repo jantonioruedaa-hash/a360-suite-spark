@@ -264,10 +264,12 @@ function Cuestionario({
 
   const guardar = async (silent = false) => {
     const payload = {
-      scores, datos_financieros: financiero, analisis_ia: analisis,
+      scores: scores as Record<string, number>,
+      datos_financieros: financiero as Record<string, number | undefined>,
+      analisis_ia: analisis as Record<string, { titulo: string; contenido: string; fecha: string }>,
       ime_score: ime || null, ivee_score: ivee || null, idf_score: idf || null, cof_score: cof || null,
     };
-    const { error } = await supabase.from("side_sesiones").update(payload).eq("id", sesionInicial.id);
+    const { error } = await supabase.from("side_sesiones").update(payload as never).eq("id", sesionInicial.id);
     if (error) { if (!silent) toast.error(error.message); return; }
     dirtyRef.current = false;
     setSavedAt(new Date());
