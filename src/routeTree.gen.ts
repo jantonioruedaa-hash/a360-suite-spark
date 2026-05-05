@@ -12,7 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppSideRouteImport } from './routes/app.side'
+import { Route as AppPlanRouteImport } from './routes/app.plan'
+import { Route as AppLeeRouteImport } from './routes/app.lee'
+import { Route as AppKpisRouteImport } from './routes/app.kpis'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
+import { Route as AppCoachingRouteImport } from './routes/app.coaching'
+import { Route as AppClientesRouteImport } from './routes/app.clientes'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -29,9 +36,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSideRoute = AppSideRouteImport.update({
+  id: '/side',
+  path: '/side',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlanRoute = AppPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeeRoute = AppLeeRouteImport.update({
+  id: '/lee',
+  path: '/lee',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKpisRoute = AppKpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoachingRoute = AppCoachingRouteImport.update({
+  id: '/coaching',
+  path: '/coaching',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientesRoute = AppClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -39,27 +81,82 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/clientes': typeof AppClientesRoute
+  '/app/coaching': typeof AppCoachingRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/kpis': typeof AppKpisRoute
+  '/app/lee': typeof AppLeeRoute
+  '/app/plan': typeof AppPlanRoute
+  '/app/side': typeof AppSideRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/clientes': typeof AppClientesRoute
+  '/app/coaching': typeof AppCoachingRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/kpis': typeof AppKpisRoute
+  '/app/lee': typeof AppLeeRoute
+  '/app/plan': typeof AppPlanRoute
+  '/app/side': typeof AppSideRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/clientes': typeof AppClientesRoute
+  '/app/coaching': typeof AppCoachingRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/kpis': typeof AppKpisRoute
+  '/app/lee': typeof AppLeeRoute
+  '/app/plan': typeof AppPlanRoute
+  '/app/side': typeof AppSideRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/login' | '/app/dashboard'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/app/clientes'
+    | '/app/coaching'
+    | '/app/configuracion'
+    | '/app/dashboard'
+    | '/app/kpis'
+    | '/app/lee'
+    | '/app/plan'
+    | '/app/side'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/login' | '/app/dashboard'
-  id: '__root__' | '/' | '/app' | '/login' | '/app/dashboard'
+  to:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/app/clientes'
+    | '/app/coaching'
+    | '/app/configuracion'
+    | '/app/dashboard'
+    | '/app/kpis'
+    | '/app/lee'
+    | '/app/plan'
+    | '/app/side'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/login'
+    | '/app/clientes'
+    | '/app/coaching'
+    | '/app/configuracion'
+    | '/app/dashboard'
+    | '/app/kpis'
+    | '/app/lee'
+    | '/app/plan'
+    | '/app/side'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -91,6 +188,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/side': {
+      id: '/app/side'
+      path: '/side'
+      fullPath: '/app/side'
+      preLoaderRoute: typeof AppSideRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/plan': {
+      id: '/app/plan'
+      path: '/plan'
+      fullPath: '/app/plan'
+      preLoaderRoute: typeof AppPlanRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/lee': {
+      id: '/app/lee'
+      path: '/lee'
+      fullPath: '/app/lee'
+      preLoaderRoute: typeof AppLeeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/kpis': {
+      id: '/app/kpis'
+      path: '/kpis'
+      fullPath: '/app/kpis'
+      preLoaderRoute: typeof AppKpisRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/dashboard': {
       id: '/app/dashboard'
       path: '/dashboard'
@@ -98,15 +223,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/configuracion': {
+      id: '/app/configuracion'
+      path: '/configuracion'
+      fullPath: '/app/configuracion'
+      preLoaderRoute: typeof AppConfiguracionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/coaching': {
+      id: '/app/coaching'
+      path: '/coaching'
+      fullPath: '/app/coaching'
+      preLoaderRoute: typeof AppCoachingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clientes': {
+      id: '/app/clientes'
+      path: '/clientes'
+      fullPath: '/app/clientes'
+      preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppClientesRoute: typeof AppClientesRoute
+  AppCoachingRoute: typeof AppCoachingRoute
+  AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppKpisRoute: typeof AppKpisRoute
+  AppLeeRoute: typeof AppLeeRoute
+  AppPlanRoute: typeof AppPlanRoute
+  AppSideRoute: typeof AppSideRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppClientesRoute: AppClientesRoute,
+  AppCoachingRoute: AppCoachingRoute,
+  AppConfiguracionRoute: AppConfiguracionRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppKpisRoute: AppKpisRoute,
+  AppLeeRoute: AppLeeRoute,
+  AppPlanRoute: AppPlanRoute,
+  AppSideRoute: AppSideRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
