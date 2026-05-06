@@ -9,7 +9,7 @@ import { interpretarIME } from "@/lib/side-data";
 import { toast } from "sonner";
 import { History, Trash2, ExternalLink, Search, FileText } from "lucide-react";
 
-export const Route = createFileRoute("/app/side/historial")({ component: HistorialPage });
+export const Route = createFileRoute("/app/side_/historial")({ component: HistorialPage });
 
 interface SesionRow {
   id: string;
