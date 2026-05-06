@@ -89,7 +89,7 @@ function SidePage() {
           <p className="text-sm text-muted-foreground mt-1">Sistema Integral de Diagnóstico Empresarial · 12 dimensiones · 4 índices</p>
         </div>
         {step === "cuestionario" && sesion && (
-          <Button variant="outline" onClick={() => setStep("inicio")}>← Volver</Button>
+          <Button variant="outline" onClick={() => { setStep("inicio"); navigate({ to: "/app/side", search: {} }); }}>← Volver</Button>
         )}
       </div>
 
