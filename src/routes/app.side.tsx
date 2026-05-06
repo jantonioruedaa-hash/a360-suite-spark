@@ -525,12 +525,17 @@ function FinRow({ label, value, accent }: { label: string; value: string; accent
 
 // ── RESULTADOS ──────────────────────────────────────────────────────
 function Resultados({
-  ime, ivee, idf, cof, dimScores, historial, sesionId,
+  ime, ivee, idf, cof, dimScores, historial, sesionId, cliente,
+  iniciativasIA, iniciativasFecha, onIniciativas,
 }: {
   ime: number; ivee: number; idf: number; cof: number;
   dimScores: { key: string; nombre: string; score: number; iniciativa: string }[];
-  historial: Sesion[]; sesionId: string;
+  historial: Sesion[]; sesionId: string; cliente: Cliente;
+  iniciativasIA: IniciativaIA[]; iniciativasFecha: string | null;
+  onIniciativas: (items: IniciativaIA[]) => void;
 }) {
+  const { session } = useAuth();
+  const [genIA, setGenIA] = useState(false);
   const nivel = interpretarIME(ime);
   const fortalezas = [...dimScores].filter((d) => d.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
   const brechas = [...dimScores].filter((d) => d.score > 0).sort((a, b) => a.score - b.score).slice(0, 3);
