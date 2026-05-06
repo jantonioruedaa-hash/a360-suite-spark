@@ -631,23 +631,82 @@ function Resultados({
       </div>
 
       <div className="a360-card a360-card-lg p-6">
-        <h3 className="font-display text-lg text-navy mb-4">Iniciativas recomendadas por dimensión</h3>
-        <div className="grid md:grid-cols-2 gap-2">
-          {[...dimScores].sort((a, b) => a.score - b.score).map((d) => {
-            const n = interpretarIME(d.score || 1);
-            return (
-              <div key={d.key} className="flex items-center justify-between p-3 rounded border border-border">
-                <div className="min-w-0">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">{d.nombre}</div>
-                  <div className="text-sm text-navy font-medium truncate">{d.iniciativa}</div>
-                </div>
-                <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-semibold font-mono whitespace-nowrap" style={{ color: n.color, background: n.bg }}>
-                  {d.score > 0 ? d.score.toFixed(1) : "—"}
-                </span>
-              </div>
-            );
-          })}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div>
+            <h3 className="font-display text-lg text-navy">Iniciativas recomendadas por dimensión</h3>
+            {iniciativasFecha
+              ? <p className="text-[11px] text-muted-foreground">Generadas con IA · {new Date(iniciativasFecha).toLocaleString("es-EC")}</p>
+              : <p className="text-[11px] text-muted-foreground">Plantilla genérica · genera con IA para personalizar según tus resultados.</p>}
+          </div>
+          <Button
+            size="sm"
+            onClick={async () => {
+              if (ime === 0) { toast.error("Completa al menos algunas dimensiones"); return; }
+              if (!session?.access_token) { toast.error("Tu sesión expiró. Vuelve a iniciar sesión."); return; }
+              setGenIA(true);
+              try {
+                const res = await generarIniciativasSide({
+                  data: {
+                    accessToken: session.access_token,
+                    empresa: { nombre: cliente.nombre_empresa, sector: cliente.sector, tamano: cliente.tamano, pais: cliente.pais },
+                    ime, ivee, idf, cof,
+                    dimensiones: dimScores.map((d) => ({ key: d.key, nombre: d.nombre, score: d.score })),
+                  },
+                });
+                if (res.error || !res.iniciativas?.length) { toast.error(res.error || "Sin iniciativas"); return; }
+                onIniciativas(res.iniciativas);
+                toast.success("Iniciativas personalizadas generadas");
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Error generando iniciativas");
+              } finally { setGenIA(false); }
+            }}
+            disabled={genIA}
+            className="bg-navy text-primary-foreground hover:bg-navy/90"
+          >
+            {genIA ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1.5" />}
+            {iniciativasIA.length ? "Regenerar con IA" : "Generar con IA"}
+          </Button>
         </div>
+
+        {(() => {
+          const byKey = new Map(iniciativasIA.map((i) => [i.key, i]));
+          const prioridadStyle = (p?: string) =>
+            p === "alta" ? { color: "#c0392b", bg: "rgba(192,57,43,0.1)" }
+            : p === "media" ? { color: "#d4820a", bg: "rgba(212,130,10,0.1)" }
+            : p === "baja" ? { color: "#1e7e50", bg: "rgba(30,126,80,0.1)" }
+            : { color: "#1a2b5a", bg: "rgba(26,43,90,0.06)" };
+          return (
+            <div className="grid md:grid-cols-2 gap-3">
+              {[...dimScores].sort((a, b) => a.score - b.score).map((d) => {
+                const n = interpretarIME(d.score || 1);
+                const ini = byKey.get(d.key);
+                const titulo = ini?.titulo ?? d.iniciativa;
+                const desc = ini?.descripcion;
+                const pr = prioridadStyle(ini?.prioridad);
+                return (
+                  <div key={d.key} className="p-3 rounded border border-border">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground">{d.nombre}</div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {ini && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase" style={{ color: pr.color, background: pr.bg }}>
+                            {ini.prioridad} · {ini.horizonte}
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold font-mono" style={{ color: n.color, background: n.bg }}>
+                          {d.score > 0 ? d.score.toFixed(1) : "—"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-navy font-medium leading-snug">{titulo}</div>
+                    {desc && <div className="text-xs text-muted-foreground mt-1 leading-relaxed">{desc}</div>}
+                    {ini?.impacto && <div className="text-[11px] text-navy/70 mt-1.5 italic">→ {ini.impacto}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {evolucion.length > 1 && (
