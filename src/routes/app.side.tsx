@@ -45,6 +45,8 @@ interface Sesion {
 
 function SidePage() {
   const { user, role } = useAuth();
+  const { sesion: sesionIdParam } = Route.useSearch();
+  const navigate = useNavigate();
   const [step, setStep] = useState<"inicio" | "cuestionario">("inicio");
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [sesion, setSesion] = useState<Sesion | null>(null);
@@ -55,6 +57,23 @@ function SidePage() {
     supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad").eq("activo", true)
       .order("nombre_empresa").then(({ data }) => setClientes((data ?? []) as Cliente[]));
   }, [user]);
+
+  // Auto-abrir sesión cuando viene ?sesion=<id>
+  useEffect(() => {
+    if (!sesionIdParam || !user) return;
+    (async () => {
+      const { data, error } = await supabase.from("side_sesiones").select("*").eq("id", sesionIdParam).maybeSingle();
+      if (error || !data) { toast.error("No se pudo cargar la sesión"); return; }
+      setSesion(data as unknown as Sesion);
+      setStep("cuestionario");
+      // Asegurar que el cliente esté cargado
+      const clienteId = (data as { cliente_id: string }).cliente_id;
+      if (!clientes.find((c) => c.id === clienteId)) {
+        const { data: c } = await supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad").eq("id", clienteId).maybeSingle();
+        if (c) setClientes((prev) => [...prev, c as Cliente]);
+      }
+    })();
+  }, [sesionIdParam, user]);
 
   const cargarHistorial = async (clienteId: string) => {
     const { data } = await supabase.from("side_sesiones").select("*").eq("cliente_id", clienteId)
