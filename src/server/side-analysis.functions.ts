@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createClient } from "@supabase/supabase-js";
 
 type AnalisisTipo = "ejecutivo" | "brechas" | "roadmap" | "propuesta" | "financiero";
 
 interface SideAnalysisInput {
+  accessToken?: string;
   tipo: AnalisisTipo;
   empresa: { nombre: string; sector?: string | null; tamano?: string | null; pais?: string | null };
   ime: number;
@@ -86,10 +87,28 @@ Responde en español, con formato Markdown legible (encabezados ##, listas, énf
 };
 
 export const generarAnalisisSide = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: SideAnalysisInput) => d)
   .handler(async ({ data }) => {
     try {
+      if (!data.accessToken) {
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "Tu sesión expiró. Vuelve a iniciar sesión e intenta nuevamente." };
+      }
+
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+      if (!supabaseUrl || !supabaseKey) {
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "La autenticación del backend no está configurada." };
+      }
+
+      const authClient = createClient(supabaseUrl, supabaseKey, {
+        global: { headers: { Authorization: `Bearer ${data.accessToken}` } },
+        auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+      });
+      const { data: authData, error: authError } = await authClient.auth.getClaims(data.accessToken);
+      if (authError || !authData?.claims?.sub) {
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "No pudimos validar tu sesión. Vuelve a iniciar sesión e intenta nuevamente." };
+      }
+
       const apiKey = process.env.LOVABLE_API_KEY;
       if (!apiKey) {
         return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "LOVABLE_API_KEY no configurada" };
@@ -101,7 +120,7 @@ export const generarAnalisisSide = createServerFn({ method: "POST" })
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
+          model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: "Eres un consultor senior de transformación empresarial para PyMEs latinoamericanas." },
             { role: "user", content: prompt },

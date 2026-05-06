@@ -667,17 +667,20 @@ function AnalisisIA({
   setAnalisis: (a: Record<string, { titulo: string; contenido: string; fecha: string }>) => void;
   onSave: () => void;
 }) {
+  const { session } = useAuth();
   const [tipo, setTipo] = useState<typeof TIPOS_ANALISIS[number]["id"]>("ejecutivo");
   const [loading, setLoading] = useState(false);
 
   const generar = async () => {
     if (ime === 0) { toast.error("Completa primero al menos algunas dimensiones"); return; }
+    if (!session?.access_token) { toast.error("Tu sesión expiró. Vuelve a iniciar sesión."); return; }
     setLoading(true);
     try {
       const fortalezas = [...dimScores].filter((d) => d.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
       const brechas = [...dimScores].filter((d) => d.score > 0).sort((a, b) => a.score - b.score).slice(0, 3);
       const res = await generarAnalisisSide({
         data: {
+          accessToken: session.access_token,
           tipo,
           empresa: { nombre: cliente.nombre_empresa, sector: cliente.sector, tamano: cliente.tamano, pais: cliente.pais },
           ime, ivee, idf, cof,
@@ -694,6 +697,7 @@ function AnalisisIA({
       setAnalisis(nuevo);
       setTimeout(onSave, 100);
       toast.success("Análisis generado");
+      setTipo(tipo);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error al generar análisis");
     } finally { setLoading(false); }
