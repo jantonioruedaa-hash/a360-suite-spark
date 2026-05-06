@@ -352,8 +352,8 @@ function Cuestionario({
             historial={historial} sesionId={sesionInicial.id} cliente={cliente}
             iniciativasIA={(analisis as any)?._iniciativas?.items ?? []}
             iniciativasFecha={(analisis as any)?._iniciativas?.fecha ?? null}
-            onIniciativas={(items) => {
-              const nuevo = { ...analisis, _iniciativas: { items, fecha: new Date().toISOString() } } as typeof analisis;
+            onIniciativas={(items: IniciativaIA[]) => {
+              const nuevo = { ...analisis, _iniciativas: { items, fecha: new Date().toISOString() } } as Record<string, unknown> as typeof analisis;
               setAnalisis(nuevo);
               setTimeout(() => guardar(true), 100);
             }}
