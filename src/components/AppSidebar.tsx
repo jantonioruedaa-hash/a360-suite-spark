@@ -13,7 +13,10 @@ import { useAuth } from "@/lib/auth-context";
 const sections = [
   {
     label: "Diagnóstico",
-    items: [{ title: "SIDE", url: "/app/side", icon: Activity }],
+    items: [
+      { title: "SIDE", url: "/app/side", icon: Activity },
+      { title: "Historial SIDE", url: "/app/side/historial", icon: History },
+    ],
   },
   {
     label: "Estrategia",
