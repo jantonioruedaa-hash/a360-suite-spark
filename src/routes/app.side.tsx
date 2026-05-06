@@ -19,7 +19,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
-import { Loader2, Save, Sparkles, TrendingUp, AlertTriangle, ChevronRight, Plus, FileText, History } from "lucide-react";
+import { Loader2, Save, Sparkles, TrendingUp, AlertTriangle, ChevronRight, Plus, FileText, History, Download } from "lucide-react";
 
 export const Route = createFileRoute("/app/side")({ component: SidePage });
 
