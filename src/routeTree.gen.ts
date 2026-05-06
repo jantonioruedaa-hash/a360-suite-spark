@@ -20,6 +20,7 @@ import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppCoachingRouteImport } from './routes/app.coaching'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
+import { Route as AppSideHistorialRouteImport } from './routes/app.side.historial'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -76,6 +77,11 @@ const AppClientesRoute = AppClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSideHistorialRoute = AppSideHistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
+  getParentRoute: () => AppSideRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -88,7 +94,8 @@ export interface FileRoutesByFullPath {
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
-  '/app/side': typeof AppSideRoute
+  '/app/side': typeof AppSideRouteWithChildren
+  '/app/side/historial': typeof AppSideHistorialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,7 +108,8 @@ export interface FileRoutesByTo {
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
-  '/app/side': typeof AppSideRoute
+  '/app/side': typeof AppSideRouteWithChildren
+  '/app/side/historial': typeof AppSideHistorialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,7 +123,8 @@ export interface FileRoutesById {
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
-  '/app/side': typeof AppSideRoute
+  '/app/side': typeof AppSideRouteWithChildren
+  '/app/side/historial': typeof AppSideHistorialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/app/side/historial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/app/side/historial'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/app/side/historial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -244,8 +256,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/side/historial': {
+      id: '/app/side/historial'
+      path: '/historial'
+      fullPath: '/app/side/historial'
+      preLoaderRoute: typeof AppSideHistorialRouteImport
+      parentRoute: typeof AppSideRoute
+    }
   }
 }
+
+interface AppSideRouteChildren {
+  AppSideHistorialRoute: typeof AppSideHistorialRoute
+}
+
+const AppSideRouteChildren: AppSideRouteChildren = {
+  AppSideHistorialRoute: AppSideHistorialRoute,
+}
+
+const AppSideRouteWithChildren =
+  AppSideRoute._addFileChildren(AppSideRouteChildren)
 
 interface AppRouteChildren {
   AppClientesRoute: typeof AppClientesRoute
@@ -255,7 +285,7 @@ interface AppRouteChildren {
   AppKpisRoute: typeof AppKpisRoute
   AppLeeRoute: typeof AppLeeRoute
   AppPlanRoute: typeof AppPlanRoute
-  AppSideRoute: typeof AppSideRoute
+  AppSideRoute: typeof AppSideRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -266,7 +296,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppKpisRoute: AppKpisRoute,
   AppLeeRoute: AppLeeRoute,
   AppPlanRoute: AppPlanRoute,
-  AppSideRoute: AppSideRoute,
+  AppSideRoute: AppSideRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
