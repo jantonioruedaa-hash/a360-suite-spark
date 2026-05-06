@@ -757,7 +757,7 @@ function AnalisisIA({
                     if (!w) return;
                     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${actual.titulo}</title>
 <style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 24px;color:#1a2332;line-height:1.6}h1{border-bottom:2px solid #c9a961;padding-bottom:8px}h2{color:#1a5fa0;margin-top:24px}.meta{color:#666;font-size:12px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit}@media print{body{margin:0}}</style>
-</head><body><h1>${actual.titulo}</h1><div class="meta">${cliente.nombre_empresa} — ${new Date(actual.fecha).toLocaleString("es-EC")}</div><pre>${actual.contenido.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
+</head><body><h1>${actual.titulo}</h1><div class="meta">${cliente.nombre_empresa} — ${new Date(actual.fecha).toLocaleString("es-EC")}</div><pre>${(actual.contenido ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
                     w.document.close();
                   }}
                 >
