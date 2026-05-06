@@ -6,7 +6,7 @@ import {
 import { A360Logo } from "@/components/A360Logo";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
-  LayoutDashboard, Settings, LogOut, BookOpen,
+  LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
