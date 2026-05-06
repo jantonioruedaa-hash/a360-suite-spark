@@ -15,7 +15,7 @@ const sections = [
     label: "Diagnóstico",
     items: [
       { title: "SIDE", url: "/app/side", icon: Activity },
-      { title: "Historial SIDE", url: "/app/side/historial", icon: History },
+      { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon },
     ],
   },
   {
