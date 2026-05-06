@@ -116,7 +116,7 @@ function HistorialPage() {
       cof_score: s.cof_score,
       completada: false,
     };
-    const { data, error } = await supabase.from("side_sesiones").insert(insert).select().single();
+    const { data, error } = await supabase.from("side_sesiones").insert(insert as never).select().single();
     if (error) { toast.error(error.message); return; }
     toast.success("Sesión duplicada");
     setSesiones((prev) => [data as unknown as SesionRow, ...prev]);
