@@ -89,34 +89,44 @@ export const generarAnalisisSide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: SideAnalysisInput) => d)
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY no configurada");
+    try {
+      const apiKey = process.env.LOVABLE_API_KEY;
+      if (!apiKey) {
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "LOVABLE_API_KEY no configurada" };
+      }
 
-    const prompt = buildPrompt(data);
+      const prompt = buildPrompt(data);
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: "Eres un consultor senior de transformación empresarial para PyMEs latinoamericanas." },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-pro",
+          messages: [
+            { role: "system", content: "Eres un consultor senior de transformación empresarial para PyMEs latinoamericanas." },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
 
-    if (!resp.ok) {
-      const txt = await resp.text();
-      if (resp.status === 429) throw new Error("Límite de uso alcanzado. Intenta de nuevo en unos minutos.");
-      if (resp.status === 402) throw new Error("Créditos de IA agotados. Agrega créditos en Lovable Cloud.");
-      throw new Error(`Error de IA (${resp.status}): ${txt.slice(0, 200)}`);
+      if (!resp.ok) {
+        const txt = await resp.text().catch(() => "");
+        let msg = `Error de IA (${resp.status})`;
+        if (resp.status === 429) msg = "Límite de uso alcanzado. Intenta de nuevo en unos minutos.";
+        else if (resp.status === 402) msg = "Créditos de IA agotados. Agrega créditos en Lovable Cloud.";
+        else if (txt) msg += `: ${txt.slice(0, 200)}`;
+        console.error("[SIDE] AI gateway error", resp.status, txt);
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: msg };
+      }
+
+      const json = await resp.json();
+      const contenido = json?.choices?.[0]?.message?.content ?? "";
+      if (!contenido) {
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "La IA no devolvió contenido. Intenta de nuevo." };
+      }
+      return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido, error: null as string | null };
+    } catch (e) {
+      console.error("[SIDE] handler exception", e);
+      return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: e instanceof Error ? e.message : "Error inesperado" };
     }
-
-    const json = await resp.json();
-    const contenido = json.choices?.[0]?.message?.content ?? "";
-    return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido };
   });
