@@ -21,7 +21,10 @@ import {
 } from "recharts";
 import { Loader2, Save, Sparkles, TrendingUp, AlertTriangle, ChevronRight, Plus, FileText, History, Download } from "lucide-react";
 
-export const Route = createFileRoute("/app/side")({ component: SidePage });
+export const Route = createFileRoute("/app/side")({
+  validateSearch: (s: Record<string, unknown>) => ({ sesion: typeof s.sesion === "string" ? s.sesion : undefined }),
+  component: SidePage,
+});
 
 interface Cliente { id: string; nombre_empresa: string; sector: string | null; tamano: string | null; pais: string | null; ciudad: string | null }
 interface Sesion {
