@@ -347,7 +347,17 @@ function Cuestionario({
         </TabsContent>
 
         <TabsContent value="resultados" className="mt-5">
-          <Resultados ime={ime} ivee={ivee} idf={idf} cof={cof} dimScores={dimScores} historial={historial} sesionId={sesionInicial.id} />
+          <Resultados
+            ime={ime} ivee={ivee} idf={idf} cof={cof} dimScores={dimScores}
+            historial={historial} sesionId={sesionInicial.id} cliente={cliente}
+            iniciativasIA={(analisis as any)?._iniciativas?.items ?? []}
+            iniciativasFecha={(analisis as any)?._iniciativas?.fecha ?? null}
+            onIniciativas={(items) => {
+              const nuevo = { ...analisis, _iniciativas: { items, fecha: new Date().toISOString() } } as typeof analisis;
+              setAnalisis(nuevo);
+              setTimeout(() => guardar(true), 100);
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="ia" className="mt-5">
