@@ -19,7 +19,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
-import { Loader2, Save, Sparkles, TrendingUp, AlertTriangle, ChevronRight, Plus, FileText, History } from "lucide-react";
+import { Loader2, Save, Sparkles, TrendingUp, AlertTriangle, ChevronRight, Plus, FileText, History, Download } from "lucide-react";
 
 export const Route = createFileRoute("/app/side")({ component: SidePage });
 
@@ -732,9 +732,38 @@ function AnalisisIA({
         )}
         {actual && !loading && (
           <article>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border gap-3">
               <h2 className="font-display text-2xl text-navy">{actual.titulo}</h2>
-              <span className="text-[11px] text-muted-foreground">{new Date(actual.fecha).toLocaleString("es-EC")}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-muted-foreground">{new Date(actual.fecha).toLocaleString("es-EC")}</span>
+                <Button
+                  size="sm" variant="outline"
+                  onClick={() => {
+                    const blob = new Blob([`# ${actual.titulo}\n\n_${cliente.nombre_empresa} — ${new Date(actual.fecha).toLocaleString("es-EC")}_\n\n${actual.contenido}`], { type: "text/markdown;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `SIDE_${cliente.nombre_empresa.replace(/\s+/g, "_")}_${tipo}.md`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="w-3.5 h-3.5 mr-1" /> Markdown
+                </Button>
+                <Button
+                  size="sm" variant="outline"
+                  onClick={() => {
+                    const w = window.open("", "_blank");
+                    if (!w) return;
+                    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${actual.titulo}</title>
+<style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 24px;color:#1a2332;line-height:1.6}h1{border-bottom:2px solid #c9a961;padding-bottom:8px}h2{color:#1a5fa0;margin-top:24px}.meta{color:#666;font-size:12px;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit}@media print{body{margin:0}}</style>
+</head><body><h1>${actual.titulo}</h1><div class="meta">${cliente.nombre_empresa} — ${new Date(actual.fecha).toLocaleString("es-EC")}</div><pre>${actual.contenido.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!))}</pre><script>window.onload=()=>window.print()</script></body></html>`);
+                    w.document.close();
+                  }}
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1" /> PDF
+                </Button>
+              </div>
             </div>
             <div className="prose prose-sm max-w-none text-navy whitespace-pre-wrap leading-relaxed">{actual.contenido}</div>
           </article>
