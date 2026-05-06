@@ -8,6 +8,7 @@ import {
   type ScoreMap, type Dimension, type DatosFinancieros,
 } from "@/lib/side-data";
 import { generarAnalisisSide } from "@/server/side-analysis.functions";
+import { generarIniciativasSide, type IniciativaIA } from "@/server/side-iniciativas.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
