@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -21,7 +21,10 @@ import {
 } from "recharts";
 import { Loader2, Save, Sparkles, TrendingUp, AlertTriangle, ChevronRight, Plus, FileText, History, Download } from "lucide-react";
 
-export const Route = createFileRoute("/app/side")({ component: SidePage });
+export const Route = createFileRoute("/app/side")({
+  validateSearch: (s: Record<string, unknown>) => ({ sesion: typeof s.sesion === "string" ? s.sesion : undefined }),
+  component: SidePage,
+});
 
 interface Cliente { id: string; nombre_empresa: string; sector: string | null; tamano: string | null; pais: string | null; ciudad: string | null }
 interface Sesion {
@@ -42,6 +45,8 @@ interface Sesion {
 
 function SidePage() {
   const { user, role } = useAuth();
+  const { sesion: sesionIdParam } = Route.useSearch();
+  const navigate = useNavigate();
   const [step, setStep] = useState<"inicio" | "cuestionario">("inicio");
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [sesion, setSesion] = useState<Sesion | null>(null);
@@ -52,6 +57,23 @@ function SidePage() {
     supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad").eq("activo", true)
       .order("nombre_empresa").then(({ data }) => setClientes((data ?? []) as Cliente[]));
   }, [user]);
+
+  // Auto-abrir sesión cuando viene ?sesion=<id>
+  useEffect(() => {
+    if (!sesionIdParam || !user) return;
+    (async () => {
+      const { data, error } = await supabase.from("side_sesiones").select("*").eq("id", sesionIdParam).maybeSingle();
+      if (error || !data) { toast.error("No se pudo cargar la sesión"); return; }
+      setSesion(data as unknown as Sesion);
+      setStep("cuestionario");
+      // Asegurar que el cliente esté cargado
+      const clienteId = (data as { cliente_id: string }).cliente_id;
+      if (!clientes.find((c) => c.id === clienteId)) {
+        const { data: c } = await supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad").eq("id", clienteId).maybeSingle();
+        if (c) setClientes((prev) => [...prev, c as Cliente]);
+      }
+    })();
+  }, [sesionIdParam, user]);
 
   const cargarHistorial = async (clienteId: string) => {
     const { data } = await supabase.from("side_sesiones").select("*").eq("cliente_id", clienteId)
@@ -67,7 +89,7 @@ function SidePage() {
           <p className="text-sm text-muted-foreground mt-1">Sistema Integral de Diagnóstico Empresarial · 12 dimensiones · 4 índices</p>
         </div>
         {step === "cuestionario" && sesion && (
-          <Button variant="outline" onClick={() => setStep("inicio")}>← Volver</Button>
+          <Button variant="outline" onClick={() => { setStep("inicio"); navigate({ to: "/app/side", search: {} }); }}>← Volver</Button>
         )}
       </div>
 

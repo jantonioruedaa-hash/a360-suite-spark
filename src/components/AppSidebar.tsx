@@ -6,14 +6,17 @@ import {
 import { A360Logo } from "@/components/A360Logo";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
-  LayoutDashboard, Settings, LogOut, BookOpen,
+  LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 const sections = [
   {
     label: "Diagnóstico",
-    items: [{ title: "SIDE", url: "/app/side", icon: Activity }],
+    items: [
+      { title: "SIDE", url: "/app/side", icon: Activity },
+      { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon },
+    ],
   },
   {
     label: "Estrategia",
