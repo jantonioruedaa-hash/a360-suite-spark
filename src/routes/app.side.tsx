@@ -686,6 +686,10 @@ function AnalisisIA({
           financiero,
         },
       });
+      if ((res as any).error || !res.contenido) {
+        toast.error((res as any).error || "La IA no devolvió contenido");
+        return;
+      }
       const nuevo = { ...analisis, [tipo]: { titulo: res.titulo, contenido: res.contenido, fecha: new Date().toISOString() } };
       setAnalisis(nuevo);
       setTimeout(onSave, 100);
