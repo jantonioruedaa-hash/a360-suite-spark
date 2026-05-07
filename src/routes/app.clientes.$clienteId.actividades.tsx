@@ -14,7 +14,9 @@ import { TIPOS_ACTIVIDAD } from "@/lib/clientes-helpers";
 import { ETAPAS_PROGRAMA, PROGRAMAS, MODALIDADES_SESION, SEMAFOROS, KPI_LIBRARY, CATEGORIAS_KPI, type KpiInput, type CompromisoInput } from "@/lib/sesion-helpers";
 import { generarReporteSesionPDF } from "@/lib/sesion-pdf";
 import { toast } from "sonner";
-import { Plus, Trash2, FileDown, Sparkles } from "lucide-react";
+import { Plus, Trash2, FileDown, Sparkles, Share2 } from "lucide-react";
+import { ShareDialog } from "@/components/ShareDialog";
+import { generarReporteSesionPDF as _genPdf } from "@/lib/sesion-pdf";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/actividades")({ component: Actividades });
 
@@ -58,6 +60,7 @@ function Actividades() {
   const [formSesion, setFormSesion] = useState(EMPTY_SESION);
   const [kpis, setKpis] = useState<KpiInput[]>([]);
   const [compromisos, setCompromisos] = useState<CompromisoInput[]>([]);
+  const [shareTarget, setShareTarget] = useState<Actividad | null>(null);
 
   const reload = async () => {
     const [{ data: a }, { data: c }, { data: e }] = await Promise.all([
@@ -235,11 +238,16 @@ function Actividades() {
                       {(a.fecha_proxima_accion || a.proxima_fecha) && <span className="text-gold ml-2">· {new Date((a.fecha_proxima_accion ?? a.proxima_fecha)!).toLocaleDateString()}</span>}
                     </div>
                   )}
-                  {a.es_sesion_consultoria && (
-                    <Button size="sm" variant="outline" className="mt-2" onClick={() => exportarPDF(a)}>
-                      <FileDown className="w-3 h-3 mr-1" /> PDF de sesión
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {a.es_sesion_consultoria && (
+                      <Button size="sm" variant="outline" onClick={() => exportarPDF(a)}>
+                        <FileDown className="w-3 h-3 mr-1" /> PDF de sesión
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => setShareTarget(a)}>
+                      <Share2 className="w-3 h-3 mr-1" /> Compartir
                     </Button>
-                  )}
+                  </div>
                 </li>
               );
             })}
