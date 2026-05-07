@@ -23,11 +23,29 @@ export type Database = {
           created_at: string
           descripcion: string | null
           duracion_minutos: number | null
+          es_sesion_consultoria: boolean
+          etapa_programa: string | null
           fecha: string
           fecha_proxima_accion: string | null
+          herramientas: Json | null
+          hora_fin: string | null
+          hora_inicio: string | null
           id: string
+          justificacion_semaforo: string | null
+          logros: Json | null
+          mensaje_cliente: string | null
+          modalidad: string | null
+          numero_sesion: number | null
+          objetivo: string | null
+          participantes: Json | null
+          programa: string | null
           proxima_accion: string | null
+          proxima_fecha: string | null
+          proxima_temas: Json | null
+          reporte_pdf_url: string | null
           resultado: string | null
+          semaforo: string | null
+          temas: Json | null
           tipo: string
           titulo: string
         }
@@ -39,11 +57,29 @@ export type Database = {
           created_at?: string
           descripcion?: string | null
           duracion_minutos?: number | null
+          es_sesion_consultoria?: boolean
+          etapa_programa?: string | null
           fecha?: string
           fecha_proxima_accion?: string | null
+          herramientas?: Json | null
+          hora_fin?: string | null
+          hora_inicio?: string | null
           id?: string
+          justificacion_semaforo?: string | null
+          logros?: Json | null
+          mensaje_cliente?: string | null
+          modalidad?: string | null
+          numero_sesion?: number | null
+          objetivo?: string | null
+          participantes?: Json | null
+          programa?: string | null
           proxima_accion?: string | null
+          proxima_fecha?: string | null
+          proxima_temas?: Json | null
+          reporte_pdf_url?: string | null
           resultado?: string | null
+          semaforo?: string | null
+          temas?: Json | null
           tipo: string
           titulo: string
         }
@@ -55,11 +91,29 @@ export type Database = {
           created_at?: string
           descripcion?: string | null
           duracion_minutos?: number | null
+          es_sesion_consultoria?: boolean
+          etapa_programa?: string | null
           fecha?: string
           fecha_proxima_accion?: string | null
+          herramientas?: Json | null
+          hora_fin?: string | null
+          hora_inicio?: string | null
           id?: string
+          justificacion_semaforo?: string | null
+          logros?: Json | null
+          mensaje_cliente?: string | null
+          modalidad?: string | null
+          numero_sesion?: number | null
+          objetivo?: string | null
+          participantes?: Json | null
+          programa?: string | null
           proxima_accion?: string | null
+          proxima_fecha?: string | null
+          proxima_temas?: Json | null
+          reporte_pdf_url?: string | null
           resultado?: string | null
+          semaforo?: string | null
+          temas?: Json | null
           tipo?: string
           titulo?: string
         }
@@ -79,6 +133,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cliente_compromisos: {
+        Row: {
+          actividad_id: string | null
+          cliente_id: string
+          created_at: string
+          descripcion: string
+          estado: string
+          fecha_limite: string | null
+          id: string
+          origen: string
+          responsable: string | null
+          updated_at: string
+        }
+        Insert: {
+          actividad_id?: string | null
+          cliente_id: string
+          created_at?: string
+          descripcion: string
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          origen?: string
+          responsable?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actividad_id?: string | null
+          cliente_id?: string
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          origen?: string
+          responsable?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       cliente_contactos: {
         Row: {
@@ -177,6 +270,8 @@ export type Database = {
           fecha_emision: string | null
           fecha_vencimiento: string | null
           id: string
+          ime_estimado: string | null
+          justificacion_programa: string | null
           moneda: string
           notas: string | null
           numero_cotizacion: string | null
@@ -201,6 +296,8 @@ export type Database = {
           fecha_emision?: string | null
           fecha_vencimiento?: string | null
           id?: string
+          ime_estimado?: string | null
+          justificacion_programa?: string | null
           moneda?: string
           notas?: string | null
           numero_cotizacion?: string | null
@@ -225,6 +322,8 @@ export type Database = {
           fecha_emision?: string | null
           fecha_vencimiento?: string | null
           id?: string
+          ime_estimado?: string | null
+          justificacion_programa?: string | null
           moneda?: string
           notas?: string | null
           numero_cotizacion?: string | null
@@ -252,6 +351,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cliente_kpis: {
+        Row: {
+          actividad_id: string | null
+          categoria: string
+          cliente_id: string
+          created_at: string
+          fecha_medicion: string
+          formula: string | null
+          id: string
+          nombre: string
+          observacion: string | null
+          semaforo: string
+          unidad: string | null
+          updated_at: string
+          valor_actual: number | null
+          valor_meta: number | null
+        }
+        Insert: {
+          actividad_id?: string | null
+          categoria: string
+          cliente_id: string
+          created_at?: string
+          fecha_medicion?: string
+          formula?: string | null
+          id?: string
+          nombre: string
+          observacion?: string | null
+          semaforo?: string
+          unidad?: string | null
+          updated_at?: string
+          valor_actual?: number | null
+          valor_meta?: number | null
+        }
+        Update: {
+          actividad_id?: string | null
+          categoria?: string
+          cliente_id?: string
+          created_at?: string
+          fecha_medicion?: string
+          formula?: string | null
+          id?: string
+          nombre?: string
+          observacion?: string | null
+          semaforo?: string
+          unidad?: string | null
+          updated_at?: string
+          valor_actual?: number | null
+          valor_meta?: number | null
+        }
+        Relationships: []
+      }
+      cliente_onboarding: {
+        Row: {
+          analisis_ia: string | null
+          cliente_id: string
+          completado: boolean
+          consultor_id: string | null
+          created_at: string
+          fecha_completado: string | null
+          id: string
+          paso_actual: number
+          paso1_empresa: Json
+          paso2_lider: Json
+          paso3_contexto: Json
+          paso4_expectativas: Json
+          paso5_acuerdo: Json
+          updated_at: string
+        }
+        Insert: {
+          analisis_ia?: string | null
+          cliente_id: string
+          completado?: boolean
+          consultor_id?: string | null
+          created_at?: string
+          fecha_completado?: string | null
+          id?: string
+          paso_actual?: number
+          paso1_empresa?: Json
+          paso2_lider?: Json
+          paso3_contexto?: Json
+          paso4_expectativas?: Json
+          paso5_acuerdo?: Json
+          updated_at?: string
+        }
+        Update: {
+          analisis_ia?: string | null
+          cliente_id?: string
+          completado?: boolean
+          consultor_id?: string | null
+          created_at?: string
+          fecha_completado?: string | null
+          id?: string
+          paso_actual?: number
+          paso1_empresa?: Json
+          paso2_lider?: Json
+          paso3_contexto?: Json
+          paso4_expectativas?: Json
+          paso5_acuerdo?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       clientes: {
         Row: {
