@@ -422,6 +422,17 @@ function Actividades() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {shareTarget && (
+        <ShareDialog
+          open={!!shareTarget}
+          onOpenChange={(v) => !v && setShareTarget(null)}
+          clienteId={clienteId}
+          tipoContenido={shareTarget.es_sesion_consultoria ? "reporte_sesion" : "actividad"}
+          contenidoId={shareTarget.id}
+          tituloDefault={shareTarget.titulo}
+        />
+      )}
     </div>
   );
 }
