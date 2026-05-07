@@ -2,7 +2,7 @@ import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { imeColor, imeLabel, ESTADOS, TIPOS_ACTIVIDAD } from "@/lib/clientes-helpers";
-import { Activity, Target, Users2, BookOpen, Calendar } from "lucide-react";
+import { Activity, Target, Users2, BookOpen, Calendar, Users, FileText, Building2, Sparkles, BarChart3, ArrowRight } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
