@@ -37,22 +37,21 @@ function SharePage() {
       setEmpresa(emp as { nombre_empresa: string } | null);
 
       // Cargar extras
-      const tasks: Promise<any>[] = [];
-      if (row.incluir_kpis && row.contenido_id) {
-        tasks.push(supabase.from("cliente_kpis").select("*").eq("actividad_id", row.contenido_id));
-      } else tasks.push(Promise.resolve({ data: [] }));
-      if (row.incluir_compromisos) {
-        tasks.push(supabase.from("cliente_compromisos").select("*").eq("cliente_id", row.cliente_id).eq("estado", "pendiente"));
-      } else tasks.push(Promise.resolve({ data: [] }));
-      if (row.tipo_contenido === "reporte_sesion" && row.contenido_id) {
-        tasks.push(supabase.from("cliente_actividades").select("*").eq("id", row.contenido_id).maybeSingle());
-      } else tasks.push(Promise.resolve({ data: null }));
+      const kpisP: Promise<{ data: any[] | null }> = row.incluir_kpis && row.contenido_id
+        ? Promise.resolve(supabase.from("cliente_kpis").select("*").eq("actividad_id", row.contenido_id)).then((r) => ({ data: r.data as any[] | null }))
+        : Promise.resolve({ data: [] });
+      const compP: Promise<{ data: any[] | null }> = row.incluir_compromisos
+        ? Promise.resolve(supabase.from("cliente_compromisos").select("*").eq("cliente_id", row.cliente_id).eq("estado", "pendiente")).then((r) => ({ data: r.data as any[] | null }))
+        : Promise.resolve({ data: [] });
+      const actP: Promise<{ data: any | null }> = row.tipo_contenido === "reporte_sesion" && row.contenido_id
+        ? Promise.resolve(supabase.from("cliente_actividades").select("*").eq("id", row.contenido_id).maybeSingle()).then((r) => ({ data: r.data }))
+        : Promise.resolve({ data: null });
 
-      const [k, c, a] = await Promise.all(tasks);
+      const [k, c, a] = await Promise.all([kpisP, compP, actP]);
       setExtras({ kpis: k.data ?? [], compromisos: c.data ?? [], actividad: a.data });
 
       // Registrar visita
-      await supabase.rpc("registrar_vista_compartido", { _token: token, _ip: null });
+      await supabase.rpc("registrar_vista_compartido", { _token: token, _ip: undefined });
       setLoading(false);
     })();
   }, [token]);
