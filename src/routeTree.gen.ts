@@ -25,6 +25,7 @@ import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.
 import { Route as AppClientesClienteIdSideRouteImport } from './routes/app.clientes.$clienteId.side'
 import { Route as AppClientesClienteIdResumenRouteImport } from './routes/app.clientes.$clienteId.resumen'
 import { Route as AppClientesClienteIdPlanRouteImport } from './routes/app.clientes.$clienteId.plan'
+import { Route as AppClientesClienteIdOnboardingRouteImport } from './routes/app.clientes.$clienteId.onboarding'
 import { Route as AppClientesClienteIdLeeRouteImport } from './routes/app.clientes.$clienteId.lee'
 import { Route as AppClientesClienteIdEmpresaRouteImport } from './routes/app.clientes.$clienteId.empresa'
 import { Route as AppClientesClienteIdCotizacionesRouteImport } from './routes/app.clientes.$clienteId.cotizaciones'
@@ -116,6 +117,12 @@ const AppClientesClienteIdPlanRoute =
     path: '/plan',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
+const AppClientesClienteIdOnboardingRoute =
+  AppClientesClienteIdOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
 const AppClientesClienteIdLeeRoute = AppClientesClienteIdLeeRouteImport.update({
   id: '/lee',
   path: '/lee',
@@ -179,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
   '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
+  '/app/clientes/$clienteId/onboarding': typeof AppClientesClienteIdOnboardingRoute
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
@@ -204,6 +212,7 @@ export interface FileRoutesByTo {
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
   '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
+  '/app/clientes/$clienteId/onboarding': typeof AppClientesClienteIdOnboardingRoute
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
@@ -230,6 +239,7 @@ export interface FileRoutesById {
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
   '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
+  '/app/clientes/$clienteId/onboarding': typeof AppClientesClienteIdOnboardingRoute
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
     | '/app/clientes/$clienteId/lee'
+    | '/app/clientes/$clienteId/onboarding'
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
     | '/app/clientes/$clienteId/lee'
+    | '/app/clientes/$clienteId/onboarding'
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
@@ -307,6 +319,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
     | '/app/clientes/$clienteId/lee'
+    | '/app/clientes/$clienteId/onboarding'
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
@@ -432,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdPlanRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
+    '/app/clientes/$clienteId/onboarding': {
+      id: '/app/clientes/$clienteId/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/clientes/$clienteId/onboarding'
+      preLoaderRoute: typeof AppClientesClienteIdOnboardingRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
     '/app/clientes/$clienteId/lee': {
       id: '/app/clientes/$clienteId/lee'
       path: '/lee'
@@ -492,6 +512,7 @@ interface AppClientesClienteIdRouteChildren {
   AppClientesClienteIdCotizacionesRoute: typeof AppClientesClienteIdCotizacionesRoute
   AppClientesClienteIdEmpresaRoute: typeof AppClientesClienteIdEmpresaRoute
   AppClientesClienteIdLeeRoute: typeof AppClientesClienteIdLeeRoute
+  AppClientesClienteIdOnboardingRoute: typeof AppClientesClienteIdOnboardingRoute
   AppClientesClienteIdPlanRoute: typeof AppClientesClienteIdPlanRoute
   AppClientesClienteIdResumenRoute: typeof AppClientesClienteIdResumenRoute
   AppClientesClienteIdSideRoute: typeof AppClientesClienteIdSideRoute
@@ -505,6 +526,7 @@ const AppClientesClienteIdRouteChildren: AppClientesClienteIdRouteChildren = {
   AppClientesClienteIdCotizacionesRoute: AppClientesClienteIdCotizacionesRoute,
   AppClientesClienteIdEmpresaRoute: AppClientesClienteIdEmpresaRoute,
   AppClientesClienteIdLeeRoute: AppClientesClienteIdLeeRoute,
+  AppClientesClienteIdOnboardingRoute: AppClientesClienteIdOnboardingRoute,
   AppClientesClienteIdPlanRoute: AppClientesClienteIdPlanRoute,
   AppClientesClienteIdResumenRoute: AppClientesClienteIdResumenRoute,
   AppClientesClienteIdSideRoute: AppClientesClienteIdSideRoute,

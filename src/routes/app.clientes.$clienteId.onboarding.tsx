@@ -117,7 +117,9 @@ function OnboardingPage() {
       accessToken: session?.access_token,
       empresa: { nombre: cliente?.nombre_empresa ?? "—", sector: cliente?.sector, ciudad: cliente?.ciudad, pais: cliente?.pais },
       paso1: p1 as Record<string, unknown>, paso2: p2 as Record<string, unknown>,
-      paso3: p3 as Record<string, unknown>, paso4: p4 as Record<string, unknown>, paso5: p5 as Record<string, unknown>,
+      paso3: p3 as unknown as Record<string, unknown>,
+      paso4: p4 as unknown as Record<string, unknown>,
+      paso5: p5 as unknown as Record<string, unknown>,
     } });
     if (r.error) toast.error(r.error);
     else { setAnalisisIa(r.contenido); toast.success("Análisis IA generado"); }
