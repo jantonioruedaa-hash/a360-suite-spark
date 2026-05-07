@@ -5,7 +5,7 @@ import { ESTADOS } from "@/lib/clientes-helpers";
 import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Building2, Users, Activity, FileText,
-  BarChart3, Target, Users2, BookOpen, Sparkles, ArrowLeft,
+  BarChart3, Target, Users2, BookOpen, Sparkles, ArrowLeft, Rocket,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId")({
@@ -30,6 +30,7 @@ interface ClienteFull {
 }
 
 const SECCIONES = [
+  { url: "onboarding", label: "Onboarding", icon: Rocket },
   { url: "resumen", label: "Resumen ejecutivo", icon: LayoutDashboard },
   { url: "empresa", label: "Información empresa", icon: Building2 },
   { url: "contactos", label: "Contactos", icon: Users },
