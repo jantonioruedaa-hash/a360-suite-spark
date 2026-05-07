@@ -22,10 +22,15 @@ import { Route as AppCoachingRouteImport } from './routes/app.coaching'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
 import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.$clienteId'
+import { Route as AppClientesClienteIdSideRouteImport } from './routes/app.clientes.$clienteId.side'
 import { Route as AppClientesClienteIdResumenRouteImport } from './routes/app.clientes.$clienteId.resumen'
+import { Route as AppClientesClienteIdPlanRouteImport } from './routes/app.clientes.$clienteId.plan'
+import { Route as AppClientesClienteIdLeeRouteImport } from './routes/app.clientes.$clienteId.lee'
 import { Route as AppClientesClienteIdEmpresaRouteImport } from './routes/app.clientes.$clienteId.empresa'
 import { Route as AppClientesClienteIdCotizacionesRouteImport } from './routes/app.clientes.$clienteId.cotizaciones'
 import { Route as AppClientesClienteIdContactosRouteImport } from './routes/app.clientes.$clienteId.contactos'
+import { Route as AppClientesClienteIdCoachingRouteImport } from './routes/app.clientes.$clienteId.coaching'
+import { Route as AppClientesClienteIdAnalisisIaRouteImport } from './routes/app.clientes.$clienteId.analisis-ia'
 import { Route as AppClientesClienteIdActividadesRouteImport } from './routes/app.clientes.$clienteId.actividades'
 
 const LoginRoute = LoginRouteImport.update({
@@ -93,12 +98,29 @@ const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
   path: '/$clienteId',
   getParentRoute: () => AppClientesRoute,
 } as any)
+const AppClientesClienteIdSideRoute =
+  AppClientesClienteIdSideRouteImport.update({
+    id: '/side',
+    path: '/side',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
 const AppClientesClienteIdResumenRoute =
   AppClientesClienteIdResumenRouteImport.update({
     id: '/resumen',
     path: '/resumen',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
+const AppClientesClienteIdPlanRoute =
+  AppClientesClienteIdPlanRouteImport.update({
+    id: '/plan',
+    path: '/plan',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdLeeRoute = AppClientesClienteIdLeeRouteImport.update({
+  id: '/lee',
+  path: '/lee',
+  getParentRoute: () => AppClientesClienteIdRoute,
+} as any)
 const AppClientesClienteIdEmpresaRoute =
   AppClientesClienteIdEmpresaRouteImport.update({
     id: '/empresa',
@@ -115,6 +137,18 @@ const AppClientesClienteIdContactosRoute =
   AppClientesClienteIdContactosRouteImport.update({
     id: '/contactos',
     path: '/contactos',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdCoachingRoute =
+  AppClientesClienteIdCoachingRouteImport.update({
+    id: '/coaching',
+    path: '/coaching',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdAnalisisIaRoute =
+  AppClientesClienteIdAnalisisIaRouteImport.update({
+    id: '/analisis-ia',
+    path: '/analisis-ia',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
 const AppClientesClienteIdActividadesRoute =
@@ -139,10 +173,15 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$clienteId': typeof AppClientesClienteIdRouteWithChildren
   '/app/side/historial': typeof AppSideHistorialRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
+  '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
+  '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
+  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
+  '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
+  '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,10 +198,15 @@ export interface FileRoutesByTo {
   '/app/clientes/$clienteId': typeof AppClientesClienteIdRouteWithChildren
   '/app/side/historial': typeof AppSideHistorialRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
+  '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
+  '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
+  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
+  '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
+  '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,10 +224,15 @@ export interface FileRoutesById {
   '/app/clientes/$clienteId': typeof AppClientesClienteIdRouteWithChildren
   '/app/side_/historial': typeof AppSideHistorialRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
+  '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
+  '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
+  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
+  '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
+  '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -202,10 +251,15 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId'
     | '/app/side/historial'
     | '/app/clientes/$clienteId/actividades'
+    | '/app/clientes/$clienteId/analisis-ia'
+    | '/app/clientes/$clienteId/coaching'
     | '/app/clientes/$clienteId/contactos'
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
+    | '/app/clientes/$clienteId/lee'
+    | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
+    | '/app/clientes/$clienteId/side'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -222,10 +276,15 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId'
     | '/app/side/historial'
     | '/app/clientes/$clienteId/actividades'
+    | '/app/clientes/$clienteId/analisis-ia'
+    | '/app/clientes/$clienteId/coaching'
     | '/app/clientes/$clienteId/contactos'
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
+    | '/app/clientes/$clienteId/lee'
+    | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
+    | '/app/clientes/$clienteId/side'
   id:
     | '__root__'
     | '/'
@@ -242,10 +301,15 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId'
     | '/app/side_/historial'
     | '/app/clientes/$clienteId/actividades'
+    | '/app/clientes/$clienteId/analisis-ia'
+    | '/app/clientes/$clienteId/coaching'
     | '/app/clientes/$clienteId/contactos'
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
+    | '/app/clientes/$clienteId/lee'
+    | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
+    | '/app/clientes/$clienteId/side'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -347,11 +411,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdRouteImport
       parentRoute: typeof AppClientesRoute
     }
+    '/app/clientes/$clienteId/side': {
+      id: '/app/clientes/$clienteId/side'
+      path: '/side'
+      fullPath: '/app/clientes/$clienteId/side'
+      preLoaderRoute: typeof AppClientesClienteIdSideRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
     '/app/clientes/$clienteId/resumen': {
       id: '/app/clientes/$clienteId/resumen'
       path: '/resumen'
       fullPath: '/app/clientes/$clienteId/resumen'
       preLoaderRoute: typeof AppClientesClienteIdResumenRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/plan': {
+      id: '/app/clientes/$clienteId/plan'
+      path: '/plan'
+      fullPath: '/app/clientes/$clienteId/plan'
+      preLoaderRoute: typeof AppClientesClienteIdPlanRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/lee': {
+      id: '/app/clientes/$clienteId/lee'
+      path: '/lee'
+      fullPath: '/app/clientes/$clienteId/lee'
+      preLoaderRoute: typeof AppClientesClienteIdLeeRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
     '/app/clientes/$clienteId/empresa': {
@@ -375,6 +460,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdContactosRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
+    '/app/clientes/$clienteId/coaching': {
+      id: '/app/clientes/$clienteId/coaching'
+      path: '/coaching'
+      fullPath: '/app/clientes/$clienteId/coaching'
+      preLoaderRoute: typeof AppClientesClienteIdCoachingRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/analisis-ia': {
+      id: '/app/clientes/$clienteId/analisis-ia'
+      path: '/analisis-ia'
+      fullPath: '/app/clientes/$clienteId/analisis-ia'
+      preLoaderRoute: typeof AppClientesClienteIdAnalisisIaRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
     '/app/clientes/$clienteId/actividades': {
       id: '/app/clientes/$clienteId/actividades'
       path: '/actividades'
@@ -387,18 +486,28 @@ declare module '@tanstack/react-router' {
 
 interface AppClientesClienteIdRouteChildren {
   AppClientesClienteIdActividadesRoute: typeof AppClientesClienteIdActividadesRoute
+  AppClientesClienteIdAnalisisIaRoute: typeof AppClientesClienteIdAnalisisIaRoute
+  AppClientesClienteIdCoachingRoute: typeof AppClientesClienteIdCoachingRoute
   AppClientesClienteIdContactosRoute: typeof AppClientesClienteIdContactosRoute
   AppClientesClienteIdCotizacionesRoute: typeof AppClientesClienteIdCotizacionesRoute
   AppClientesClienteIdEmpresaRoute: typeof AppClientesClienteIdEmpresaRoute
+  AppClientesClienteIdLeeRoute: typeof AppClientesClienteIdLeeRoute
+  AppClientesClienteIdPlanRoute: typeof AppClientesClienteIdPlanRoute
   AppClientesClienteIdResumenRoute: typeof AppClientesClienteIdResumenRoute
+  AppClientesClienteIdSideRoute: typeof AppClientesClienteIdSideRoute
 }
 
 const AppClientesClienteIdRouteChildren: AppClientesClienteIdRouteChildren = {
   AppClientesClienteIdActividadesRoute: AppClientesClienteIdActividadesRoute,
+  AppClientesClienteIdAnalisisIaRoute: AppClientesClienteIdAnalisisIaRoute,
+  AppClientesClienteIdCoachingRoute: AppClientesClienteIdCoachingRoute,
   AppClientesClienteIdContactosRoute: AppClientesClienteIdContactosRoute,
   AppClientesClienteIdCotizacionesRoute: AppClientesClienteIdCotizacionesRoute,
   AppClientesClienteIdEmpresaRoute: AppClientesClienteIdEmpresaRoute,
+  AppClientesClienteIdLeeRoute: AppClientesClienteIdLeeRoute,
+  AppClientesClienteIdPlanRoute: AppClientesClienteIdPlanRoute,
   AppClientesClienteIdResumenRoute: AppClientesClienteIdResumenRoute,
+  AppClientesClienteIdSideRoute: AppClientesClienteIdSideRoute,
 }
 
 const AppClientesClienteIdRouteWithChildren =
