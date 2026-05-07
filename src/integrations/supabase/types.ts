@@ -14,18 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
+      cliente_actividades: {
+        Row: {
+          adjunto_url: string | null
+          cliente_id: string
+          consultor_id: string | null
+          contacto_id: string | null
+          created_at: string
+          descripcion: string | null
+          duracion_minutos: number | null
+          fecha: string
+          fecha_proxima_accion: string | null
+          id: string
+          proxima_accion: string | null
+          resultado: string | null
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          adjunto_url?: string | null
+          cliente_id: string
+          consultor_id?: string | null
+          contacto_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          duracion_minutos?: number | null
+          fecha?: string
+          fecha_proxima_accion?: string | null
+          id?: string
+          proxima_accion?: string | null
+          resultado?: string | null
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          adjunto_url?: string | null
+          cliente_id?: string
+          consultor_id?: string | null
+          contacto_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          duracion_minutos?: number | null
+          fecha?: string
+          fecha_proxima_accion?: string | null
+          id?: string
+          proxima_accion?: string | null
+          resultado?: string | null
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_actividades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_actividades_contacto_id_fkey"
+            columns: ["contacto_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_contactos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_contactos: {
+        Row: {
+          activo: boolean
+          apellido: string
+          area: string | null
+          cargo: string | null
+          celular: string | null
+          ciudad: string | null
+          cliente_id: string
+          created_at: string
+          direccion: string | null
+          email: string | null
+          email_secundario: string | null
+          es_contacto_principal: boolean
+          es_decisor: boolean
+          extension: string | null
+          fecha_nacimiento: string | null
+          foto_url: string | null
+          id: string
+          linkedin_url: string | null
+          nombre: string
+          notas: string | null
+          telefono_oficina: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          apellido: string
+          area?: string | null
+          cargo?: string | null
+          celular?: string | null
+          ciudad?: string | null
+          cliente_id: string
+          created_at?: string
+          direccion?: string | null
+          email?: string | null
+          email_secundario?: string | null
+          es_contacto_principal?: boolean
+          es_decisor?: boolean
+          extension?: string | null
+          fecha_nacimiento?: string | null
+          foto_url?: string | null
+          id?: string
+          linkedin_url?: string | null
+          nombre: string
+          notas?: string | null
+          telefono_oficina?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          apellido?: string
+          area?: string | null
+          cargo?: string | null
+          celular?: string | null
+          ciudad?: string | null
+          cliente_id?: string
+          created_at?: string
+          direccion?: string | null
+          email?: string | null
+          email_secundario?: string | null
+          es_contacto_principal?: boolean
+          es_decisor?: boolean
+          extension?: string | null
+          fecha_nacimiento?: string | null
+          foto_url?: string | null
+          id?: string
+          linkedin_url?: string | null
+          nombre?: string
+          notas?: string | null
+          telefono_oficina?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_contactos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_cotizaciones: {
+        Row: {
+          cliente_id: string
+          condiciones: string | null
+          consultor_id: string | null
+          contacto_id: string | null
+          created_at: string
+          descripcion: string | null
+          descuento_porcentaje: number
+          descuento_valor: number
+          estado: string
+          fecha_emision: string | null
+          fecha_vencimiento: string | null
+          id: string
+          moneda: string
+          notas: string | null
+          numero_cotizacion: string | null
+          plan: string | null
+          servicios: Json
+          subtotal: number
+          titulo: string
+          total: number
+          updated_at: string
+          validez_dias: number
+        }
+        Insert: {
+          cliente_id: string
+          condiciones?: string | null
+          consultor_id?: string | null
+          contacto_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          descuento_porcentaje?: number
+          descuento_valor?: number
+          estado?: string
+          fecha_emision?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          moneda?: string
+          notas?: string | null
+          numero_cotizacion?: string | null
+          plan?: string | null
+          servicios?: Json
+          subtotal?: number
+          titulo: string
+          total?: number
+          updated_at?: string
+          validez_dias?: number
+        }
+        Update: {
+          cliente_id?: string
+          condiciones?: string | null
+          consultor_id?: string | null
+          contacto_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          descuento_porcentaje?: number
+          descuento_valor?: number
+          estado?: string
+          fecha_emision?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          moneda?: string
+          notas?: string | null
+          numero_cotizacion?: string | null
+          plan?: string | null
+          servicios?: Json
+          subtotal?: number
+          titulo?: string
+          total?: number
+          updated_at?: string
+          validez_dias?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_cotizaciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_cotizaciones_contacto_id_fkey"
+            columns: ["contacto_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_contactos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           activo: boolean
           ciudad: string | null
           cliente_user_id: string | null
+          codigo_postal: string | null
           consultor_id: string | null
           created_at: string
+          descripcion: string | null
+          direccion: string | null
+          estado: string | null
+          facturacion_anual: number | null
+          fecha_inicio_relacion: string | null
           id: string
+          linkedin_empresa: string | null
+          logo_url: string | null
+          moneda: string | null
+          nombre_comercial: string | null
           nombre_empresa: string
+          notas_internas: string | null
+          num_empleados: number | null
+          origen: string | null
           pais: string | null
           plan_licencia: string
           sector: string | null
+          subsector: string | null
           tamano: string | null
           updated_at: string
           web: string | null
@@ -34,13 +287,27 @@ export type Database = {
           activo?: boolean
           ciudad?: string | null
           cliente_user_id?: string | null
+          codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
+          descripcion?: string | null
+          direccion?: string | null
+          estado?: string | null
+          facturacion_anual?: number | null
+          fecha_inicio_relacion?: string | null
           id?: string
+          linkedin_empresa?: string | null
+          logo_url?: string | null
+          moneda?: string | null
+          nombre_comercial?: string | null
           nombre_empresa: string
+          notas_internas?: string | null
+          num_empleados?: number | null
+          origen?: string | null
           pais?: string | null
           plan_licencia?: string
           sector?: string | null
+          subsector?: string | null
           tamano?: string | null
           updated_at?: string
           web?: string | null
@@ -49,13 +316,27 @@ export type Database = {
           activo?: boolean
           ciudad?: string | null
           cliente_user_id?: string | null
+          codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
+          descripcion?: string | null
+          direccion?: string | null
+          estado?: string | null
+          facturacion_anual?: number | null
+          fecha_inicio_relacion?: string | null
           id?: string
+          linkedin_empresa?: string | null
+          logo_url?: string | null
+          moneda?: string | null
+          nombre_comercial?: string | null
           nombre_empresa?: string
+          notas_internas?: string | null
+          num_empleados?: number | null
+          origen?: string | null
           pais?: string | null
           plan_licencia?: string
           sector?: string | null
+          subsector?: string | null
           tamano?: string | null
           updated_at?: string
           web?: string | null
