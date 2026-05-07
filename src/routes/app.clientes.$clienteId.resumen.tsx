@@ -76,6 +76,40 @@ function Resumen() {
         </div>
       </div>
 
+      {/* Accesos rápidos a las secciones del cliente */}
+      <div>
+        <h3 className="font-display text-navy mb-3">Secciones del cliente</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[
+            { url: "empresa", label: "Información empresa", icon: Building2, desc: "Datos generales y fiscales" },
+            { url: "contactos", label: "Contactos", icon: Users, desc: "Personas clave del cliente" },
+            { url: "actividades", label: "Actividades", icon: Activity, desc: "Llamadas, reuniones, notas" },
+            { url: "cotizaciones", label: "Cotizaciones", icon: FileText, desc: "Propuestas comerciales" },
+            { url: "side", label: "Diagnósticos SIDE", icon: BarChart3, desc: "Evaluaciones IME" },
+            { url: "plan", label: "Plan estratégico", icon: Target, desc: "18 secciones" },
+            { url: "coaching", label: "Coaching", icon: Users2, desc: "Herramientas y sesiones" },
+            { url: "lee", label: "Programa LEE", icon: BookOpen, desc: "10 capítulos" },
+            { url: "analisis-ia", label: "Análisis IA", icon: Sparkles, desc: "Insights inteligentes" },
+          ].map((s) => (
+            <Link key={s.url}
+              to={`/app/clientes/$clienteId/${s.url}` as "/app/clientes/$clienteId/resumen"}
+              params={{ clienteId }}
+              className="a360-card p-4 hover:border-gold transition group flex items-start gap-3">
+              <div className="w-9 h-9 rounded-md bg-cream flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition flex-shrink-0">
+                <s.icon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-navy flex items-center gap-1">
+                  {s.label}
+                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition" />
+                </div>
+                <div className="text-xs text-muted-foreground truncate">{s.desc}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* 4 métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="a360-card a360-card-lg p-5">
