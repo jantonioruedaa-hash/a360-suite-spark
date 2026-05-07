@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -32,6 +32,7 @@ interface IMEItem { cliente_id: string; ime_score: number | null; updated_at: st
 interface ContactoLite { cliente_id: string; nombre: string; apellido: string; cargo: string | null }
 
 function ClientesPage() {
+  const path = useRouterState({ select: (r) => r.location.pathname });
   const { user } = useAuth();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [imes, setImes] = useState<Record<string, number | null>>({});
@@ -88,6 +89,10 @@ function ClientesPage() {
     }
     return true;
   }), [clientes, fEstado, fPlan, fSector, search, contactos]);
+
+  if (path !== "/app/clientes") {
+    return <Outlet />;
+  }
 
   return (
     <div className="max-w-[1400px]">
