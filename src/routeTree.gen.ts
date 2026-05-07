@@ -21,6 +21,7 @@ import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion
 import { Route as AppCoachingRouteImport } from './routes/app.coaching'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
+import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.$clienteId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -82,12 +83,17 @@ const AppSideHistorialRoute = AppSideHistorialRouteImport.update({
   path: '/side/historial',
   getParentRoute: () => AppRoute,
 } as any)
+const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
+  id: '/$clienteId',
+  path: '/$clienteId',
+  getParentRoute: () => AppClientesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/app/clientes': typeof AppClientesRoute
+  '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/coaching': typeof AppCoachingRoute
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
@@ -95,13 +101,14 @@ export interface FileRoutesByFullPath {
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
   '/app/side': typeof AppSideRoute
+  '/app/clientes/$clienteId': typeof AppClientesClienteIdRoute
   '/app/side/historial': typeof AppSideHistorialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/app/clientes': typeof AppClientesRoute
+  '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/coaching': typeof AppCoachingRoute
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
   '/app/side': typeof AppSideRoute
+  '/app/clientes/$clienteId': typeof AppClientesClienteIdRoute
   '/app/side/historial': typeof AppSideHistorialRoute
 }
 export interface FileRoutesById {
@@ -116,7 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/app/clientes': typeof AppClientesRoute
+  '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/coaching': typeof AppCoachingRoute
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
   '/app/side': typeof AppSideRoute
+  '/app/clientes/$clienteId': typeof AppClientesClienteIdRoute
   '/app/side_/historial': typeof AppSideHistorialRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/app/clientes/$clienteId'
     | '/app/side/historial'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/app/clientes/$clienteId'
     | '/app/side/historial'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/app/clientes/$clienteId'
     | '/app/side_/historial'
   fileRoutesById: FileRoutesById
 }
@@ -263,11 +275,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSideHistorialRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/clientes/$clienteId': {
+      id: '/app/clientes/$clienteId'
+      path: '/$clienteId'
+      fullPath: '/app/clientes/$clienteId'
+      preLoaderRoute: typeof AppClientesClienteIdRouteImport
+      parentRoute: typeof AppClientesRoute
+    }
   }
 }
 
+interface AppClientesRouteChildren {
+  AppClientesClienteIdRoute: typeof AppClientesClienteIdRoute
+}
+
+const AppClientesRouteChildren: AppClientesRouteChildren = {
+  AppClientesClienteIdRoute: AppClientesClienteIdRoute,
+}
+
+const AppClientesRouteWithChildren = AppClientesRoute._addFileChildren(
+  AppClientesRouteChildren,
+)
+
 interface AppRouteChildren {
-  AppClientesRoute: typeof AppClientesRoute
+  AppClientesRoute: typeof AppClientesRouteWithChildren
   AppCoachingRoute: typeof AppCoachingRoute
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -279,7 +310,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppClientesRoute: AppClientesRoute,
+  AppClientesRoute: AppClientesRouteWithChildren,
   AppCoachingRoute: AppCoachingRoute,
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppDashboardRoute: AppDashboardRoute,
