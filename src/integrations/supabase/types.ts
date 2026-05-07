@@ -134,6 +134,90 @@ export type Database = {
           },
         ]
       }
+      cliente_compartidos: {
+        Row: {
+          canales: Json
+          cliente_id: string
+          compromiso_id: string | null
+          consultor_id: string | null
+          contenido_id: string | null
+          contenido_ids: Json
+          crear_compromiso_lectura: boolean
+          created_at: string
+          destinatarios: Json
+          estado: string
+          expira_en: string | null
+          id: string
+          incluir_compromisos: boolean
+          incluir_kpis: boolean
+          incluir_pdf: boolean
+          ip_ultima_vista: string | null
+          mensaje: string | null
+          pdf_url: string | null
+          primera_vista: string | null
+          share_token: string | null
+          tipo_contenido: string
+          titulo: string
+          ultima_vista: string | null
+          updated_at: string
+          vistas: number
+        }
+        Insert: {
+          canales?: Json
+          cliente_id: string
+          compromiso_id?: string | null
+          consultor_id?: string | null
+          contenido_id?: string | null
+          contenido_ids?: Json
+          crear_compromiso_lectura?: boolean
+          created_at?: string
+          destinatarios?: Json
+          estado?: string
+          expira_en?: string | null
+          id?: string
+          incluir_compromisos?: boolean
+          incluir_kpis?: boolean
+          incluir_pdf?: boolean
+          ip_ultima_vista?: string | null
+          mensaje?: string | null
+          pdf_url?: string | null
+          primera_vista?: string | null
+          share_token?: string | null
+          tipo_contenido: string
+          titulo: string
+          ultima_vista?: string | null
+          updated_at?: string
+          vistas?: number
+        }
+        Update: {
+          canales?: Json
+          cliente_id?: string
+          compromiso_id?: string | null
+          consultor_id?: string | null
+          contenido_id?: string | null
+          contenido_ids?: Json
+          crear_compromiso_lectura?: boolean
+          created_at?: string
+          destinatarios?: Json
+          estado?: string
+          expira_en?: string | null
+          id?: string
+          incluir_compromisos?: boolean
+          incluir_kpis?: boolean
+          incluir_pdf?: boolean
+          ip_ultima_vista?: string | null
+          mensaje?: string | null
+          pdf_url?: string | null
+          primera_vista?: string | null
+          share_token?: string | null
+          tipo_contenido?: string
+          titulo?: string
+          ultima_vista?: string | null
+          updated_at?: string
+          vistas?: number
+        }
+        Relationships: []
+      }
       cliente_compromisos: {
         Row: {
           actividad_id: string | null
@@ -894,6 +978,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      registrar_vista_compartido: {
+        Args: { _ip?: string; _token: string }
+        Returns: undefined
       }
     }
     Enums: {
