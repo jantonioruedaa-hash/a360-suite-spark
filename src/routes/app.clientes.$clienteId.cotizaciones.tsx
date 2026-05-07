@@ -71,7 +71,7 @@ function Cotizaciones() {
       supabase.from("clientes").select("nombre_empresa,nombre_comercial,direccion,ciudad,pais").eq("id", clienteId).maybeSingle(),
       supabase.from("cliente_contactos").select("id,nombre,apellido,email").eq("cliente_id", clienteId).eq("activo", true),
     ]);
-    setList((cs ?? []) as Cotizacion[]);
+    setList((cs ?? []) as unknown as Cotizacion[]);
     setCliente(cli as ClienteData | null);
     setContactos((cts ?? []) as ContactoLite[]);
   };
@@ -262,8 +262,8 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       condiciones: form.condiciones || null,
     };
     const { error } = form.id
-      ? await supabase.from("cliente_cotizaciones").update(payload).eq("id", form.id)
-      : await supabase.from("cliente_cotizaciones").insert(payload);
+      ? await supabase.from("cliente_cotizaciones").update(payload as never).eq("id", form.id)
+      : await supabase.from("cliente_cotizaciones").insert(payload as never);
     if (error) { toast.error(error.message); return; }
     toast.success("Cotización guardada");
     onSaved();

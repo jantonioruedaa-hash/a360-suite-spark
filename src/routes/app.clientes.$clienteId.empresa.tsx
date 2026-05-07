@@ -50,7 +50,7 @@ function Empresa() {
         payload[k] = v || null;
       }
     });
-    const { error } = await supabase.from("clientes").update(payload).eq("id", clienteId);
+    const { error } = await supabase.from("clientes").update(payload as never).eq("id", clienteId);
     if (error) toast.error(error.message); else toast.success("Información guardada");
     setSaving(false);
   };

@@ -60,7 +60,12 @@ function Contactos() {
       await supabase.from("cliente_contactos").update({ es_contacto_principal: false }).eq("cliente_id", clienteId).neq("id", editing.id ?? "00000000-0000-0000-0000-000000000000");
     }
 
-    const payload = { ...editing, cliente_id: clienteId };
+    const payload = {
+      ...editing,
+      nombre: editing.nombre!,
+      apellido: editing.apellido!,
+      cliente_id: clienteId,
+    };
     const { error } = editing.id
       ? await supabase.from("cliente_contactos").update(payload).eq("id", editing.id)
       : await supabase.from("cliente_contactos").insert(payload);
