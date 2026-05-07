@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShareTokenRouteImport } from './routes/share.$token'
 import { Route as AppSideRouteImport } from './routes/app.side'
 import { Route as AppPlanRouteImport } from './routes/app.plan'
 import { Route as AppLeeRouteImport } from './routes/app.lee'
@@ -47,6 +48,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareTokenRoute = ShareTokenRouteImport.update({
+  id: '/share/$token',
+  path: '/share/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppSideRoute = AppSideRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
   '/app/side': typeof AppSideRoute
+  '/share/$token': typeof ShareTokenRoute
   '/app/clientes/$clienteId': typeof AppClientesClienteIdRouteWithChildren
   '/app/side/historial': typeof AppSideHistorialRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
   '/app/side': typeof AppSideRoute
+  '/share/$token': typeof ShareTokenRoute
   '/app/clientes/$clienteId': typeof AppClientesClienteIdRouteWithChildren
   '/app/side/historial': typeof AppSideHistorialRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
   '/app/side': typeof AppSideRoute
+  '/share/$token': typeof ShareTokenRoute
   '/app/clientes/$clienteId': typeof AppClientesClienteIdRouteWithChildren
   '/app/side_/historial': typeof AppSideHistorialRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/share/$token'
     | '/app/clientes/$clienteId'
     | '/app/side/historial'
     | '/app/clientes/$clienteId/actividades'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/share/$token'
     | '/app/clientes/$clienteId'
     | '/app/side/historial'
     | '/app/clientes/$clienteId/actividades'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/app/lee'
     | '/app/plan'
     | '/app/side'
+    | '/share/$token'
     | '/app/clientes/$clienteId'
     | '/app/side_/historial'
     | '/app/clientes/$clienteId/actividades'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ShareTokenRoute: typeof ShareTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/$token': {
+      id: '/share/$token'
+      path: '/share/$token'
+      fullPath: '/share/$token'
+      preLoaderRoute: typeof ShareTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/side': {
@@ -577,6 +597,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  ShareTokenRoute: ShareTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
