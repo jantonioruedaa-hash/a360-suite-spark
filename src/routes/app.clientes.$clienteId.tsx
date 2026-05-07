@@ -90,30 +90,27 @@ function ClienteLayout() {
         </div>
       </div>
 
-      <div className="flex flex-1">
-        {/* Menú lateral del cliente */}
-        <aside className="w-60 bg-cream/40 border-r border-border p-3 flex-shrink-0 hidden md:block">
-          <div className="text-[10px] uppercase tracking-wider text-gold font-semibold px-2 py-2">Vista 360°</div>
-          <nav className="space-y-0.5">
-            {SECCIONES.map((s) => (
-              <Link key={s.url}
-                to={`/app/clientes/$clienteId/${s.url}` as "/app/clientes/$clienteId/resumen"}
-                params={{ clienteId }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition ${
-                  isActive(s.url)
-                    ? "bg-navy text-white font-medium"
-                    : "text-navy/80 hover:bg-white hover:text-navy"
-                }`}>
-                <s.icon className="w-4 h-4" />
-                {s.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
+      {/* Tabs horizontales (visible en todos los tamaños) */}
+      <div className="bg-white border-b border-border sticky top-[61px] z-10 px-2 overflow-x-auto">
+        <nav className="flex gap-1 min-w-max">
+          {SECCIONES.map((s) => (
+            <Link key={s.url}
+              to={`/app/clientes/$clienteId/${s.url}` as "/app/clientes/$clienteId/resumen"}
+              params={{ clienteId }}
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs whitespace-nowrap border-b-2 transition ${
+                isActive(s.url)
+                  ? "border-gold text-navy font-semibold"
+                  : "border-transparent text-muted-foreground hover:text-navy"
+              }`}>
+              <s.icon className="w-3.5 h-3.5" />
+              {s.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
 
-        <div className="flex-1 p-6 lg:p-8 min-w-0 overflow-x-auto">
-          <Outlet />
-        </div>
+      <div className="flex-1 p-6 lg:p-8 min-w-0 overflow-x-auto">
+        <Outlet />
       </div>
     </div>
   );
