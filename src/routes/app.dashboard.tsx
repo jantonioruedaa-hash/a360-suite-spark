@@ -120,11 +120,11 @@ function Dashboard() {
   }, [actividades, compromisos, cotizaciones]);
 
   const metrics = [
-    { label: "Clientes activos", value: clientes.length, icon: Briefcase, accent: "Cartera total" },
-    { label: "Diagnósticos este mes", value: sideCount, icon: Activity, accent: "SIDE completados" },
-    { label: "Sesiones este mes", value: stats.sesionesMes, icon: Users2, accent: "Consultoría" },
+    { label: "Clientes activos", value: clientes.length, icon: Briefcase, accent: "Cartera total", to: "/app/clientes" as const },
+    { label: "Diagnósticos este mes", value: sideCount, icon: Activity, accent: "SIDE completados", to: "/app/side_/historial" as const },
+    { label: "Sesiones este mes", value: stats.sesionesMes, icon: Users2, accent: "Consultoría", to: "/app/coaching" as const },
     { label: "Compromisos pendientes", value: stats.compPend, icon: Clock,
-      accent: stats.compVencidos > 0 ? `${stats.compVencidos} vencidos` : "Al día" },
+      accent: stats.compVencidos > 0 ? `${stats.compVencidos} vencidos` : "Al día", to: "/app/clientes" as const },
   ];
 
   const fmtUSD = (n: number) => `USD ${Math.round(n).toLocaleString()}`;
