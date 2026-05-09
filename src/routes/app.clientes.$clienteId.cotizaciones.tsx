@@ -11,8 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ESTADOS_COTIZACION } from "@/lib/clientes-helpers";
 import { generarCotizacionPDF, PLANES_PRESET } from "@/lib/cotizacion-pdf";
+import {
+  PAISES_LATAM, getPais, ajustarPrecioPorPais,
+  RANGOS_FACTURACION, calcularIME, justificacionPorPlan,
+} from "@/lib/cotizacion-helpers";
 import { toast } from "sonner";
-import { Plus, Download, Pencil, FileText } from "lucide-react";
+import { Plus, Download, Pencil, FileText, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/cotizaciones")({ component: Cotizaciones });
 
@@ -36,6 +40,8 @@ interface Cotizacion {
   notas: string | null;
   condiciones: string | null;
   contacto_id: string | null;
+  ime_estimado: string | null;
+  justificacion_programa: string | null;
 }
 
 interface ClienteData {
@@ -54,7 +60,7 @@ const EMPTY: Partial<Cotizacion> = {
   moneda: "USD", estado: "borrador", validez_dias: 30,
   fecha_emision: new Date().toISOString().slice(0, 10),
   notas: "", condiciones: "El presente documento tiene validez de 30 días desde su emisión.",
-  contacto_id: null,
+  contacto_id: null, ime_estimado: null, justificacion_programa: null,
 };
 
 function Cotizaciones() {
@@ -108,6 +114,8 @@ function Cotizaciones() {
       total: c.total,
       notas: c.notas,
       condiciones: c.condiciones,
+      imeEstimado: c.ime_estimado,
+      justificacion: c.justificacion_programa,
       cliente: {
         empresa: cliente.nombre_empresa,
         nombreComercial: cliente.nombre_comercial,
@@ -202,6 +210,11 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
   onSaved: () => void;
 }) {
   const [form, setForm] = useState<Partial<Cotizacion>>(value);
+  const [paisCode, setPaisCode] = useState<string>(() => {
+    const p = PAISES_LATAM.find((x) => x.moneda === (value.moneda ?? "USD"));
+    return p?.code ?? "USD";
+  });
+  const [rangoFact, setRangoFact] = useState<string>("500k-1M");
 
   const recalcular = (servicios: Servicio[], descPct: number, descVal: number) => {
     const subtotal = servicios.reduce((s, x) => s + x.cantidad * x.precio, 0);
@@ -222,8 +235,51 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
   const cargarPlan = (plan: string) => {
     const preset = PLANES_PRESET[plan];
     if (!preset) return;
-    const r = recalcular(preset.servicios, form.descuento_porcentaje ?? 0, 0);
-    setForm({ ...form, plan, titulo: form.titulo || preset.label, servicios: preset.servicios, ...r });
+    const pais = getPais(paisCode);
+    const servicios = preset.servicios.map((s) => ({
+      ...s, precio: ajustarPrecioPorPais(s.precio, pais),
+    }));
+    const r = recalcular(servicios, form.descuento_porcentaje ?? 0, 0);
+    const ime = calcularIME(plan, rangoFact);
+    setForm({
+      ...form, plan,
+      titulo: form.titulo || preset.label,
+      servicios, ...r,
+      moneda: pais.moneda,
+      ime_estimado: ime?.texto ?? form.ime_estimado ?? null,
+      justificacion_programa: form.justificacion_programa || justificacionPorPlan(plan),
+    });
+  };
+
+  const aplicarPais = (code: string) => {
+    setPaisCode(code);
+    const pais = getPais(code);
+    // Re-precia los servicios actuales tomando el plan preset como referencia base USD
+    if (form.plan && PLANES_PRESET[form.plan]) {
+      const base = PLANES_PRESET[form.plan].servicios;
+      const servicios = (form.servicios ?? []).map((s, i) => ({
+        ...s,
+        precio: base[i] ? ajustarPrecioPorPais(base[i].precio, pais) : s.precio,
+      }));
+      const r = recalcular(servicios, form.descuento_porcentaje ?? 0, form.descuento_valor ?? 0);
+      setForm({ ...form, servicios, moneda: pais.moneda, ...r });
+    } else {
+      setForm({ ...form, moneda: pais.moneda });
+    }
+  };
+
+  const recalcularIME = () => {
+    if (!form.plan) { toast.error("Selecciona un plan primero"); return; }
+    const ime = calcularIME(form.plan, rangoFact);
+    if (!ime) { toast.error("No se pudo calcular el IME"); return; }
+    setForm({ ...form, ime_estimado: ime.texto });
+    toast.success("IME estimado actualizado");
+  };
+
+  const aplicarJustificacionAuto = () => {
+    if (!form.plan) { toast.error("Selecciona un plan primero"); return; }
+    setForm({ ...form, justificacion_programa: justificacionPorPlan(form.plan) });
+    toast.success("Justificación cargada");
   };
 
   const updateServicio = (i: number, field: keyof Servicio, val: string) => {
@@ -260,6 +316,8 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       fecha_emision: form.fecha_emision || null,
       notas: form.notas || null,
       condiciones: form.condiciones || null,
+      ime_estimado: form.ime_estimado || null,
+      justificacion_programa: form.justificacion_programa || null,
     };
     const { error } = form.id
       ? await supabase.from("cliente_cotizaciones").update(payload as never).eq("id", form.id)
@@ -298,6 +356,16 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
               <SelectContent>{contactos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre} {c.apellido}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          <div><Label>País / referencia de precios</Label>
+            <Select value={paisCode} onValueChange={aplicarPais}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PAISES_LATAM.map((p) => (
+                  <SelectItem key={p.code} value={p.code}>{p.nombre} ({p.moneda})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div><Label>Moneda</Label><Input value={form.moneda ?? "USD"} onChange={(e) => setForm({ ...form, moneda: e.target.value })} /></div>
           <div><Label>Fecha emisión</Label><Input type="date" value={form.fecha_emision ?? ""} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} /></div>
           <div><Label>Validez (días)</Label><Input type="number" value={form.validez_dias ?? 30} onChange={(e) => setForm({ ...form, validez_dias: Number(e.target.value) })} /></div>
@@ -330,6 +398,51 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
         </div>
 
         <div className="grid grid-cols-1 gap-3 mt-4">
+          {/* IME */}
+          <div className="border-2 border-gold/40 bg-cream/50 rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Impacto Monetario Esperado (IME)</Label>
+              <Button size="sm" variant="outline" onClick={recalcularIME}>
+                <Sparkles className="w-3 h-3 mr-1" /> Calcular
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Rango facturación cliente</Label>
+                <Select value={rangoFact} onValueChange={setRangoFact}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {RANGOS_FACTURACION.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Textarea
+              rows={2}
+              placeholder="Estimación del retorno esperado para el cliente"
+              value={form.ime_estimado ?? ""}
+              onChange={(e) => setForm({ ...form, ime_estimado: e.target.value })}
+            />
+          </div>
+
+          {/* Justificación */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>Justificación de la inversión</Label>
+              <Button size="sm" variant="ghost" onClick={aplicarJustificacionAuto}>
+                <Sparkles className="w-3 h-3 mr-1" /> Sugerir según plan
+              </Button>
+            </div>
+            <Textarea
+              rows={3}
+              value={form.justificacion_programa ?? ""}
+              onChange={(e) => setForm({ ...form, justificacion_programa: e.target.value })}
+              placeholder="Por qué este programa es la mejor opción para el cliente"
+            />
+          </div>
+
           <div><Label>Condiciones</Label><Textarea rows={2} value={form.condiciones ?? ""} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} /></div>
           <div><Label>Notas</Label><Textarea rows={2} value={form.notas ?? ""} onChange={(e) => setForm({ ...form, notas: e.target.value })} /></div>
         </div>
