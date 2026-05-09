@@ -11,8 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ESTADOS_COTIZACION } from "@/lib/clientes-helpers";
 import { generarCotizacionPDF, PLANES_PRESET } from "@/lib/cotizacion-pdf";
+import {
+  PAISES_LATAM, getPais, ajustarPrecioPorPais,
+  RANGOS_FACTURACION, calcularIME, justificacionPorPlan,
+} from "@/lib/cotizacion-helpers";
 import { toast } from "sonner";
-import { Plus, Download, Pencil, FileText } from "lucide-react";
+import { Plus, Download, Pencil, FileText, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/cotizaciones")({ component: Cotizaciones });
 
@@ -36,6 +40,8 @@ interface Cotizacion {
   notas: string | null;
   condiciones: string | null;
   contacto_id: string | null;
+  ime_estimado: string | null;
+  justificacion_programa: string | null;
 }
 
 interface ClienteData {
@@ -54,7 +60,7 @@ const EMPTY: Partial<Cotizacion> = {
   moneda: "USD", estado: "borrador", validez_dias: 30,
   fecha_emision: new Date().toISOString().slice(0, 10),
   notas: "", condiciones: "El presente documento tiene validez de 30 días desde su emisión.",
-  contacto_id: null,
+  contacto_id: null, ime_estimado: null, justificacion_programa: null,
 };
 
 function Cotizaciones() {
@@ -108,6 +114,8 @@ function Cotizaciones() {
       total: c.total,
       notas: c.notas,
       condiciones: c.condiciones,
+      imeEstimado: c.ime_estimado,
+      justificacion: c.justificacion_programa,
       cliente: {
         empresa: cliente.nombre_empresa,
         nombreComercial: cliente.nombre_comercial,
