@@ -210,6 +210,11 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
   onSaved: () => void;
 }) {
   const [form, setForm] = useState<Partial<Cotizacion>>(value);
+  const [paisCode, setPaisCode] = useState<string>(() => {
+    const p = PAISES_LATAM.find((x) => x.moneda === (value.moneda ?? "USD"));
+    return p?.code ?? "USD";
+  });
+  const [rangoFact, setRangoFact] = useState<string>("500k-1M");
 
   const recalcular = (servicios: Servicio[], descPct: number, descVal: number) => {
     const subtotal = servicios.reduce((s, x) => s + x.cantidad * x.precio, 0);
@@ -230,8 +235,51 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
   const cargarPlan = (plan: string) => {
     const preset = PLANES_PRESET[plan];
     if (!preset) return;
-    const r = recalcular(preset.servicios, form.descuento_porcentaje ?? 0, 0);
-    setForm({ ...form, plan, titulo: form.titulo || preset.label, servicios: preset.servicios, ...r });
+    const pais = getPais(paisCode);
+    const servicios = preset.servicios.map((s) => ({
+      ...s, precio: ajustarPrecioPorPais(s.precio, pais),
+    }));
+    const r = recalcular(servicios, form.descuento_porcentaje ?? 0, 0);
+    const ime = calcularIME(plan, rangoFact);
+    setForm({
+      ...form, plan,
+      titulo: form.titulo || preset.label,
+      servicios, ...r,
+      moneda: pais.moneda,
+      ime_estimado: ime?.texto ?? form.ime_estimado ?? null,
+      justificacion_programa: form.justificacion_programa || justificacionPorPlan(plan),
+    });
+  };
+
+  const aplicarPais = (code: string) => {
+    setPaisCode(code);
+    const pais = getPais(code);
+    // Re-precia los servicios actuales tomando el plan preset como referencia base USD
+    if (form.plan && PLANES_PRESET[form.plan]) {
+      const base = PLANES_PRESET[form.plan].servicios;
+      const servicios = (form.servicios ?? []).map((s, i) => ({
+        ...s,
+        precio: base[i] ? ajustarPrecioPorPais(base[i].precio, pais) : s.precio,
+      }));
+      const r = recalcular(servicios, form.descuento_porcentaje ?? 0, form.descuento_valor ?? 0);
+      setForm({ ...form, servicios, moneda: pais.moneda, ...r });
+    } else {
+      setForm({ ...form, moneda: pais.moneda });
+    }
+  };
+
+  const recalcularIME = () => {
+    if (!form.plan) { toast.error("Selecciona un plan primero"); return; }
+    const ime = calcularIME(form.plan, rangoFact);
+    if (!ime) { toast.error("No se pudo calcular el IME"); return; }
+    setForm({ ...form, ime_estimado: ime.texto });
+    toast.success("IME estimado actualizado");
+  };
+
+  const aplicarJustificacionAuto = () => {
+    if (!form.plan) { toast.error("Selecciona un plan primero"); return; }
+    setForm({ ...form, justificacion_programa: justificacionPorPlan(form.plan) });
+    toast.success("Justificación cargada");
   };
 
   const updateServicio = (i: number, field: keyof Servicio, val: string) => {
@@ -268,6 +316,8 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       fecha_emision: form.fecha_emision || null,
       notas: form.notas || null,
       condiciones: form.condiciones || null,
+      ime_estimado: form.ime_estimado || null,
+      justificacion_programa: form.justificacion_programa || null,
     };
     const { error } = form.id
       ? await supabase.from("cliente_cotizaciones").update(payload as never).eq("id", form.id)
