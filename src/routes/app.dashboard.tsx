@@ -186,23 +186,23 @@ function Dashboard() {
             </Link>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-md border border-border/60 p-4">
+            <Link to="/app/clientes" className="rounded-md border border-border/60 p-4 hover:border-gold/50 hover:shadow-md transition-all group block">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Pipeline abierto</p>
               <p className="font-mono-num text-2xl text-navy mt-1.5 font-semibold">{fmtUSD(stats.pipelineUSD)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">Borradores + enviadas</p>
-            </div>
-            <div className="rounded-md border border-border/60 p-4">
+            </Link>
+            <Link to="/app/clientes" className="rounded-md border border-border/60 p-4 hover:border-gold/50 hover:shadow-md transition-all group block">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Ganado</p>
               <p className="font-mono-num text-2xl text-navy mt-1.5 font-semibold">{fmtUSD(stats.ganadoUSD)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">Cotizaciones aceptadas</p>
-            </div>
-            <div className="rounded-md border border-border/60 p-4">
+            </Link>
+            <Link to="/app/kpis" className="rounded-md border border-border/60 p-4 hover:border-gold/50 hover:shadow-md transition-all group block">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Conversión</p>
               <p className="font-mono-num text-2xl text-navy mt-1.5 font-semibold">{stats.tasaConv}%</p>
               <p className="text-[11px] text-muted-foreground mt-1 inline-flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" /> Histórica
               </p>
-            </div>
+            </Link>
           </div>
         </div>
 
