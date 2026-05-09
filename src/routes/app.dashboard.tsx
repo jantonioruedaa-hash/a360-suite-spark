@@ -120,11 +120,11 @@ function Dashboard() {
   }, [actividades, compromisos, cotizaciones]);
 
   const metrics = [
-    { label: "Clientes activos", value: clientes.length, icon: Briefcase, accent: "Cartera total" },
-    { label: "Diagnósticos este mes", value: sideCount, icon: Activity, accent: "SIDE completados" },
-    { label: "Sesiones este mes", value: stats.sesionesMes, icon: Users2, accent: "Consultoría" },
+    { label: "Clientes activos", value: clientes.length, icon: Briefcase, accent: "Cartera total", to: "/app/clientes" as const },
+    { label: "Diagnósticos este mes", value: sideCount, icon: Activity, accent: "SIDE completados", to: "/app/side_/historial" as const },
+    { label: "Sesiones este mes", value: stats.sesionesMes, icon: Users2, accent: "Consultoría", to: "/app/coaching" as const },
     { label: "Compromisos pendientes", value: stats.compPend, icon: Clock,
-      accent: stats.compVencidos > 0 ? `${stats.compVencidos} vencidos` : "Al día" },
+      accent: stats.compVencidos > 0 ? `${stats.compVencidos} vencidos` : "Al día", to: "/app/clientes" as const },
   ];
 
   const fmtUSD = (n: number) => `USD ${Math.round(n).toLocaleString()}`;
@@ -153,8 +153,12 @@ function Dashboard() {
       {/* KPIs principales */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {metrics.map((m) => (
-          <div key={m.label} className="a360-card p-5 relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-gold/10" />
+          <Link
+            key={m.label}
+            to={m.to}
+            className="a360-card p-5 relative overflow-hidden block transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-gold/40 cursor-pointer group"
+          >
+            <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-gold/10 group-hover:bg-gold/20 transition-colors" />
             <div className="flex items-start justify-between relative">
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{m.label}</p>
@@ -165,7 +169,8 @@ function Dashboard() {
                 <m.icon className="w-5 h-5" />
               </div>
             </div>
-          </div>
+            <ArrowUpRight className="absolute bottom-3 right-3 w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:text-gold transition-all" />
+          </Link>
         ))}
       </section>
 
@@ -181,23 +186,23 @@ function Dashboard() {
             </Link>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-md border border-border/60 p-4">
+            <Link to="/app/clientes" className="rounded-md border border-border/60 p-4 hover:border-gold/50 hover:shadow-md transition-all group block">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Pipeline abierto</p>
               <p className="font-mono-num text-2xl text-navy mt-1.5 font-semibold">{fmtUSD(stats.pipelineUSD)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">Borradores + enviadas</p>
-            </div>
-            <div className="rounded-md border border-border/60 p-4">
+            </Link>
+            <Link to="/app/clientes" className="rounded-md border border-border/60 p-4 hover:border-gold/50 hover:shadow-md transition-all group block">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Ganado</p>
               <p className="font-mono-num text-2xl text-navy mt-1.5 font-semibold">{fmtUSD(stats.ganadoUSD)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">Cotizaciones aceptadas</p>
-            </div>
-            <div className="rounded-md border border-border/60 p-4">
+            </Link>
+            <Link to="/app/kpis" className="rounded-md border border-border/60 p-4 hover:border-gold/50 hover:shadow-md transition-all group block">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Conversión</p>
               <p className="font-mono-num text-2xl text-navy mt-1.5 font-semibold">{stats.tasaConv}%</p>
               <p className="text-[11px] text-muted-foreground mt-1 inline-flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" /> Histórica
               </p>
-            </div>
+            </Link>
           </div>
         </div>
 
@@ -240,14 +245,21 @@ function Dashboard() {
           const total = stats.semaforo.verde + stats.semaforo.amarillo + stats.semaforo.rojo || 1;
           const pct = Math.round((v / total) * 100);
           return (
-            <div key={s.k} className={`a360-card p-5 border ${s.border}`}>
+            <Link
+              key={s.k}
+              to="/app/coaching"
+              className={`a360-card p-5 border ${s.border} block transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer group`}
+            >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{s.label}</p>
                 <span className={`w-3 h-3 rounded-full ${s.color}`} />
               </div>
               <p className={`font-mono-num text-3xl font-semibold ${s.text}`}>{v}</p>
-              <p className="text-xs text-muted-foreground mt-1">{pct}% del histórico</p>
-            </div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">{pct}% del histórico</p>
+                <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
           );
         })}
       </section>
