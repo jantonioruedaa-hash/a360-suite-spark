@@ -153,8 +153,12 @@ function Dashboard() {
       {/* KPIs principales */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {metrics.map((m) => (
-          <div key={m.label} className="a360-card p-5 relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-gold/10" />
+          <Link
+            key={m.label}
+            to={m.to}
+            className="a360-card p-5 relative overflow-hidden block transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-gold/40 cursor-pointer group"
+          >
+            <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-gold/10 group-hover:bg-gold/20 transition-colors" />
             <div className="flex items-start justify-between relative">
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{m.label}</p>
@@ -165,7 +169,8 @@ function Dashboard() {
                 <m.icon className="w-5 h-5" />
               </div>
             </div>
-          </div>
+            <ArrowUpRight className="absolute bottom-3 right-3 w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:text-gold transition-all" />
+          </Link>
         ))}
       </section>
 
