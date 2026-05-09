@@ -245,14 +245,21 @@ function Dashboard() {
           const total = stats.semaforo.verde + stats.semaforo.amarillo + stats.semaforo.rojo || 1;
           const pct = Math.round((v / total) * 100);
           return (
-            <div key={s.k} className={`a360-card p-5 border ${s.border}`}>
+            <Link
+              key={s.k}
+              to="/app/coaching"
+              className={`a360-card p-5 border ${s.border} block transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer group`}
+            >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{s.label}</p>
                 <span className={`w-3 h-3 rounded-full ${s.color}`} />
               </div>
               <p className={`font-mono-num text-3xl font-semibold ${s.text}`}>{v}</p>
-              <p className="text-xs text-muted-foreground mt-1">{pct}% del histórico</p>
-            </div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">{pct}% del histórico</p>
+                <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
           );
         })}
       </section>
