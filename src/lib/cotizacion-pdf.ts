@@ -17,6 +17,8 @@ export interface CotizacionPDFData {
   total: number;
   notas?: string | null;
   condiciones?: string | null;
+  imeEstimado?: string | null;
+  justificacion?: string | null;
   cliente: {
     empresa: string;
     nombreComercial?: string | null;
@@ -176,6 +178,38 @@ export function generarCotizacionPDF(data: CotizacionPDFData): jsPDF {
   });
 
   y += 10;
+
+  // IME — Impacto Monetario Esperado
+  if (data.imeEstimado) {
+    doc.setFillColor(248, 244, 232);
+    doc.rect(40, y, pageW - 80, 50, "F");
+    doc.setFillColor(...GOLD);
+    doc.rect(40, y, 4, 50, "F");
+    doc.setTextColor(...NAVY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("IMPACTO MONETARIO ESPERADO (IME)", 54, y + 16);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(40);
+    const lines = doc.splitTextToSize(data.imeEstimado, pageW - 110);
+    doc.text(lines, 54, y + 32);
+    y += 60;
+  }
+
+  // Justificación de la inversión
+  if (data.justificacion) {
+    doc.setTextColor(...NAVY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("JUSTIFICACIÓN DE LA INVERSIÓN", 40, y);
+    y += 14;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(60);
+    const lines = doc.splitTextToSize(data.justificacion, pageW - 80);
+    doc.text(lines, 40, y);
+    y += lines.length * 12 + 10;
+  }
 
   // Condiciones / notas
   if (data.condiciones) {
