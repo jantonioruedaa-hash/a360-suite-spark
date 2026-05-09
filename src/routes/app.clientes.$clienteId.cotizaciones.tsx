@@ -356,6 +356,16 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
               <SelectContent>{contactos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre} {c.apellido}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          <div><Label>País / referencia de precios</Label>
+            <Select value={paisCode} onValueChange={aplicarPais}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PAISES_LATAM.map((p) => (
+                  <SelectItem key={p.code} value={p.code}>{p.nombre} ({p.moneda})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div><Label>Moneda</Label><Input value={form.moneda ?? "USD"} onChange={(e) => setForm({ ...form, moneda: e.target.value })} /></div>
           <div><Label>Fecha emisión</Label><Input type="date" value={form.fecha_emision ?? ""} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} /></div>
           <div><Label>Validez (días)</Label><Input type="number" value={form.validez_dias ?? 30} onChange={(e) => setForm({ ...form, validez_dias: Number(e.target.value) })} /></div>
@@ -388,6 +398,51 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
         </div>
 
         <div className="grid grid-cols-1 gap-3 mt-4">
+          {/* IME */}
+          <div className="border-2 border-gold/40 bg-cream/50 rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Impacto Monetario Esperado (IME)</Label>
+              <Button size="sm" variant="outline" onClick={recalcularIME}>
+                <Sparkles className="w-3 h-3 mr-1" /> Calcular
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Rango facturación cliente</Label>
+                <Select value={rangoFact} onValueChange={setRangoFact}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {RANGOS_FACTURACION.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Textarea
+              rows={2}
+              placeholder="Estimación del retorno esperado para el cliente"
+              value={form.ime_estimado ?? ""}
+              onChange={(e) => setForm({ ...form, ime_estimado: e.target.value })}
+            />
+          </div>
+
+          {/* Justificación */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>Justificación de la inversión</Label>
+              <Button size="sm" variant="ghost" onClick={aplicarJustificacionAuto}>
+                <Sparkles className="w-3 h-3 mr-1" /> Sugerir según plan
+              </Button>
+            </div>
+            <Textarea
+              rows={3}
+              value={form.justificacion_programa ?? ""}
+              onChange={(e) => setForm({ ...form, justificacion_programa: e.target.value })}
+              placeholder="Por qué este programa es la mejor opción para el cliente"
+            />
+          </div>
+
           <div><Label>Condiciones</Label><Textarea rows={2} value={form.condiciones ?? ""} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} /></div>
           <div><Label>Notas</Label><Textarea rows={2} value={form.notas ?? ""} onChange={(e) => setForm({ ...form, notas: e.target.value })} /></div>
         </div>
