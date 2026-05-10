@@ -9,6 +9,7 @@ import {
   LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useAlertas } from "@/lib/alertas-helpers";
 
 const sections = [
   {
@@ -46,8 +47,15 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut } = useAuth();
+  const { alertas } = useAlertas();
 
   const isActive = (url: string) => path === url || path.startsWith(url + "/");
+
+  const badgePorUrl: Record<string, number> = {
+    "/app/clientes": alertas.filter((a) => a.tipo === "compromiso_vencido" || a.tipo === "cotizacion_por_vencer").length,
+    "/app/coaching": alertas.filter((a) => a.tipo === "sesion_proxima").length,
+    "/app/dashboard": alertas.filter((a) => a.severidad === "critica").length,
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -65,17 +73,25 @@ export function AppSidebar() {
             )}
             <SidebarGroupContent>
               <SidebarMenu>
-                {s.items.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)}
-                      className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium">
-                      <Link to={item.url}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {s.items.map((item) => {
+                  const badge = badgePorUrl[item.url] ?? 0;
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton asChild isActive={isActive(item.url)}
+                        className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium">
+                        <Link to={item.url}>
+                          <item.icon className="w-4 h-4" />
+                          <span className="flex-1">{item.title}</span>
+                          {badge > 0 && !collapsed && (
+                            <span className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                              {badge > 99 ? "99+" : badge}
+                            </span>
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
