@@ -46,57 +46,226 @@ const baseP = (factor: string, descripcion: string, impacto = 3, tipo: "Oportuni
   ({ factor, descripcion, impacto, tipo, observacion: "" });
 
 export const pestelSugerido = (sector: SectorKey): Record<string, FactorPESTEL[]> => {
-  const com = {
-    Politico: [baseP("Estabilidad política regional", "Cambios de gobierno y políticas regulatorias", 3, "Amenaza"), baseP("Política tributaria", "Reformas fiscales y carga impositiva", 4, "Amenaza"), baseP("Acuerdos comerciales", "TLC y aranceles del sector", 3, "Oportunidad")],
-    Economico: [baseP("Tipo de cambio", "Volatilidad cambiaria y costos importados", 4, "Amenaza"), baseP("Inflación", "Presión sobre costos operativos y precios", 4, "Amenaza"), baseP("Crecimiento del PIB sectorial", "Demanda agregada del sector", 3, "Oportunidad")],
-    Social: [baseP("Cambios demográficos", "Envejecimiento o crecimiento poblacional", 3, "Oportunidad"), baseP("Hábitos de consumo", "Nuevas preferencias y estilos de vida", 4, "Oportunidad")],
-    Tecnologico: [baseP("Digitalización del sector", "Automatización y nuevos canales", 4, "Oportunidad"), baseP("Ciberseguridad", "Riesgos de ataques y filtraciones", 4, "Amenaza")],
-    Ambiental: [baseP("Regulación ambiental", "Nuevas exigencias normativas", 3, "Amenaza"), baseP("Cambio climático", "Eventos extremos y costos de adaptación", 3, "Amenaza")],
-    Legal: [baseP("Protección de datos", "Cumplimiento normativo (HIPAA/GDPR/local)", 4, "Amenaza"), baseP("Normativa laboral", "Reformas que impactan costos laborales", 3, "Amenaza")],
+  const com: Record<string, FactorPESTEL[]> = {
+    Politico: [
+      baseP("Estabilidad política", "Cambios de gobierno y continuidad de políticas públicas", 3, "Amenaza"),
+      baseP("Política tributaria", "Reformas fiscales y carga impositiva sobre la actividad", 4, "Amenaza"),
+      baseP("Acuerdos comerciales", "TLC, aranceles y barreras de entrada/salida del sector", 3, "Oportunidad"),
+      baseP("Política de inversión", "Incentivos a la inversión privada o trabas burocráticas", 3, "Oportunidad"),
+      baseP("Riesgo geopolítico", "Conflictos regionales o sanciones que afectan operaciones", 3, "Amenaza"),
+      baseP("Compras públicas", "Acceso a contratos del Estado y licitaciones del sector", 3, "Oportunidad"),
+    ],
+    Economico: [
+      baseP("Tipo de cambio", "Volatilidad cambiaria y costos importados", 4, "Amenaza"),
+      baseP("Inflación", "Presión sobre costos operativos y poder adquisitivo del cliente", 4, "Amenaza"),
+      baseP("Tasas de interés", "Costo del financiamiento y acceso al crédito", 4, "Amenaza"),
+      baseP("Crecimiento del PIB sectorial", "Expansión o contracción de la demanda agregada", 3, "Oportunidad"),
+      baseP("Empleo y poder adquisitivo", "Capacidad de compra del consumidor objetivo", 3, "Oportunidad"),
+      baseP("Acceso al crédito", "Liquidez del sistema financiero para empresas y clientes", 3, "Oportunidad"),
+    ],
+    Social: [
+      baseP("Cambios demográficos", "Envejecimiento, urbanización y crecimiento poblacional", 3, "Oportunidad"),
+      baseP("Hábitos de consumo", "Nuevas preferencias, sostenibilidad y estilos de vida", 4, "Oportunidad"),
+      baseP("Educación y talento", "Disponibilidad de talento calificado en el mercado", 4, "Amenaza"),
+      baseP("Conciencia social y ambiental", "Demanda creciente de marcas con propósito", 3, "Oportunidad"),
+      baseP("Movilidad laboral", "Rotación, expectativas salariales y trabajo remoto", 3, "Amenaza"),
+      baseP("Salud y bienestar", "Foco creciente en bienestar integral del consumidor/colaborador", 3, "Oportunidad"),
+    ],
+    Tecnologico: [
+      baseP("Digitalización del sector", "Automatización, omnicanalidad y nuevos canales", 4, "Oportunidad"),
+      baseP("Ciberseguridad", "Riesgos de ataques, fraude digital y filtraciones", 4, "Amenaza"),
+      baseP("Inteligencia artificial", "IA generativa transforma productos, procesos y empleos", 5, "Oportunidad"),
+      baseP("Cloud y SaaS", "Migración a infraestructura como servicio y costos variables", 3, "Oportunidad"),
+      baseP("Brecha digital interna", "Capacidad del equipo para adoptar nuevas tecnologías", 3, "Amenaza"),
+      baseP("Datos y analítica", "Toma de decisiones basada en datos y BI", 4, "Oportunidad"),
+    ],
+    Ambiental: [
+      baseP("Regulación ambiental", "Nuevas exigencias normativas y reportes ESG obligatorios", 3, "Amenaza"),
+      baseP("Cambio climático", "Eventos extremos, sequías y costos de adaptación", 3, "Amenaza"),
+      baseP("Economía circular", "Reutilización, reciclaje y diseño sostenible", 3, "Oportunidad"),
+      baseP("Eficiencia energética", "Costos de energía y oportunidad de optimización", 3, "Oportunidad"),
+      baseP("Huella de carbono", "Presión de clientes y reguladores por neutralidad", 3, "Amenaza"),
+      baseP("Gestión de residuos", "Normativa y costos de disposición de residuos", 2, "Amenaza"),
+    ],
+    Legal: [
+      baseP("Protección de datos", "Cumplimiento normativo (GDPR/HIPAA/local) y multas", 4, "Amenaza"),
+      baseP("Normativa laboral", "Reformas que impactan costos y flexibilidad laboral", 3, "Amenaza"),
+      baseP("Defensa del consumidor", "Endurecimiento de derechos y reclamos del consumidor", 3, "Amenaza"),
+      baseP("Propiedad intelectual", "Protección de marca, patentes y secretos comerciales", 3, "Oportunidad"),
+      baseP("Compliance sectorial", "Regulaciones específicas del sector y certificaciones", 3, "Amenaza"),
+      baseP("Normativa antimonopolio", "Restricciones a alianzas, fusiones o prácticas comerciales", 2, "Amenaza"),
+    ],
   };
-  // Pequeños ajustes por sector
+  // Ajustes específicos por sector
   if (sector === "tecnologia") {
-    com.Tecnologico.push(baseP("IA generativa", "Disrupción de productos y procesos", 5, "Oportunidad"));
+    com.Tecnologico.push(baseP("Open source y APIs abiertas", "Modelos colaborativos y plataformización", 4, "Oportunidad"));
+    com.Legal.push(baseP("Regulación de IA", "AI Act y normativas emergentes sobre modelos", 4, "Amenaza"));
   }
   if (sector === "salud") {
-    com.Legal.push(baseP("Regulación sanitaria", "Cambios en aprobaciones y licencias", 5, "Amenaza"));
+    com.Legal.push(baseP("Regulación sanitaria", "Cambios en aprobaciones, licencias y farmacovigilancia", 5, "Amenaza"));
+    com.Tecnologico.push(baseP("Telemedicina", "Atención remota y dispositivos conectados", 4, "Oportunidad"));
   }
   if (sector === "manufactura") {
-    com.Economico.push(baseP("Costo de materias primas", "Volatilidad de commodities", 5, "Amenaza"));
+    com.Economico.push(baseP("Costo de materias primas", "Volatilidad de commodities e insumos clave", 5, "Amenaza"));
+    com.Tecnologico.push(baseP("Industria 4.0", "IoT, robótica y manufactura inteligente", 4, "Oportunidad"));
+  }
+  if (sector === "retail") {
+    com.Social.push(baseP("E-commerce y D2C", "Cambio de hábitos hacia compra online", 5, "Oportunidad"));
+    com.Economico.push(baseP("Logística y última milla", "Costos de distribución y expectativa de inmediatez", 4, "Amenaza"));
+  }
+  if (sector === "financiero") {
+    com.Tecnologico.push(baseP("Fintech y open banking", "Nuevos competidores no bancarios", 5, "Amenaza"));
+    com.Legal.push(baseP("Regulación financiera", "Basilea, KYC/AML y supervisión", 5, "Amenaza"));
+  }
+  if (sector === "educacion") {
+    com.Tecnologico.push(baseP("EdTech y aprendizaje híbrido", "Plataformas digitales y microcredenciales", 4, "Oportunidad"));
+  }
+  if (sector === "construccion") {
+    com.Economico.push(baseP("Ciclo inmobiliario", "Sensibilidad a tasas y demanda de vivienda", 4, "Amenaza"));
+    com.Ambiental.push(baseP("Construcción sostenible", "Certificaciones LEED/EDGE y materiales verdes", 3, "Oportunidad"));
+  }
+  if (sector === "agro") {
+    com.Ambiental.push(baseP("Disponibilidad hídrica", "Estrés hídrico y riego eficiente", 5, "Amenaza"));
+    com.Economico.push(baseP("Precios internacionales", "Volatilidad de commodities agrícolas", 4, "Amenaza"));
   }
   return com;
+};
+
+// ───────────────── Sec 03: Diagnóstico interno — guía por sector ─────────────────
+export interface DiagnosticoInternoGuia {
+  recursos_clave: string;
+  procesos_criticos: string;
+  capacidades_distintivas: string;
+  areas_mejora: string;
+  cultura_actual: string;
+}
+
+export const diagnosticoInternoSugerido = (sector: SectorKey): DiagnosticoInternoGuia => {
+  const base: DiagnosticoInternoGuia = {
+    recursos_clave: "• Equipo humano (perfiles clave y talento crítico)\n• Activos tangibles (infraestructura, equipos, instalaciones)\n• Activos intangibles (marca, propiedad intelectual, base de datos de clientes)\n• Recursos financieros (capital de trabajo, líneas de crédito)\n• Tecnología y sistemas de información",
+    procesos_criticos: "• Proceso comercial y captación de clientes\n• Proceso de entrega del producto/servicio\n• Proceso de cobranza y administración financiera\n• Proceso de soporte y postventa\n• Proceso de gestión del talento",
+    capacidades_distintivas: "• ¿Qué sabemos hacer mejor que la competencia?\n• ¿Por qué nos eligen los clientes?\n• ¿Qué know-how acumulado tenemos?\n• ¿Qué capacidad es difícil de imitar?",
+    areas_mejora: "• Procesos no documentados\n• Sistemas y tecnología obsoletos o ausentes\n• Capacidades de marketing y ventas\n• Estructura organizacional y delegación\n• Indicadores y control de gestión",
+    cultura_actual: "• Valores que hoy se viven (no los declarados)\n• Estilo de liderazgo predominante\n• Forma de tomar decisiones (centralizada/descentralizada)\n• Relación con el error y la innovación\n• Nivel de compromiso y rotación del equipo",
+  };
+  if (sector === "tecnologia") {
+    base.recursos_clave += "\n• Stack tecnológico y código fuente\n• Comunidad de usuarios o developers";
+    base.capacidades_distintivas += "\n• Velocidad de desarrollo y despliegue (CI/CD)\n• Capacidad de escalar producto sin escalar costos";
+  }
+  if (sector === "manufactura") {
+    base.recursos_clave += "\n• Capacidad instalada y eficiencia de planta\n• Cadena de proveedores estratégicos";
+    base.procesos_criticos += "\n• Control de calidad y trazabilidad\n• Gestión de inventarios y almacén";
+  }
+  if (sector === "servicios" || sector === "otro") {
+    base.capacidades_distintivas += "\n• Metodología propia o framework de trabajo\n• Capacidad consultiva del equipo senior";
+  }
+  if (sector === "retail") {
+    base.procesos_criticos += "\n• Gestión de surtido y reposición\n• Experiencia de cliente en tienda y online";
+  }
+  if (sector === "salud") {
+    base.recursos_clave += "\n• Profesionales acreditados y especialidades\n• Equipamiento médico y certificaciones";
+    base.cultura_actual += "\n• Cultura de seguridad del paciente";
+  }
+  if (sector === "financiero") {
+    base.procesos_criticos += "\n• Análisis de riesgo y crédito\n• Compliance, KYC y prevención de fraude";
+  }
+  return base;
 };
 
 // ───────────────── Sec 03: Factores EFI típicos ─────────────────
 export interface FactorEFI { factor: string; tipo: "Fortaleza" | "Debilidad"; peso: number; calificacion: number; }
 export const efiSugerido = (sector: SectorKey): FactorEFI[] => [
-  { factor: "Calidad del producto/servicio", tipo: "Fortaleza", peso: 0.15, calificacion: 3 },
-  { factor: "Conocimiento del mercado", tipo: "Fortaleza", peso: 0.12, calificacion: 3 },
-  { factor: "Equipo profesional capacitado", tipo: "Fortaleza", peso: 0.12, calificacion: 3 },
-  { factor: "Cartera de clientes recurrentes", tipo: "Fortaleza", peso: 0.10, calificacion: 3 },
-  { factor: "Procesos documentados", tipo: "Debilidad", peso: 0.10, calificacion: 2 },
-  { factor: "Sistemas de información", tipo: "Debilidad", peso: 0.10, calificacion: 2 },
-  { factor: "Capacidad financiera", tipo: "Debilidad", peso: 0.13, calificacion: 2 },
-  { factor: "Marketing y posicionamiento", tipo: "Debilidad", peso: 0.10, calificacion: 2 },
-  { factor: sector === "tecnologia" ? "Capacidad de innovación" : "Eficiencia operativa", tipo: "Fortaleza", peso: 0.08, calificacion: 3 },
+  { factor: "Calidad del producto/servicio", tipo: "Fortaleza", peso: 0.08, calificacion: 3 },
+  { factor: "Conocimiento del mercado y clientes", tipo: "Fortaleza", peso: 0.07, calificacion: 3 },
+  { factor: "Equipo profesional capacitado", tipo: "Fortaleza", peso: 0.07, calificacion: 3 },
+  { factor: "Cartera de clientes recurrentes", tipo: "Fortaleza", peso: 0.06, calificacion: 3 },
+  { factor: "Reputación y marca en el sector", tipo: "Fortaleza", peso: 0.06, calificacion: 3 },
+  { factor: "Relación cercana con clientes clave", tipo: "Fortaleza", peso: 0.05, calificacion: 3 },
+  { factor: "Flexibilidad y agilidad operativa", tipo: "Fortaleza", peso: 0.05, calificacion: 3 },
+  { factor: sector === "tecnologia" ? "Capacidad de innovación tecnológica" : "Eficiencia operativa", tipo: "Fortaleza", peso: 0.06, calificacion: 3 },
+  { factor: "Procesos documentados y estandarizados", tipo: "Debilidad", peso: 0.07, calificacion: 2 },
+  { factor: "Sistemas de información y datos", tipo: "Debilidad", peso: 0.07, calificacion: 2 },
+  { factor: "Capacidad financiera y de inversión", tipo: "Debilidad", peso: 0.08, calificacion: 2 },
+  { factor: "Marketing y posicionamiento digital", tipo: "Debilidad", peso: 0.07, calificacion: 2 },
+  { factor: "Estructura organizacional y delegación", tipo: "Debilidad", peso: 0.05, calificacion: 2 },
+  { factor: "Indicadores de gestión y control", tipo: "Debilidad", peso: 0.05, calificacion: 2 },
+  { factor: "Dependencia del fundador/socio principal", tipo: "Debilidad", peso: 0.06, calificacion: 2 },
+  { factor: "Gestión del talento y retención", tipo: "Debilidad", peso: 0.05, calificacion: 2 },
 ];
 
 // ───────────────── Sec 04: FODA sugerido ─────────────────
 export const fodaSugerido = (sector: SectorKey) => ({
-  fortalezas: ["Equipo experimentado", "Relación cercana con clientes", "Flexibilidad operativa", "Reputación en el mercado local"],
-  debilidades: ["Dependencia del fundador", "Procesos no documentados", "Limitada presencia digital", "Capacidad financiera ajustada"],
+  fortalezas: [
+    "Equipo experimentado y comprometido",
+    "Relación cercana con clientes",
+    "Flexibilidad y capacidad de respuesta",
+    "Reputación en el mercado local",
+    "Conocimiento profundo del sector",
+    "Cartera diversificada de clientes",
+  ],
+  debilidades: [
+    "Dependencia del fundador en decisiones clave",
+    "Procesos no documentados ni estandarizados",
+    "Limitada presencia digital y marketing",
+    "Capacidad financiera ajustada",
+    "Sistemas de información débiles",
+    "Estructura organizacional poco definida",
+  ],
   oportunidades: sector === "tecnologia"
-    ? ["Crecimiento de la digitalización", "Adopción de IA en clientes", "Mercados internacionales", "Modelos de suscripción"]
-    : ["Nuevos canales digitales", "Crecimiento del sector", "Alianzas estratégicas", "Expansión geográfica"],
-  amenazas: ["Nuevos competidores", "Presión sobre márgenes", "Cambios regulatorios", "Volatilidad económica"],
+    ? ["Crecimiento de la digitalización en clientes", "Adopción masiva de IA generativa", "Mercados internacionales vía SaaS", "Modelos de suscripción y recurrencia", "Alianzas con integradores y partners", "Demanda de ciberseguridad"]
+    : ["Nuevos canales digitales y e-commerce", "Crecimiento del sector", "Alianzas estratégicas y co-creación", "Expansión geográfica regional", "Nuevos segmentos desatendidos", "Servitización del producto"],
+  amenazas: [
+    "Entrada de nuevos competidores",
+    "Presión sobre márgenes y precios",
+    "Cambios regulatorios en el sector",
+    "Volatilidad económica y cambiaria",
+    "Pérdida de talento clave a competidores",
+    "Disrupción tecnológica del modelo de negocio",
+  ],
 });
 
-// CAME sugerido por categoría
+// CAME sugerido por categoría — acciones derivadas (catálogo amplio)
 export const cameSugerido = () => ({
-  corregir: ["Implementar plan de documentación de procesos", "Plan de digitalización del back office"],
-  afrontar: ["Diferenciación clara vs nuevos competidores", "Estrategia de cobertura ante riesgos regulatorios"],
-  mantener: ["Programa de fidelización de clientes clave", "Plan de retención de talento crítico"],
-  explotar: ["Plan comercial para nuevos canales digitales", "Búsqueda activa de alianzas estratégicas"],
+  corregir: [
+    "Implementar plan de documentación y estandarización de procesos críticos",
+    "Plan de digitalización del back office (ERP/CRM)",
+    "Programa de profesionalización de la gestión (gobierno corporativo)",
+    "Plan de fortalecimiento financiero (estructura de capital y caja)",
+    "Plan de marketing digital y posicionamiento de marca",
+    "Programa de desarrollo de mandos medios para reducir dependencia del fundador",
+    "Implementar sistema de indicadores de gestión (CMI)",
+    "Plan de mejora de experiencia de cliente (CX)",
+  ],
+  afrontar: [
+    "Estrategia de diferenciación clara frente a nuevos competidores",
+    "Plan de cobertura ante riesgos regulatorios y compliance",
+    "Estrategia de cobertura cambiaria y financiera",
+    "Plan de retención de talento crítico (compensación y carrera)",
+    "Diversificación de proveedores y reducción de dependencias",
+    "Plan de continuidad del negocio y gestión de riesgos",
+    "Innovación defensiva ante disrupción tecnológica",
+    "Estrategia de precios para defender márgenes",
+  ],
+  mantener: [
+    "Programa de fidelización de clientes clave (key account)",
+    "Plan de retención y desarrollo del talento crítico",
+    "Inversión continua en calidad del producto/servicio",
+    "Refuerzo de la cultura organizacional y propósito",
+    "Mantener cercanía con clientes (NPS y voz del cliente)",
+    "Mantener flexibilidad operativa como ventaja competitiva",
+    "Cuidar la reputación de marca y referencias",
+    "Mantener inversión en formación del equipo",
+  ],
+  explotar: [
+    "Plan comercial para nuevos canales digitales",
+    "Búsqueda activa de alianzas estratégicas y partners",
+    "Lanzamiento de nuevos productos/servicios para segmentos desatendidos",
+    "Plan de expansión geográfica regional",
+    "Modelos de suscripción y servitización",
+    "Adopción de IA para mejorar productividad y oferta",
+    "Programa de innovación abierta con clientes y proveedores",
+    "Internacionalización vía e-commerce o canales digitales",
+  ],
 });
 
 // ───────────────── Sec 05: Valores corporativos ─────────────────
