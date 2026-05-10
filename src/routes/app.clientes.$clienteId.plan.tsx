@@ -7,6 +7,7 @@ import { detectSector, detectTamano } from "@/lib/plan-catalogo";
 import { AnalisisIABox } from "@/components/plan/AnalisisIABox";
 import { usePlanSeccionAutosave, AutosaveBadge } from "@/components/plan/usePlanAutosave";
 import { Sec01, Sec02, Sec03, Sec04, Sec05, type Sec01Data, type Sec02Data, type Sec03Data, type Sec04Data, type Sec05Data } from "@/components/plan/secciones-1-5";
+import { Sec06, Sec07, Sec08, Sec09, type Sec06Data, type Sec07Data, type Sec08Data, type Sec09Data } from "@/components/plan/secciones-6-9";
 import { Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -178,11 +179,15 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
       case 3: return <Sec03 data={data as Sec03Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 4: return <Sec04 data={data as Sec04Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 5: return <Sec05 data={data as Sec05Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
+      case 6: return <Sec06 data={data as Sec06Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 7: return <Sec07 data={data as Sec07Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
+      case 8: return <Sec08 data={data as Sec08Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
+      case 9: return <Sec09 data={data as Sec09Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
       default:
         return (
           <div className="a360-card a360-card-lg p-12 text-center text-muted-foreground">
             <p className="text-sm">Esta sección estará disponible en la próxima fase.</p>
-            <p className="text-xs mt-2">Actualmente construyendo: secciones 1-5 (Fase 1).<br/>Próxima fase: secciones 6-9 + análisis IA en cada una.</p>
+            <p className="text-xs mt-2">Fases completadas: 1-9.<br/>Próxima fase: secciones 10-18 (ESG, Alianzas, Innovación, Marketing, Talento, TI, Seguimiento, CMI y Ejecución).</p>
           </div>
         );
     }
@@ -198,7 +203,7 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
         <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
       </div>
       {renderSeccion()}
-      {seccion.numero <= 5 && (
+      {seccion.numero <= 9 && (
         <AnalisisIABox
           clienteId={clienteId}
           columna={seccion.columna}
