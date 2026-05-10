@@ -213,7 +213,7 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
         <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
       </div>
       {renderSeccion()}
-      {seccion.numero <= 13 && (
+      {seccion.numero <= 18 && (
         <AnalisisIABox
           clienteId={clienteId}
           columna={seccion.columna}
