@@ -181,7 +181,7 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
       case 5: return <Sec05 data={data as Sec05Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
       case 6: return <Sec06 data={data as Sec06Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 7: return <Sec07 data={data as Sec07Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
-      case 8: return <Sec08 data={data as Sec08Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
+      case 8: return <Sec08 data={data as unknown as Sec08Data} onChange={(d) => setData(d as unknown as Record<string, unknown>)} />;
       case 9: return <Sec09 data={data as Sec09Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
       default:
         return (
