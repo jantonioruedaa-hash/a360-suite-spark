@@ -1,16 +1,215 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { createFileRoute, useParams, useSearch, Link } from "@tanstack/react-router";
+import { useEffect, useState, useMemo } from "react";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { SECCIONES_PLAN, seccionesParaNivel, seccionPorKey, type NivelPlan, type SeccionData } from "@/lib/plan-helpers";
+import { detectSector, detectTamano } from "@/lib/plan-catalogo";
+import { AnalisisIABox } from "@/components/plan/AnalisisIABox";
+import { usePlanSeccionAutosave, AutosaveBadge } from "@/components/plan/usePlanAutosave";
+import { Sec01, Sec02, Sec03, Sec04, Sec05, type Sec01Data, type Sec02Data, type Sec03Data, type Sec04Data, type Sec05Data } from "@/components/plan/secciones-1-5";
+import { Lock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+const searchSchema = z.object({ s: z.string().optional() });
 
 export const Route = createFileRoute("/app/clientes/$clienteId/plan")({
-  component: () => (
-    <div className="space-y-4 max-w-3xl">
-      <h2 className="font-display text-2xl text-navy">Plan estratégico</h2>
-      <div className="a360-card a360-card-lg p-12 text-center">
-        <p className="text-muted-foreground">Estado del plan, progreso por sección y exportación.</p>
-        <p className="text-xs text-gold mt-2 uppercase tracking-wider">Integración completa en Fase 2</p>
-        <Button asChild className="mt-6 bg-navy hover:bg-navy/90"><Link to="/app/plan">Ir al Plan Estratégico <ArrowRight className="w-4 h-4 ml-1" /></Link></Button>
+  component: PlanPage,
+  validateSearch: searchSchema,
+});
+
+interface ClienteCtx {
+  id: string;
+  nombre_empresa: string;
+  sector: string | null;
+  num_empleados: number | null;
+  plan_licencia: string;
+  pais: string | null;
+  ciudad: string | null;
+}
+
+interface PlanRow {
+  id: string;
+  nivel: NivelPlan;
+  [key: string]: unknown;
+}
+
+function PlanPage() {
+  const { clienteId } = useParams({ from: "/app/clientes/$clienteId/plan" });
+  const { s: seccionKeyParam } = useSearch({ from: "/app/clientes/$clienteId/plan" });
+  const [cliente, setCliente] = useState<ClienteCtx | null>(null);
+  const [plan, setPlan] = useState<PlanRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const seccionKey = seccionKeyParam ?? "01";
+  const seccion = seccionPorKey(seccionKey) ?? SECCIONES_PLAN[0];
+  const nivel: NivelPlan = (cliente?.plan_licencia as NivelPlan) ?? "esencial";
+  const seccionesVisibles = useMemo(() => seccionesParaNivel(nivel), [nivel]);
+  const sectorKey = detectSector(cliente?.sector);
+  const tamano = detectTamano(cliente?.num_empleados);
+
+  // Carga cliente + plan
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data: c } = await supabase.from("clientes")
+        .select("id,nombre_empresa,sector,num_empleados,plan_licencia,pais,ciudad")
+        .eq("id", clienteId).maybeSingle();
+      setCliente(c as ClienteCtx | null);
+      const { data: p } = await supabase.from("planes_estrategicos")
+        .select("*").eq("cliente_id", clienteId).maybeSingle();
+      setPlan(p as PlanRow | null);
+      setLoading(false);
+    })();
+  }, [clienteId]);
+
+  if (loading || !cliente) return <div className="text-muted-foreground">Cargando plan estratégico…</div>;
+
+  const seccionData = (plan?.[seccion.columna] as SeccionData | null) ?? { data: {}, analisis_ia: null };
+  const datos = (seccionData.data ?? {}) as Record<string, unknown>;
+  const accesoOk = seccion.niveles.includes(nivel);
+
+  // Índice navegación
+  const idx = seccionesVisibles.findIndex((s) => s.key === seccion.key);
+  const prev = idx > 0 ? seccionesVisibles[idx - 1] : null;
+  const next = idx < seccionesVisibles.length - 1 ? seccionesVisibles[idx + 1] : null;
+
+  return (
+    <div className="space-y-4 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="font-display text-3xl text-navy">Plan Estratégico</h1>
+          <p className="text-sm text-muted-foreground">{cliente.nombre_empresa} — Licencia: <Badge variant="outline" className="capitalize">{nivel}</Badge> · Sector detectado: {sectorKey} · Tamaño: {tamano}</p>
+        </div>
+      </div>
+
+      {/* Barra horizontal de 18 pestañas */}
+      <div className="bg-white border border-border rounded-md overflow-x-auto">
+        <nav className="flex min-w-max">
+          {SECCIONES_PLAN.map((s) => {
+            const enabled = s.niveles.includes(nivel);
+            const active = s.key === seccion.key;
+            const Icon = s.icon;
+            return (
+              <Link key={s.key}
+                to="/app/clientes/$clienteId/plan"
+                params={{ clienteId }}
+                search={{ s: s.key }}
+                disabled={!enabled}
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-xs whitespace-nowrap border-b-2 transition ${
+                  active ? "border-gold text-navy font-semibold bg-gold/5" :
+                  enabled ? "border-transparent text-muted-foreground hover:text-navy hover:bg-muted/30" :
+                            "border-transparent text-muted-foreground/40 cursor-not-allowed"
+                }`}
+                onClick={(e) => { if (!enabled) e.preventDefault(); }}>
+                <span className="font-mono text-[10px] opacity-60">{String(s.numero).padStart(2, "0")}</span>
+                <Icon className="w-3.5 h-3.5" />
+                <span>{s.corto}</span>
+                {!enabled && <Lock className="w-3 h-3 ml-0.5" />}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {!accesoOk ? (
+        <div className="a360-card a360-card-lg p-12 text-center">
+          <Lock className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <h3 className="font-display text-xl text-navy mb-1">Sección no disponible en tu licencia</h3>
+          <p className="text-sm text-muted-foreground">"{seccion.titulo}" requiere licencia <span className="font-semibold capitalize">{seccion.niveles.join(" / ")}</span>. Tu cliente tiene licencia <span className="font-semibold capitalize">{nivel}</span>.</p>
+        </div>
+      ) : (
+        <SeccionEditor
+          clienteId={clienteId}
+          cliente={cliente}
+          sectorKey={sectorKey}
+          seccion={seccion}
+          datos={datos}
+          analisis={seccionData.analisis_ia ?? null}
+          analisisFecha={seccionData.analisis_ia_fecha ?? null}
+        />
+      )}
+
+      {/* Navegación */}
+      <div className="flex justify-between pt-4 border-t border-border">
+        {prev ? (
+          <Link to="/app/clientes/$clienteId/plan" params={{ clienteId }} search={{ s: prev.key }}
+                className="text-sm text-navy hover:text-gold flex items-center gap-1">
+            <ChevronLeft className="w-4 h-4" /> {String(prev.numero).padStart(2, "0")} · {prev.corto}
+          </Link>
+        ) : <span />}
+        {next ? (
+          <Link to="/app/clientes/$clienteId/plan" params={{ clienteId }} search={{ s: next.key }}
+                className="text-sm text-navy hover:text-gold flex items-center gap-1">
+            {String(next.numero).padStart(2, "0")} · {next.corto} <ChevronRight className="w-4 h-4" />
+          </Link>
+        ) : <span />}
       </div>
     </div>
-  ),
-});
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Editor de sección — wrapper con autosave + IA
+// ─────────────────────────────────────────────────────────
+function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis, analisisFecha }: {
+  clienteId: string;
+  cliente: ClienteCtx;
+  sectorKey: ReturnType<typeof detectSector>;
+  seccion: typeof SECCIONES_PLAN[number];
+  datos: Record<string, unknown>;
+  analisis: string | null;
+  analisisFecha: string | null;
+}) {
+  const [data, setData] = useState<Record<string, unknown>>(datos);
+  const [iaTexto, setIaTexto] = useState<string | null>(analisis);
+  const [iaFecha, setIaFecha] = useState<string | null>(analisisFecha);
+
+  const { estado, ultimoGuardado } = usePlanSeccionAutosave({
+    clienteId, columna: seccion.columna, data, analisis_ia: iaTexto, analisis_ia_fecha: iaFecha,
+  });
+
+  const contexto = `Empresa: ${cliente.nombre_empresa} | Sector: ${cliente.sector || "—"} | País: ${cliente.pais || "—"} | Empleados: ${cliente.num_empleados || "—"} | Licencia: ${cliente.plan_licencia}`;
+
+  const renderSeccion = () => {
+    switch (seccion.numero) {
+      case 1: return <Sec01 data={data as Sec01Data} onChange={(d) => setData(d)} sector={sectorKey} />;
+      case 2: return <Sec02 data={data as Sec02Data} onChange={(d) => setData(d)} sector={sectorKey} />;
+      case 3: return <Sec03 data={data as Sec03Data} onChange={(d) => setData(d)} sector={sectorKey} />;
+      case 4: return <Sec04 data={data as Sec04Data} onChange={(d) => setData(d)} sector={sectorKey} />;
+      case 5: return <Sec05 data={data as Sec05Data} onChange={(d) => setData(d)} />;
+      default:
+        return (
+          <div className="a360-card a360-card-lg p-12 text-center text-muted-foreground">
+            <p className="text-sm">Esta sección estará disponible en la próxima fase.</p>
+            <p className="text-xs mt-2">Actualmente construyendo: secciones 1-5 (Fase 1).<br/>Próxima fase: secciones 6-9 + análisis IA en cada una.</p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 className="font-display text-2xl text-navy">
+          <span className="text-gold mr-2">{String(seccion.numero).padStart(2, "0")}.</span>
+          {seccion.titulo}
+        </h2>
+        <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
+      </div>
+      {renderSeccion()}
+      {seccion.numero <= 5 && (
+        <AnalisisIABox
+          clienteId={clienteId}
+          columna={seccion.columna}
+          seccionTitulo={seccion.titulo}
+          contextoEmpresa={contexto}
+          datosSeccion={data}
+          analisisActual={iaTexto}
+          analisisFecha={iaFecha}
+          onAnalisisGenerado={(t, f) => { setIaTexto(t); setIaFecha(f); }}
+        />
+      )}
+    </div>
+  );
+}
