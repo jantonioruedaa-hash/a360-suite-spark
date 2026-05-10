@@ -268,6 +268,92 @@ export const cameSugerido = () => ({
   ],
 });
 
+// ───────────────── Sec 06: Ejes estratégicos ─────────────────
+export interface EjeEstrategico { nombre: string; descripcion: string; prioridad: "Alta" | "Media" | "Baja"; }
+export const ejesSugeridos = (sector: SectorKey): EjeEstrategico[] => {
+  const base: EjeEstrategico[] = [
+    { nombre: "Crecimiento rentable",       descripcion: "Aumentar ingresos y margen sostenible mediante nuevos clientes, líneas y canales.", prioridad: "Alta" },
+    { nombre: "Excelencia operativa",       descripcion: "Optimizar procesos críticos, productividad y calidad de la operación.",            prioridad: "Alta" },
+    { nombre: "Experiencia del cliente",    descripcion: "Elevar NPS, fidelización y diferenciación a través de la experiencia.",             prioridad: "Alta" },
+    { nombre: "Talento y cultura",          descripcion: "Atraer, desarrollar y retener al talento crítico en una cultura de alto desempeño.", prioridad: "Media" },
+    { nombre: "Transformación digital",     descripcion: "Digitalizar procesos, datos y oferta para escalar y diferenciarse.",                prioridad: "Media" },
+    { nombre: "Sostenibilidad y reputación",descripcion: "Integrar criterios ESG en estrategia y reforzar reputación de marca.",              prioridad: "Media" },
+  ];
+  if (sector === "tecnologia") base.push({ nombre: "Innovación de producto", descripcion: "Roadmap de producto basado en evidencia y feedback de clientes.", prioridad: "Alta" });
+  if (sector === "manufactura") base.push({ nombre: "Industria 4.0 y eficiencia energética", descripcion: "Automatización y uso eficiente de recursos.", prioridad: "Media" });
+  if (sector === "retail") base.push({ nombre: "Omnicanalidad", descripcion: "Integración fluida entre canal físico y digital.", prioridad: "Alta" });
+  return base;
+};
+
+// ───────────────── Sec 07: Objetivos + BSC ─────────────────
+export type PerspectivaBSC = "Financiera" | "Cliente" | "Procesos" | "Aprendizaje";
+export interface ObjetivoBSC {
+  perspectiva: PerspectivaBSC;
+  objetivo: string;
+  indicador: string;
+  meta: string;
+  plazo: string;
+  responsable: string;
+  iniciativa?: string;
+}
+export const objetivosBSCSugeridos = (): ObjetivoBSC[] => [
+  { perspectiva: "Financiera",   objetivo: "Incrementar ingresos anuales",            indicador: "Ventas netas (USD)",          meta: "+20% anual",   plazo: "12 meses", responsable: "Gerencia Comercial",  iniciativa: "Plan comercial 2026" },
+  { perspectiva: "Financiera",   objetivo: "Mejorar margen operativo",                indicador: "EBITDA / Ventas",              meta: "≥ 18%",        plazo: "12 meses", responsable: "Dirección Financiera",iniciativa: "Plan de eficiencia de costos" },
+  { perspectiva: "Cliente",      objetivo: "Elevar satisfacción y fidelización",      indicador: "NPS",                          meta: "≥ 60",         plazo: "12 meses", responsable: "Customer Success",    iniciativa: "Programa de experiencia de cliente" },
+  { perspectiva: "Cliente",      objetivo: "Aumentar cuota en clientes clave",         indicador: "Share of wallet (%)",         meta: "+10 pp",       plazo: "12 meses", responsable: "Key Account Mgmt",    iniciativa: "Programa Key Account" },
+  { perspectiva: "Procesos",     objetivo: "Estandarizar procesos críticos",          indicador: "% procesos documentados",      meta: "100%",         plazo: "9 meses",  responsable: "Operaciones",         iniciativa: "Proyecto de mapeo y SOP" },
+  { perspectiva: "Procesos",     objetivo: "Reducir tiempos de entrega",              indicador: "Lead time promedio (días)",    meta: "-30%",         plazo: "12 meses", responsable: "Operaciones",         iniciativa: "Lean / Mejora continua" },
+  { perspectiva: "Aprendizaje",  objetivo: "Desarrollar competencias clave del equipo", indicador: "Horas formación/colaborador", meta: "≥ 40 h/año", plazo: "12 meses", responsable: "RRHH",                iniciativa: "Plan de formación 2026" },
+  { perspectiva: "Aprendizaje",  objetivo: "Retener talento crítico",                 indicador: "Rotación voluntaria (%)",      meta: "< 10%",        plazo: "12 meses", responsable: "RRHH",                iniciativa: "Plan de retención y carrera" },
+];
+
+// ───────────────── Sec 08: Estrategias corporativas ─────────────────
+export interface EstrategiaSeleccion {
+  porter: "Liderazgo en costos" | "Diferenciación" | "Enfoque/Nicho" | "";
+  porter_justificacion: string;
+  ansoff: "Penetración de mercado" | "Desarrollo de mercado" | "Desarrollo de producto" | "Diversificación" | "";
+  ansoff_justificacion: string;
+  oceano: "Océano rojo" | "Océano azul" | "";
+  oceano_justificacion: string;
+  iniciativas?: string[];
+}
+export const estrategiasSugeridas = (): { iniciativas: string[]; tips: Record<string, string> } => ({
+  iniciativas: [
+    "Lanzar nueva propuesta de valor diferenciada en el segmento prioritario",
+    "Plan de cross-selling y up-selling sobre cartera actual",
+    "Desarrollo de canal digital propio (e-commerce / SaaS)",
+    "Alianzas con partners para acelerar cobertura geográfica",
+    "Programa de innovación abierta con clientes",
+    "Reposicionamiento de marca y nueva narrativa",
+    "Plan de internacionalización selectiva",
+    "Modelo de ingresos recurrentes (suscripción / servicios gestionados)",
+  ],
+  tips: {
+    porter: "Liderazgo en costos requiere escala y eficiencia. Diferenciación exige capacidades únicas y marca. Enfoque/Nicho concentra recursos en un segmento específico.",
+    ansoff: "Penetración: vender más a clientes actuales. Desarrollo de mercado: nuevos segmentos/geografías. Desarrollo de producto: innovar oferta. Diversificación: nuevo producto + nuevo mercado (mayor riesgo).",
+    oceano: "Océano rojo: competir en mercados existentes. Océano azul: crear nuevos espacios de mercado sin competencia directa.",
+  },
+});
+
+// ───────────────── Sec 09: Plan operativo ─────────────────
+export interface IniciativaOperativa {
+  nombre: string;
+  eje: string;
+  responsable: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  presupuesto: number;
+  kpi: string;
+  estado: "Por iniciar" | "En curso" | "Completada" | "En riesgo";
+}
+export const planOperativoSugerido = (): IniciativaOperativa[] => [
+  { nombre: "Plan comercial 2026",          eje: "Crecimiento rentable",   responsable: "Gerencia Comercial", fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Ventas netas",   estado: "Por iniciar" },
+  { nombre: "Programa de experiencia CX",   eje: "Experiencia del cliente",responsable: "Customer Success",   fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "NPS",            estado: "Por iniciar" },
+  { nombre: "Mapeo y estandarización SOP",  eje: "Excelencia operativa",   responsable: "Operaciones",        fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "% procesos doc.",estado: "Por iniciar" },
+  { nombre: "Plan de formación 2026",       eje: "Talento y cultura",      responsable: "RRHH",               fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Horas/colab.",   estado: "Por iniciar" },
+  { nombre: "Implementación CRM",           eje: "Transformación digital", responsable: "TI",                 fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Adopción CRM",   estado: "Por iniciar" },
+];
+
 // ───────────────── Sec 05: Valores corporativos ─────────────────
 export const valoresSugeridos = () => [
   { nombre: "Integridad",   descripcion: "Actuamos con honestidad y coherencia en todo momento." },
