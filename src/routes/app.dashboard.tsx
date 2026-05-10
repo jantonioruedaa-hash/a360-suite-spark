@@ -48,6 +48,8 @@ interface CotizacionRow {
 
 function Dashboard() {
   const { user } = useAuth();
+  const { alertas } = useAlertas();
+  const urgentes = alertas.filter((a) => a.severidad === "critica" || a.severidad === "alta").slice(0, 6);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [sideCount, setSideCount] = useState(0);
   const [actividades, setActividades] = useState<ActividadRow[]>([]);
