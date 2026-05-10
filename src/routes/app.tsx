@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell } from "lucide-react";
+import { NotificacionesBell } from "@/components/NotificacionesBell";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -44,10 +44,7 @@ function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2 rounded-md hover:bg-muted text-navy">
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-gold" />
-              </button>
+              <NotificacionesBell />
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <div className="text-sm font-medium text-navy leading-tight">{profile?.name ?? user.email}</div>
