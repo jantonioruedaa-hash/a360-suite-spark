@@ -131,36 +131,141 @@ export const pestelSugerido = (sector: SectorKey): Record<string, FactorPESTEL[]
   return com;
 };
 
+// ───────────────── Sec 03: Diagnóstico interno — guía por sector ─────────────────
+export interface DiagnosticoInternoGuia {
+  recursos_clave: string;
+  procesos_criticos: string;
+  capacidades_distintivas: string;
+  areas_mejora: string;
+  cultura_actual: string;
+}
+
+export const diagnosticoInternoSugerido = (sector: SectorKey): DiagnosticoInternoGuia => {
+  const base: DiagnosticoInternoGuia = {
+    recursos_clave: "• Equipo humano (perfiles clave y talento crítico)\n• Activos tangibles (infraestructura, equipos, instalaciones)\n• Activos intangibles (marca, propiedad intelectual, base de datos de clientes)\n• Recursos financieros (capital de trabajo, líneas de crédito)\n• Tecnología y sistemas de información",
+    procesos_criticos: "• Proceso comercial y captación de clientes\n• Proceso de entrega del producto/servicio\n• Proceso de cobranza y administración financiera\n• Proceso de soporte y postventa\n• Proceso de gestión del talento",
+    capacidades_distintivas: "• ¿Qué sabemos hacer mejor que la competencia?\n• ¿Por qué nos eligen los clientes?\n• ¿Qué know-how acumulado tenemos?\n• ¿Qué capacidad es difícil de imitar?",
+    areas_mejora: "• Procesos no documentados\n• Sistemas y tecnología obsoletos o ausentes\n• Capacidades de marketing y ventas\n• Estructura organizacional y delegación\n• Indicadores y control de gestión",
+    cultura_actual: "• Valores que hoy se viven (no los declarados)\n• Estilo de liderazgo predominante\n• Forma de tomar decisiones (centralizada/descentralizada)\n• Relación con el error y la innovación\n• Nivel de compromiso y rotación del equipo",
+  };
+  if (sector === "tecnologia") {
+    base.recursos_clave += "\n• Stack tecnológico y código fuente\n• Comunidad de usuarios o developers";
+    base.capacidades_distintivas += "\n• Velocidad de desarrollo y despliegue (CI/CD)\n• Capacidad de escalar producto sin escalar costos";
+  }
+  if (sector === "manufactura") {
+    base.recursos_clave += "\n• Capacidad instalada y eficiencia de planta\n• Cadena de proveedores estratégicos";
+    base.procesos_criticos += "\n• Control de calidad y trazabilidad\n• Gestión de inventarios y almacén";
+  }
+  if (sector === "servicios" || sector === "otro") {
+    base.capacidades_distintivas += "\n• Metodología propia o framework de trabajo\n• Capacidad consultiva del equipo senior";
+  }
+  if (sector === "retail") {
+    base.procesos_criticos += "\n• Gestión de surtido y reposición\n• Experiencia de cliente en tienda y online";
+  }
+  if (sector === "salud") {
+    base.recursos_clave += "\n• Profesionales acreditados y especialidades\n• Equipamiento médico y certificaciones";
+    base.cultura_actual += "\n• Cultura de seguridad del paciente";
+  }
+  if (sector === "financiero") {
+    base.procesos_criticos += "\n• Análisis de riesgo y crédito\n• Compliance, KYC y prevención de fraude";
+  }
+  return base;
+};
+
 // ───────────────── Sec 03: Factores EFI típicos ─────────────────
 export interface FactorEFI { factor: string; tipo: "Fortaleza" | "Debilidad"; peso: number; calificacion: number; }
 export const efiSugerido = (sector: SectorKey): FactorEFI[] => [
-  { factor: "Calidad del producto/servicio", tipo: "Fortaleza", peso: 0.15, calificacion: 3 },
-  { factor: "Conocimiento del mercado", tipo: "Fortaleza", peso: 0.12, calificacion: 3 },
-  { factor: "Equipo profesional capacitado", tipo: "Fortaleza", peso: 0.12, calificacion: 3 },
-  { factor: "Cartera de clientes recurrentes", tipo: "Fortaleza", peso: 0.10, calificacion: 3 },
-  { factor: "Procesos documentados", tipo: "Debilidad", peso: 0.10, calificacion: 2 },
-  { factor: "Sistemas de información", tipo: "Debilidad", peso: 0.10, calificacion: 2 },
-  { factor: "Capacidad financiera", tipo: "Debilidad", peso: 0.13, calificacion: 2 },
-  { factor: "Marketing y posicionamiento", tipo: "Debilidad", peso: 0.10, calificacion: 2 },
-  { factor: sector === "tecnologia" ? "Capacidad de innovación" : "Eficiencia operativa", tipo: "Fortaleza", peso: 0.08, calificacion: 3 },
+  { factor: "Calidad del producto/servicio", tipo: "Fortaleza", peso: 0.08, calificacion: 3 },
+  { factor: "Conocimiento del mercado y clientes", tipo: "Fortaleza", peso: 0.07, calificacion: 3 },
+  { factor: "Equipo profesional capacitado", tipo: "Fortaleza", peso: 0.07, calificacion: 3 },
+  { factor: "Cartera de clientes recurrentes", tipo: "Fortaleza", peso: 0.06, calificacion: 3 },
+  { factor: "Reputación y marca en el sector", tipo: "Fortaleza", peso: 0.06, calificacion: 3 },
+  { factor: "Relación cercana con clientes clave", tipo: "Fortaleza", peso: 0.05, calificacion: 3 },
+  { factor: "Flexibilidad y agilidad operativa", tipo: "Fortaleza", peso: 0.05, calificacion: 3 },
+  { factor: sector === "tecnologia" ? "Capacidad de innovación tecnológica" : "Eficiencia operativa", tipo: "Fortaleza", peso: 0.06, calificacion: 3 },
+  { factor: "Procesos documentados y estandarizados", tipo: "Debilidad", peso: 0.07, calificacion: 2 },
+  { factor: "Sistemas de información y datos", tipo: "Debilidad", peso: 0.07, calificacion: 2 },
+  { factor: "Capacidad financiera y de inversión", tipo: "Debilidad", peso: 0.08, calificacion: 2 },
+  { factor: "Marketing y posicionamiento digital", tipo: "Debilidad", peso: 0.07, calificacion: 2 },
+  { factor: "Estructura organizacional y delegación", tipo: "Debilidad", peso: 0.05, calificacion: 2 },
+  { factor: "Indicadores de gestión y control", tipo: "Debilidad", peso: 0.05, calificacion: 2 },
+  { factor: "Dependencia del fundador/socio principal", tipo: "Debilidad", peso: 0.06, calificacion: 2 },
+  { factor: "Gestión del talento y retención", tipo: "Debilidad", peso: 0.05, calificacion: 2 },
 ];
 
 // ───────────────── Sec 04: FODA sugerido ─────────────────
 export const fodaSugerido = (sector: SectorKey) => ({
-  fortalezas: ["Equipo experimentado", "Relación cercana con clientes", "Flexibilidad operativa", "Reputación en el mercado local"],
-  debilidades: ["Dependencia del fundador", "Procesos no documentados", "Limitada presencia digital", "Capacidad financiera ajustada"],
+  fortalezas: [
+    "Equipo experimentado y comprometido",
+    "Relación cercana con clientes",
+    "Flexibilidad y capacidad de respuesta",
+    "Reputación en el mercado local",
+    "Conocimiento profundo del sector",
+    "Cartera diversificada de clientes",
+  ],
+  debilidades: [
+    "Dependencia del fundador en decisiones clave",
+    "Procesos no documentados ni estandarizados",
+    "Limitada presencia digital y marketing",
+    "Capacidad financiera ajustada",
+    "Sistemas de información débiles",
+    "Estructura organizacional poco definida",
+  ],
   oportunidades: sector === "tecnologia"
-    ? ["Crecimiento de la digitalización", "Adopción de IA en clientes", "Mercados internacionales", "Modelos de suscripción"]
-    : ["Nuevos canales digitales", "Crecimiento del sector", "Alianzas estratégicas", "Expansión geográfica"],
-  amenazas: ["Nuevos competidores", "Presión sobre márgenes", "Cambios regulatorios", "Volatilidad económica"],
+    ? ["Crecimiento de la digitalización en clientes", "Adopción masiva de IA generativa", "Mercados internacionales vía SaaS", "Modelos de suscripción y recurrencia", "Alianzas con integradores y partners", "Demanda de ciberseguridad"]
+    : ["Nuevos canales digitales y e-commerce", "Crecimiento del sector", "Alianzas estratégicas y co-creación", "Expansión geográfica regional", "Nuevos segmentos desatendidos", "Servitización del producto"],
+  amenazas: [
+    "Entrada de nuevos competidores",
+    "Presión sobre márgenes y precios",
+    "Cambios regulatorios en el sector",
+    "Volatilidad económica y cambiaria",
+    "Pérdida de talento clave a competidores",
+    "Disrupción tecnológica del modelo de negocio",
+  ],
 });
 
-// CAME sugerido por categoría
+// CAME sugerido por categoría — acciones derivadas (catálogo amplio)
 export const cameSugerido = () => ({
-  corregir: ["Implementar plan de documentación de procesos", "Plan de digitalización del back office"],
-  afrontar: ["Diferenciación clara vs nuevos competidores", "Estrategia de cobertura ante riesgos regulatorios"],
-  mantener: ["Programa de fidelización de clientes clave", "Plan de retención de talento crítico"],
-  explotar: ["Plan comercial para nuevos canales digitales", "Búsqueda activa de alianzas estratégicas"],
+  corregir: [
+    "Implementar plan de documentación y estandarización de procesos críticos",
+    "Plan de digitalización del back office (ERP/CRM)",
+    "Programa de profesionalización de la gestión (gobierno corporativo)",
+    "Plan de fortalecimiento financiero (estructura de capital y caja)",
+    "Plan de marketing digital y posicionamiento de marca",
+    "Programa de desarrollo de mandos medios para reducir dependencia del fundador",
+    "Implementar sistema de indicadores de gestión (CMI)",
+    "Plan de mejora de experiencia de cliente (CX)",
+  ],
+  afrontar: [
+    "Estrategia de diferenciación clara frente a nuevos competidores",
+    "Plan de cobertura ante riesgos regulatorios y compliance",
+    "Estrategia de cobertura cambiaria y financiera",
+    "Plan de retención de talento crítico (compensación y carrera)",
+    "Diversificación de proveedores y reducción de dependencias",
+    "Plan de continuidad del negocio y gestión de riesgos",
+    "Innovación defensiva ante disrupción tecnológica",
+    "Estrategia de precios para defender márgenes",
+  ],
+  mantener: [
+    "Programa de fidelización de clientes clave (key account)",
+    "Plan de retención y desarrollo del talento crítico",
+    "Inversión continua en calidad del producto/servicio",
+    "Refuerzo de la cultura organizacional y propósito",
+    "Mantener cercanía con clientes (NPS y voz del cliente)",
+    "Mantener flexibilidad operativa como ventaja competitiva",
+    "Cuidar la reputación de marca y referencias",
+    "Mantener inversión en formación del equipo",
+  ],
+  explotar: [
+    "Plan comercial para nuevos canales digitales",
+    "Búsqueda activa de alianzas estratégicas y partners",
+    "Lanzamiento de nuevos productos/servicios para segmentos desatendidos",
+    "Plan de expansión geográfica regional",
+    "Modelos de suscripción y servitización",
+    "Adopción de IA para mejorar productividad y oferta",
+    "Programa de innovación abierta con clientes y proveedores",
+    "Internacionalización vía e-commerce o canales digitales",
+  ],
 });
 
 // ───────────────── Sec 05: Valores corporativos ─────────────────
