@@ -189,11 +189,15 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
       case 11: return <Sec11 data={data as Sec11Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 12: return <Sec12 data={data as Sec12Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 13: return <Sec13 data={data as Sec13Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 14: return <Sec14 data={data as Sec14Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 15: return <Sec15 data={data as Sec15Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 16: return <Sec16 data={data as Sec16Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 17: return <Sec17 data={data as Sec17Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 18: return <Sec18 data={data as Sec18Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       default:
         return (
           <div className="a360-card a360-card-lg p-12 text-center text-muted-foreground">
-            <p className="text-sm">Esta sección estará disponible en la próxima fase.</p>
-            <p className="text-xs mt-2">Fases completadas: 1-13.<br/>Próxima fase: secciones 14-18 (Talento, TI, Seguimiento, CMI y Ejecución).</p>
+            <p className="text-sm">Esta sección estará disponible próximamente.</p>
           </div>
         );
     }
