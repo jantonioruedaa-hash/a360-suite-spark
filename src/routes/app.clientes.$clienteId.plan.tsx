@@ -173,11 +173,11 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
 
   const renderSeccion = () => {
     switch (seccion.numero) {
-      case 1: return <Sec01 data={data as Sec01Data} onChange={(d) => setData(d)} sector={sectorKey} />;
-      case 2: return <Sec02 data={data as Sec02Data} onChange={(d) => setData(d)} sector={sectorKey} />;
-      case 3: return <Sec03 data={data as Sec03Data} onChange={(d) => setData(d)} sector={sectorKey} />;
-      case 4: return <Sec04 data={data as Sec04Data} onChange={(d) => setData(d)} sector={sectorKey} />;
-      case 5: return <Sec05 data={data as Sec05Data} onChange={(d) => setData(d)} />;
+      case 1: return <Sec01 data={data as Sec01Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 2: return <Sec02 data={data as Sec02Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 3: return <Sec03 data={data as Sec03Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 4: return <Sec04 data={data as Sec04Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 5: return <Sec05 data={data as Sec05Data} onChange={(d) => setData(d as Record<string, unknown>)} />;
       default:
         return (
           <div className="a360-card a360-card-lg p-12 text-center text-muted-foreground">
