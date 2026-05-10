@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
 import { ListaEditable } from "./ListaEditable";
-import { lineasProductoSugeridas, pestelSugerido, efiSugerido, fodaSugerido, cameSugerido, valoresSugeridos, type SectorKey, type FactorPESTEL, type FactorEFI } from "@/lib/plan-catalogo";
+import { lineasProductoSugeridas, pestelSugerido, efiSugerido, fodaSugerido, cameSugerido, valoresSugeridos, diagnosticoInternoSugerido, type SectorKey, type FactorPESTEL, type FactorEFI } from "@/lib/plan-catalogo";
+import { Sparkles } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────
 // SECCIÓN 1 — PRESENTACIÓN EJECUTIVA
