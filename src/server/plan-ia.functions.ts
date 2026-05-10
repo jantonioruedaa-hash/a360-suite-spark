@@ -86,14 +86,21 @@ Genera el análisis siguiendo estrictamente el formato definido.`;
     const allowedCols = ["sec01","sec02","sec03","sec04","sec05","sec06","sec07","sec08","sec09","sec10_esg","sec11_alianzas","sec12_innovacion","sec13","sec14","sec15","sec16","sec17_cmi","sec18_ejecucion"];
     if (!allowedCols.includes(data.columna)) throw new Error("Columna inválida");
 
-    const { data: existing } = await supabase
-      .from("planes_estrategicos")
+    const sb = supabase as unknown as {
+      from: (t: string) => {
+        select: (s: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: Record<string, unknown> | null }> } };
+        update: (v: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<unknown> };
+        insert: (v: Record<string, unknown>) => Promise<unknown>;
+      };
+    };
+
+    const { data: existing } = await sb.from("planes_estrategicos")
       .select(`id, ${data.columna}`)
       .eq("cliente_id", data.clienteId)
       .maybeSingle();
 
     const fecha = new Date().toISOString();
-    const seccionPrev = (existing as Record<string, unknown> | null)?.[data.columna] as { data?: Record<string, unknown> } | null;
+    const seccionPrev = existing?.[data.columna] as { data?: Record<string, unknown> } | null;
     const nuevoValor = {
       data: seccionPrev?.data ?? data.datosSeccion,
       analisis_ia: analisis,
@@ -102,11 +109,11 @@ Genera el análisis siguiendo estrictamente el formato definido.`;
     };
 
     if (existing?.id) {
-      await supabase.from("planes_estrategicos")
+      await sb.from("planes_estrategicos")
         .update({ [data.columna]: nuevoValor, updated_at: fecha })
-        .eq("id", existing.id);
+        .eq("id", existing.id as string);
     } else {
-      await supabase.from("planes_estrategicos").insert({
+      await sb.from("planes_estrategicos").insert({
         cliente_id: data.clienteId,
         [data.columna]: nuevoValor,
       });
