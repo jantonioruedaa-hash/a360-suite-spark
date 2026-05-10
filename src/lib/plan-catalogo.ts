@@ -897,3 +897,326 @@ export const iniciativasMarketingSugeridas = (sector: SectorKey): IniciativaMark
   );
   return base;
 };
+
+// ═════════════════════════════════════════════════════════════
+// Sec 14 — Talento y cultura
+// ═════════════════════════════════════════════════════════════
+export type AreaTalento = "Atracción" | "Desarrollo" | "Retención" | "Cultura" | "Compensación" | "Bienestar" | "DEI" | "Liderazgo" | "Sucesión";
+export interface IniciativaTalento {
+  nombre: string; area: AreaTalento; objetivo: string; kpi: string;
+  responsable: string; presupuesto: number; estado: "Por iniciar" | "En curso" | "Completada" | "En riesgo";
+}
+export interface Sec14Data {
+  vision_talento?: string;
+  valores_culturales?: string[];
+  competencias_clave?: string[];
+  estructura_organizacional?: string;
+  plan_atraccion?: string;
+  plan_desarrollo?: string;
+  plan_retencion?: string;
+  compensacion_beneficios?: string;
+  evaluacion_desempeno?: string;
+  plan_sucesion?: string;
+  diversidad_inclusion?: string;
+  clima_organizacional?: string;
+  iniciativas?: IniciativaTalento[];
+}
+
+export const valoresCulturalesSugeridos = (): string[] => [
+  "Integridad y ética", "Excelencia y mejora continua", "Centrado en el cliente",
+  "Trabajo en equipo y colaboración", "Innovación y aprendizaje", "Responsabilidad y rendición de cuentas",
+  "Diversidad e inclusión", "Pasión y compromiso",
+];
+
+export const competenciasClaveSugeridas = (sector: SectorKey): string[] => {
+  const base = [
+    "Pensamiento estratégico", "Orientación a resultados", "Liderazgo de equipos",
+    "Comunicación efectiva", "Toma de decisiones basada en datos", "Gestión del cambio",
+    "Resolución de problemas", "Foco en cliente", "Inteligencia emocional",
+  ];
+  if (sector === "tecnologia") base.push("Mentalidad ágil", "Pensamiento de producto", "Conocimiento técnico actualizado");
+  if (sector === "manufactura") base.push("Mejora continua / Lean", "Seguridad operacional", "Calidad");
+  if (sector === "salud") base.push("Calidez en atención", "Cumplimiento de protocolos", "Trabajo multidisciplinar");
+  if (sector === "financiero") base.push("Gestión de riesgos", "Compliance", "Análisis cuantitativo");
+  return base;
+};
+
+const it = (nombre: string, area: AreaTalento, objetivo: string, kpi: string, responsable = "RRHH"): IniciativaTalento =>
+  ({ nombre, area, objetivo, kpi, responsable, presupuesto: 0, estado: "Por iniciar" });
+
+export const iniciativasTalentoSugeridas = (sector: SectorKey): IniciativaTalento[] => {
+  const base: IniciativaTalento[] = [
+    it("Definición de propuesta de valor al empleado (EVP)", "Atracción", "Articular por qué trabajar aquí", "NPS empleado / aceptación ofertas"),
+    it("Programa de marca empleadora", "Atracción", "Posicionar la empresa como gran lugar para trabajar", "Aplicaciones espontáneas / GPTW"),
+    it("Onboarding estructurado 30-60-90 días", "Atracción", "Acelerar productividad de nuevos ingresos", "Tiempo a productividad / rotación primer año"),
+    it("Plan de desarrollo individual (PDI)", "Desarrollo", "PDI anual para 100% del equipo", "% PDI activos / horas de formación"),
+    it("Academia interna y plan de formación", "Desarrollo", "Cerrar gaps de competencias críticas", "Horas formación / NPS formación"),
+    it("Programa de liderazgo y mandos medios", "Liderazgo", "Profesionalizar la gestión de equipos", "Evaluación 360 líderes"),
+    it("Plan de sucesión de roles críticos", "Sucesión", "Cobertura de roles clave con sucesores listos", "% roles críticos con sucesor"),
+    it("Modelo de evaluación del desempeño", "Desarrollo", "Evaluación con feedback continuo y objetivos", "% evaluaciones realizadas a tiempo"),
+    it("Política de compensación y bandas salariales", "Compensación", "Equidad interna y competitividad externa", "Equidad interna / brecha vs mercado"),
+    it("Programa de bonos por desempeño", "Compensación", "Alinear compensación variable a resultados", "% objetivos cumplidos / payout"),
+    it("Programa de reconocimiento", "Cultura", "Reforzar comportamientos deseados", "Reconocimientos / mes"),
+    it("Encuesta de clima organizacional anual", "Cultura", "Medir clima y planes de acción", "eNPS / participación"),
+    it("Programa de bienestar integral", "Bienestar", "Bienestar físico, mental y financiero", "Adopción / ausentismo"),
+    it("Política de trabajo flexible / híbrido", "Bienestar", "Flexibilidad y productividad", "Satisfacción / productividad"),
+    it("Plan de retención de talento crítico", "Retención", "Retener al top performer / pivotal roles", "Rotación regretted / top performers"),
+    it("Programa de mentoring y coaching", "Desarrollo", "Acelerar desarrollo de alto potencial", "% HiPo en mentoring"),
+    it("Estrategia de diversidad, equidad e inclusión", "DEI", "Construir equipos diversos e inclusivos", "Diversidad por nivel / clima inclusión"),
+    it("Programa de embajadores internos", "Cultura", "Activar referidos y propósito", "Contrataciones por referido"),
+  ];
+  if (sector === "tecnologia") base.push(
+    it("Hackatones internos y tiempo de innovación", "Cultura", "Incentivar ideas y experimentación", "Ideas implementadas"),
+    it("Career path técnico (IC) y de gestión", "Desarrollo", "Carrera dual sin obligar a gestionar", "% top engineers retenidos"),
+  );
+  if (sector === "manufactura") base.push(
+    it("Programa de seguridad y salud ocupacional", "Bienestar", "Cero accidentes graves", "Tasa de accidentabilidad"),
+    it("Formación en Lean y mejora continua", "Desarrollo", "Equipos capaces de mejorar sus procesos", "Iniciativas de mejora / persona"),
+  );
+  if (sector === "salud") base.push(
+    it("Programa de bienestar para personal sanitario", "Bienestar", "Reducir burnout en equipos clínicos", "Burnout / rotación clínica"),
+  );
+  if (sector === "retail") base.push(
+    it("Plan de talento para tiendas y temporada alta", "Atracción", "Cubrir picos sin perder calidad", "Cobertura / NPS cliente en tienda"),
+  );
+  return base;
+};
+
+// ═════════════════════════════════════════════════════════════
+// Sec 15 — TI y transformación digital
+// ═════════════════════════════════════════════════════════════
+export type CategoriaTI = "Infraestructura" | "Datos & BI" | "Aplicaciones" | "Ciberseguridad" | "IA y automatización" | "Experiencia digital" | "Cultura digital" | "Cumplimiento";
+export type MadurezDigital = "Inicial" | "En desarrollo" | "Definida" | "Gestionada" | "Optimizada";
+export interface IniciativaTI {
+  nombre: string; categoria: CategoriaTI; objetivo: string; kpi: string;
+  responsable: string; presupuesto: number; prioridad: "Alta" | "Media" | "Baja";
+  estado: "Por iniciar" | "En curso" | "Completada" | "En riesgo";
+}
+export interface Sec15Data {
+  vision_digital?: string;
+  madurez_digital?: MadurezDigital;
+  arquitectura_actual?: string;
+  arquitectura_objetivo?: string;
+  gobierno_datos?: string;
+  ciberseguridad?: string;
+  cumplimiento_normativo?: string;
+  adopcion_ia?: string;
+  automatizacion_procesos?: string;
+  experiencia_cliente_digital?: string;
+  cultura_digital?: string;
+  inversion_ti_pct?: string;
+  iniciativas?: IniciativaTI[];
+}
+
+const ti = (nombre: string, categoria: CategoriaTI, objetivo: string, kpi: string, prioridad: IniciativaTI["prioridad"] = "Media", responsable = "TI"): IniciativaTI =>
+  ({ nombre, categoria, objetivo, kpi, responsable, presupuesto: 0, prioridad, estado: "Por iniciar" });
+
+export const iniciativasTISugeridas = (sector: SectorKey): IniciativaTI[] => {
+  const base: IniciativaTI[] = [
+    ti("Migración a cloud (IaaS/PaaS)", "Infraestructura", "Reducir CapEx, escalar y mejorar resiliencia", "% workloads en cloud / disponibilidad", "Alta"),
+    ti("Implementación / consolidación ERP", "Aplicaciones", "Plataforma única de back office", "Adopción / cierre contable en días", "Alta"),
+    ti("Implementación de CRM", "Aplicaciones", "Visibilidad full funnel y forecasting", "Adopción / accuracy forecast", "Alta"),
+    ti("Plataforma de Business Intelligence (BI)", "Datos & BI", "Decisiones basadas en datos para todas las áreas", "Tableros activos / usuarios activos", "Alta"),
+    ti("Data warehouse y modelo de datos único", "Datos & BI", "Single source of truth", "% fuentes integradas", "Media"),
+    ti("Política de gobierno de datos", "Datos & BI", "Calidad, dueños y seguridad de los datos", "Indicadores de calidad de datos", "Media"),
+    ti("Plan director de ciberseguridad", "Ciberseguridad", "Reducir riesgo cibernético a nivel aceptable", "Madurez NIST / hallazgos críticos", "Alta"),
+    ti("MFA y gestión de identidades (IAM)", "Ciberseguridad", "Acceso seguro a sistemas críticos", "% usuarios con MFA", "Alta"),
+    ti("Backup y plan de recuperación (DRP/BCP)", "Ciberseguridad", "Continuidad operativa ante incidentes", "RTO / RPO", "Alta"),
+    ti("Programa de concienciación en ciberseguridad", "Cultura digital", "Reducir riesgo humano (phishing)", "Click rate phishing simulado", "Media"),
+    ti("Cumplimiento de protección de datos", "Cumplimiento", "Cumplir normativa local de privacidad", "Hallazgos auditoría / DSAR atendidos", "Alta"),
+    ti("Automatización de procesos (RPA / workflow)", "IA y automatización", "Liberar horas en procesos repetitivos", "Horas FTE liberadas", "Media"),
+    ti("Casos de uso de IA generativa internos", "IA y automatización", "Productividad de equipos con IA", "Adopción / ahorro horas", "Alta"),
+    ti("Asistentes con IA para clientes", "IA y automatización", "Mejorar experiencia y reducir costo de atención", "CSAT / contención", "Media"),
+    ti("Renovación de la web y portales digitales", "Experiencia digital", "Web moderna, rápida y orientada a conversión", "Conversión / Core Web Vitals", "Media"),
+    ti("App móvil para clientes", "Experiencia digital", "Canal directo con clientes", "DAU/MAU / retención", "Media"),
+    ti("Plan de adopción y change management digital", "Cultura digital", "Asegurar uso real de las herramientas", "Adopción / NPS herramientas", "Media"),
+    ti("Programa de upskilling digital", "Cultura digital", "Cerrar gap de competencias digitales", "Horas formación / certificaciones", "Media"),
+  ];
+  if (sector === "manufactura") base.push(
+    ti("MES + IoT en planta", "Infraestructura", "Visibilidad y control en tiempo real de planta", "OEE / paradas no planificadas", "Alta"),
+    ti("Mantenimiento predictivo con ML", "IA y automatización", "Anticipar fallas en equipos críticos", "MTBF / paradas evitadas", "Media"),
+  );
+  if (sector === "retail") base.push(
+    ti("Plataforma de e-commerce y omnicanalidad", "Experiencia digital", "Vender bien en todos los canales con stock unificado", "Ingresos digitales / cliente cross-canal", "Alta"),
+    ti("CDP y personalización", "Datos & BI", "Vista única del cliente y experiencias personalizadas", "Conversión / LTV", "Media"),
+  );
+  if (sector === "salud") base.push(
+    ti("HIS / expediente electrónico", "Aplicaciones", "Información clínica integrada y segura", "Adopción / tiempo de consulta", "Alta"),
+    ti("Telemedicina y portal del paciente", "Experiencia digital", "Atención remota y autoservicio", "Consultas remotas / NPS paciente", "Media"),
+  );
+  if (sector === "financiero") base.push(
+    ti("Core bancario / asegurador moderno", "Aplicaciones", "Reemplazar legados y habilitar nuevos productos", "Time-to-market producto", "Alta"),
+    ti("APIs y open banking", "Aplicaciones", "Habilitar ecosistema y nuevas líneas", "N° integraciones activas", "Media"),
+  );
+  if (sector === "agro") base.push(
+    ti("Plataforma de trazabilidad agro", "Aplicaciones", "Trazabilidad de campo a cliente", "% lotes trazados", "Media"),
+  );
+  return base;
+};
+
+// ═════════════════════════════════════════════════════════════
+// Sec 16 — Seguimiento, riesgos y mejora continua
+// ═════════════════════════════════════════════════════════════
+export type CategoriaRiesgo = "Estratégico" | "Operacional" | "Financiero" | "Mercado" | "Cumplimiento" | "Tecnológico" | "Reputacional" | "ESG" | "Talento";
+export interface RiesgoEstrategico {
+  nombre: string; categoria: CategoriaRiesgo;
+  probabilidad: 1 | 2 | 3 | 4 | 5;
+  impacto: 1 | 2 | 3 | 4 | 5;
+  mitigacion: string; responsable: string;
+  estado: "Identificado" | "En tratamiento" | "Mitigado" | "Materializado";
+}
+export interface AccionMejora {
+  proceso: string; problema: string; accion: string;
+  responsable: string; plazo: string;
+  estado: "Por iniciar" | "En curso" | "Completada";
+  beneficio_esperado: string;
+}
+export interface Sec16Data {
+  modelo_seguimiento?: string;
+  cadencia_revisiones?: string;
+  comites_y_gobernanza?: string;
+  metodologia_mejora?: string;
+  indicadores_globales?: string;
+  gestion_riesgos?: string;
+  aprendizaje_organizacional?: string;
+  herramientas_seguimiento?: string;
+  riesgos?: RiesgoEstrategico[];
+  mejoras?: AccionMejora[];
+}
+
+const rsk = (nombre: string, categoria: CategoriaRiesgo, probabilidad: RiesgoEstrategico["probabilidad"], impacto: RiesgoEstrategico["impacto"], mitigacion: string, responsable = "Dirección"): RiesgoEstrategico =>
+  ({ nombre, categoria, probabilidad, impacto, mitigacion, responsable, estado: "Identificado" });
+
+export const riesgosSugeridos = (sector: SectorKey): RiesgoEstrategico[] => {
+  const base: RiesgoEstrategico[] = [
+    rsk("Pérdida de cliente clave", "Mercado", 3, 5, "Diversificar cartera y key account management"),
+    rsk("Entrada de competidor disruptivo", "Estratégico", 3, 4, "Vigilancia competitiva e innovación continua"),
+    rsk("Ataque de ciberseguridad / ransomware", "Tecnológico", 3, 5, "Plan director de ciberseguridad, backups, MFA"),
+    rsk("Pérdida de talento crítico", "Talento", 3, 4, "Plan de retención y sucesión"),
+    rsk("Crisis de liquidez", "Financiero", 2, 5, "Líneas de crédito comprometidas y proyección de caja"),
+    rsk("Cambios regulatorios", "Cumplimiento", 3, 3, "Monitoreo regulatorio y compliance proactivo"),
+    rsk("Crisis reputacional en redes", "Reputacional", 2, 4, "Plan de gestión de crisis y vocería"),
+    rsk("Volatilidad cambiaria / inflacionaria", "Financiero", 4, 3, "Coberturas y cláusulas de ajuste"),
+    rsk("Ruptura en cadena de suministro", "Operacional", 3, 4, "Diversificación de proveedores y stocks de seguridad"),
+    rsk("No cumplimiento de objetivos del plan", "Estratégico", 3, 4, "PMO de ejecución y revisiones mensuales"),
+    rsk("Riesgo climático / eventos extremos", "ESG", 2, 4, "Plan de continuidad y mitigación ESG"),
+  ];
+  if (sector === "manufactura") base.push(rsk("Accidente operacional grave", "Operacional", 2, 5, "Sistema de gestión SST y cultura de seguridad"));
+  if (sector === "salud") base.push(rsk("Evento adverso al paciente", "Operacional", 2, 5, "Cultura de seguridad y protocolos"));
+  if (sector === "financiero") base.push(rsk("Lavado de activos / fraude", "Cumplimiento", 3, 5, "KYC/AML y monitoreo transaccional"));
+  return base;
+};
+
+export const accionesMejoraSugeridas = (): AccionMejora[] => [
+  { proceso: "Comercial", problema: "Ciclo de venta largo y baja conversión", accion: "Implementar metodología comercial y SLA por etapa", responsable: "Comercial", plazo: "Q2", estado: "Por iniciar", beneficio_esperado: "Reducir 25% el ciclo de venta" },
+  { proceso: "Cobranza", problema: "DSO elevado", accion: "Política de crédito y automatizar recordatorios", responsable: "Finanzas", plazo: "Q1", estado: "Por iniciar", beneficio_esperado: "Reducir DSO en 15 días" },
+  { proceso: "Atención al cliente", problema: "Reclamos sin trazabilidad", accion: "Implementar mesa de servicio y SLAs", responsable: "Operaciones", plazo: "Q2", estado: "Por iniciar", beneficio_esperado: "NPS +10 puntos" },
+  { proceso: "Onboarding empleados", problema: "Tiempo a productividad alto", accion: "Programa 30-60-90 estandarizado", responsable: "RRHH", plazo: "Q1", estado: "Por iniciar", beneficio_esperado: "Reducir 30% tiempo a productividad" },
+];
+
+// ═════════════════════════════════════════════════════════════
+// Sec 17 — CMI (Cuadro de Mando Integral)
+// ═════════════════════════════════════════════════════════════
+export type PerspectivaCMI = "Financiera" | "Cliente" | "Procesos internos" | "Aprendizaje y crecimiento";
+export interface ObjetivoCMI {
+  perspectiva: PerspectivaCMI;
+  objetivo: string;
+  indicador: string;
+  unidad: string;
+  linea_base: string;
+  meta: string;
+  frecuencia: "Mensual" | "Trimestral" | "Semestral" | "Anual";
+  responsable: string;
+  iniciativa: string;
+}
+export interface Sec17Data {
+  vision_cmi?: string;
+  mapa_estrategico?: string;
+  metodologia?: string;
+  cadencia_revision?: string;
+  herramientas?: string;
+  objetivos?: ObjetivoCMI[];
+}
+
+const ob = (perspectiva: PerspectivaCMI, objetivo: string, indicador: string, unidad: string, meta: string, responsable = "Dirección", iniciativa = ""): ObjetivoCMI =>
+  ({ perspectiva, objetivo, indicador, unidad, linea_base: "—", meta, frecuencia: "Mensual", responsable, iniciativa });
+
+export const objetivosCMISugeridos = (sector: SectorKey): ObjetivoCMI[] => {
+  const base: ObjetivoCMI[] = [
+    ob("Financiera", "Crecer ingresos de forma rentable", "Crecimiento de ventas", "%", "+20% YoY", "CFO / CCO"),
+    ob("Financiera", "Mejorar la rentabilidad", "EBITDA / Ventas", "%", "≥ 18%", "CFO"),
+    ob("Financiera", "Optimizar el capital de trabajo", "DSO + DIO − DPO", "días", "< 60 días", "CFO"),
+    ob("Financiera", "Asegurar liquidez", "Días de caja", "días", "≥ 90", "CFO"),
+    ob("Cliente", "Elevar la satisfacción del cliente", "NPS", "puntos", "> 50", "CCO"),
+    ob("Cliente", "Reducir el churn de clientes", "Tasa de churn", "%", "< 5%", "Customer Success"),
+    ob("Cliente", "Crecer la base de clientes", "Nuevos clientes / mes", "#", "+25% YoY", "Marketing / Comercial"),
+    ob("Cliente", "Elevar el valor por cliente", "ARPU / Ticket promedio", "$", "+15%", "Comercial"),
+    ob("Procesos internos", "Mejorar la productividad operativa", "Productividad por FTE", "$/FTE", "+15%", "Operaciones"),
+    ob("Procesos internos", "Reducir defectos / errores", "Tasa de defectos", "%", "< 2%", "Calidad"),
+    ob("Procesos internos", "Acelerar el time-to-market", "Time to market", "semanas", "< 12 sem.", "Producto"),
+    ob("Procesos internos", "Asegurar cumplimiento de SLAs", "Cumplimiento de SLA", "%", "≥ 95%", "Operaciones"),
+    ob("Aprendizaje y crecimiento", "Construir una cultura de alto desempeño", "eNPS", "puntos", "> 40", "RRHH"),
+    ob("Aprendizaje y crecimiento", "Desarrollar el talento crítico", "% PDIs activos", "%", "100%", "RRHH"),
+    ob("Aprendizaje y crecimiento", "Avanzar en madurez digital", "Madurez digital", "nivel", "Definida", "TI"),
+    ob("Aprendizaje y crecimiento", "Fortalecer la innovación", "Ingresos por nuevos productos (3a)", "%", "≥ 20%", "Innovación"),
+  ];
+  if (sector === "manufactura") base.push(ob("Procesos internos", "Elevar la eficiencia de planta", "OEE", "%", "≥ 75%", "Operaciones"));
+  if (sector === "retail") base.push(ob("Cliente", "Mejorar el ratio de conversión en tienda/web", "Conversión", "%", "+20%", "Marketing"));
+  if (sector === "salud") base.push(ob("Cliente", "Asegurar seguridad del paciente", "Tasa de eventos adversos", "%", "< 0.5%", "Médica"));
+  if (sector === "financiero") base.push(ob("Procesos internos", "Controlar la cartera vencida", "Mora > 30d", "%", "< 3%", "Riesgos"));
+  return base;
+};
+
+// ═════════════════════════════════════════════════════════════
+// Sec 18 — Ejecución y portafolio de iniciativas
+// ═════════════════════════════════════════════════════════════
+export interface IniciativaEjecucion {
+  nombre: string;
+  eje_estrategico: string;
+  descripcion: string;
+  responsable: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  presupuesto: number;
+  prioridad: "Alta" | "Media" | "Baja";
+  estado: "Por iniciar" | "En curso" | "En riesgo" | "Completada" | "Pausada";
+  kpi: string;
+  dependencias: string;
+}
+export interface Sec18Data {
+  modelo_ejecucion?: string;
+  prioridades_estrategicas?: string;
+  gobernanza_ejecucion?: string;
+  pmo?: string;
+  gestion_cambio?: string;
+  comunicacion_plan?: string;
+  celebracion_logros?: string;
+  cronograma_general?: string;
+  riesgos_ejecucion?: string;
+  iniciativas?: IniciativaEjecucion[];
+}
+
+const ej = (nombre: string, eje: string, descripcion: string, kpi: string, prioridad: IniciativaEjecucion["prioridad"] = "Alta", responsable = "Dirección"): IniciativaEjecucion =>
+  ({ nombre, eje_estrategico: eje, descripcion, responsable, fecha_inicio: "", fecha_fin: "", presupuesto: 0, prioridad, estado: "Por iniciar", kpi, dependencias: "" });
+
+export const iniciativasEjecucionSugeridas = (sector: SectorKey): IniciativaEjecucion[] => {
+  const base: IniciativaEjecucion[] = [
+    ej("Plan comercial y de crecimiento", "Crecimiento rentable", "Estrategia de cuentas, nuevos canales y expansión", "Crecimiento de ventas %", "Alta", "CCO"),
+    ej("Programa de excelencia operacional", "Excelencia operacional", "Mapeo y optimización de procesos críticos", "Productividad / costo unitario", "Alta", "COO"),
+    ej("Plan de transformación digital", "Transformación digital", "ERP/CRM, datos, IA y ciberseguridad", "Madurez digital / adopción", "Alta", "CIO"),
+    ej("Plan de talento y cultura", "Talento y cultura", "EVP, desarrollo, retención y liderazgo", "eNPS / rotación regretted", "Alta", "CHRO"),
+    ej("Plan de marketing y marca", "Marca y mercado", "Posicionamiento, contenidos y demand gen", "MQL / SQL / brand awareness", "Alta", "CMO"),
+    ej("Programa de innovación", "Innovación", "Portafolio H1/H2/H3 con gates trimestrales", "Ingresos por nuevos productos", "Media", "CINO"),
+    ej("Programa de sostenibilidad / ESG", "Sostenibilidad", "Materialidad, objetivos y reporte ESG", "KPIs ESG por dimensión", "Media", "Sostenibilidad"),
+    ej("Plan financiero y de rentabilidad", "Salud financiera", "Disciplina de costos, pricing y caja", "EBITDA / días de caja", "Alta", "CFO"),
+    ej("Plan de alianzas estratégicas", "Alianzas y ecosistema", "Mapeo, gobernanza y desarrollo de partners", "Pipeline e ingresos por alianzas", "Media", "Alianzas"),
+    ej("Plan de experiencia de cliente (CX)", "Cliente en el centro", "Journey, voz del cliente y NPS sistemático", "NPS / churn", "Alta", "CXO"),
+    ej("Plan de gobierno corporativo", "Gobernanza", "Comités, reporting y profesionalización", "Madurez gobierno", "Media", "CEO"),
+    ej("Plan de gestión del cambio y comunicación", "Cultura", "Comunicación interna del plan y adopción", "Adopción / clima", "Media", "CHRO / Comms"),
+  ];
+  if (sector === "manufactura") base.push(ej("Plan de seguridad y calidad operacional", "Excelencia operacional", "SST, calidad y mejora continua en planta", "Tasa accidentes / defectos", "Alta", "COO"));
+  if (sector === "retail") base.push(ej("Plan omnicanal", "Cliente en el centro", "Integrar tienda, web y app", "Cliente cross-canal", "Alta", "CMO"));
+  if (sector === "salud") base.push(ej("Plan de calidad y seguridad del paciente", "Excelencia operacional", "Protocolos, indicadores y cultura just culture", "Eventos adversos", "Alta", "Médica"));
+  if (sector === "financiero") base.push(ej("Plan de gestión de riesgos y compliance", "Gobernanza", "ERM y cumplimiento regulatorio", "Hallazgos / incidentes", "Alta", "CRO"));
+  return base;
+};

@@ -9,6 +9,7 @@ import { usePlanSeccionAutosave, AutosaveBadge } from "@/components/plan/usePlan
 import { Sec01, Sec02, Sec03, Sec04, Sec05, type Sec01Data, type Sec02Data, type Sec03Data, type Sec04Data, type Sec05Data } from "@/components/plan/secciones-1-5";
 import { Sec06, Sec07, Sec08, Sec09, type Sec06Data, type Sec07Data, type Sec08Data, type Sec09Data } from "@/components/plan/secciones-6-9";
 import { Sec10, Sec11, Sec12, Sec13, type Sec10Data, type Sec11Data, type Sec12Data, type Sec13Data } from "@/components/plan/secciones-10-13";
+import { Sec14, Sec15, Sec16, Sec17, Sec18, type Sec14Data, type Sec15Data, type Sec16Data, type Sec17Data, type Sec18Data } from "@/components/plan/secciones-14-18";
 import { Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -188,11 +189,15 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
       case 11: return <Sec11 data={data as Sec11Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 12: return <Sec12 data={data as Sec12Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       case 13: return <Sec13 data={data as Sec13Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 14: return <Sec14 data={data as Sec14Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 15: return <Sec15 data={data as Sec15Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 16: return <Sec16 data={data as Sec16Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 17: return <Sec17 data={data as Sec17Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
+      case 18: return <Sec18 data={data as Sec18Data} onChange={(d) => setData(d as Record<string, unknown>)} sector={sectorKey} />;
       default:
         return (
           <div className="a360-card a360-card-lg p-12 text-center text-muted-foreground">
-            <p className="text-sm">Esta sección estará disponible en la próxima fase.</p>
-            <p className="text-xs mt-2">Fases completadas: 1-13.<br/>Próxima fase: secciones 14-18 (Talento, TI, Seguimiento, CMI y Ejecución).</p>
+            <p className="text-sm">Esta sección estará disponible próximamente.</p>
           </div>
         );
     }
@@ -208,7 +213,7 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
         <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
       </div>
       {renderSeccion()}
-      {seccion.numero <= 13 && (
+      {seccion.numero <= 18 && (
         <AnalisisIABox
           clienteId={clienteId}
           columna={seccion.columna}
