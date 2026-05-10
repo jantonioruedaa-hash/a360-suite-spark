@@ -8,6 +8,7 @@ import { AnalisisIABox } from "@/components/plan/AnalisisIABox";
 import { usePlanSeccionAutosave, AutosaveBadge } from "@/components/plan/usePlanAutosave";
 import { Sec01, Sec02, Sec03, Sec04, Sec05, type Sec01Data, type Sec02Data, type Sec03Data, type Sec04Data, type Sec05Data } from "@/components/plan/secciones-1-5";
 import { Sec06, Sec07, Sec08, Sec09, type Sec06Data, type Sec07Data, type Sec08Data, type Sec09Data } from "@/components/plan/secciones-6-9";
+import { Sec10, Sec11, Sec12, Sec13, type Sec10Data, type Sec11Data, type Sec12Data, type Sec13Data } from "@/components/plan/secciones-10-13";
 import { Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
