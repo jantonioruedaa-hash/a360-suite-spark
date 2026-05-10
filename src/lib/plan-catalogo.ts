@@ -46,23 +46,87 @@ const baseP = (factor: string, descripcion: string, impacto = 3, tipo: "Oportuni
   ({ factor, descripcion, impacto, tipo, observacion: "" });
 
 export const pestelSugerido = (sector: SectorKey): Record<string, FactorPESTEL[]> => {
-  const com = {
-    Politico: [baseP("Estabilidad política regional", "Cambios de gobierno y políticas regulatorias", 3, "Amenaza"), baseP("Política tributaria", "Reformas fiscales y carga impositiva", 4, "Amenaza"), baseP("Acuerdos comerciales", "TLC y aranceles del sector", 3, "Oportunidad")],
-    Economico: [baseP("Tipo de cambio", "Volatilidad cambiaria y costos importados", 4, "Amenaza"), baseP("Inflación", "Presión sobre costos operativos y precios", 4, "Amenaza"), baseP("Crecimiento del PIB sectorial", "Demanda agregada del sector", 3, "Oportunidad")],
-    Social: [baseP("Cambios demográficos", "Envejecimiento o crecimiento poblacional", 3, "Oportunidad"), baseP("Hábitos de consumo", "Nuevas preferencias y estilos de vida", 4, "Oportunidad")],
-    Tecnologico: [baseP("Digitalización del sector", "Automatización y nuevos canales", 4, "Oportunidad"), baseP("Ciberseguridad", "Riesgos de ataques y filtraciones", 4, "Amenaza")],
-    Ambiental: [baseP("Regulación ambiental", "Nuevas exigencias normativas", 3, "Amenaza"), baseP("Cambio climático", "Eventos extremos y costos de adaptación", 3, "Amenaza")],
-    Legal: [baseP("Protección de datos", "Cumplimiento normativo (HIPAA/GDPR/local)", 4, "Amenaza"), baseP("Normativa laboral", "Reformas que impactan costos laborales", 3, "Amenaza")],
+  const com: Record<string, FactorPESTEL[]> = {
+    Politico: [
+      baseP("Estabilidad política", "Cambios de gobierno y continuidad de políticas públicas", 3, "Amenaza"),
+      baseP("Política tributaria", "Reformas fiscales y carga impositiva sobre la actividad", 4, "Amenaza"),
+      baseP("Acuerdos comerciales", "TLC, aranceles y barreras de entrada/salida del sector", 3, "Oportunidad"),
+      baseP("Política de inversión", "Incentivos a la inversión privada o trabas burocráticas", 3, "Oportunidad"),
+      baseP("Riesgo geopolítico", "Conflictos regionales o sanciones que afectan operaciones", 3, "Amenaza"),
+      baseP("Compras públicas", "Acceso a contratos del Estado y licitaciones del sector", 3, "Oportunidad"),
+    ],
+    Economico: [
+      baseP("Tipo de cambio", "Volatilidad cambiaria y costos importados", 4, "Amenaza"),
+      baseP("Inflación", "Presión sobre costos operativos y poder adquisitivo del cliente", 4, "Amenaza"),
+      baseP("Tasas de interés", "Costo del financiamiento y acceso al crédito", 4, "Amenaza"),
+      baseP("Crecimiento del PIB sectorial", "Expansión o contracción de la demanda agregada", 3, "Oportunidad"),
+      baseP("Empleo y poder adquisitivo", "Capacidad de compra del consumidor objetivo", 3, "Oportunidad"),
+      baseP("Acceso al crédito", "Liquidez del sistema financiero para empresas y clientes", 3, "Oportunidad"),
+    ],
+    Social: [
+      baseP("Cambios demográficos", "Envejecimiento, urbanización y crecimiento poblacional", 3, "Oportunidad"),
+      baseP("Hábitos de consumo", "Nuevas preferencias, sostenibilidad y estilos de vida", 4, "Oportunidad"),
+      baseP("Educación y talento", "Disponibilidad de talento calificado en el mercado", 4, "Amenaza"),
+      baseP("Conciencia social y ambiental", "Demanda creciente de marcas con propósito", 3, "Oportunidad"),
+      baseP("Movilidad laboral", "Rotación, expectativas salariales y trabajo remoto", 3, "Amenaza"),
+      baseP("Salud y bienestar", "Foco creciente en bienestar integral del consumidor/colaborador", 3, "Oportunidad"),
+    ],
+    Tecnologico: [
+      baseP("Digitalización del sector", "Automatización, omnicanalidad y nuevos canales", 4, "Oportunidad"),
+      baseP("Ciberseguridad", "Riesgos de ataques, fraude digital y filtraciones", 4, "Amenaza"),
+      baseP("Inteligencia artificial", "IA generativa transforma productos, procesos y empleos", 5, "Oportunidad"),
+      baseP("Cloud y SaaS", "Migración a infraestructura como servicio y costos variables", 3, "Oportunidad"),
+      baseP("Brecha digital interna", "Capacidad del equipo para adoptar nuevas tecnologías", 3, "Amenaza"),
+      baseP("Datos y analítica", "Toma de decisiones basada en datos y BI", 4, "Oportunidad"),
+    ],
+    Ambiental: [
+      baseP("Regulación ambiental", "Nuevas exigencias normativas y reportes ESG obligatorios", 3, "Amenaza"),
+      baseP("Cambio climático", "Eventos extremos, sequías y costos de adaptación", 3, "Amenaza"),
+      baseP("Economía circular", "Reutilización, reciclaje y diseño sostenible", 3, "Oportunidad"),
+      baseP("Eficiencia energética", "Costos de energía y oportunidad de optimización", 3, "Oportunidad"),
+      baseP("Huella de carbono", "Presión de clientes y reguladores por neutralidad", 3, "Amenaza"),
+      baseP("Gestión de residuos", "Normativa y costos de disposición de residuos", 2, "Amenaza"),
+    ],
+    Legal: [
+      baseP("Protección de datos", "Cumplimiento normativo (GDPR/HIPAA/local) y multas", 4, "Amenaza"),
+      baseP("Normativa laboral", "Reformas que impactan costos y flexibilidad laboral", 3, "Amenaza"),
+      baseP("Defensa del consumidor", "Endurecimiento de derechos y reclamos del consumidor", 3, "Amenaza"),
+      baseP("Propiedad intelectual", "Protección de marca, patentes y secretos comerciales", 3, "Oportunidad"),
+      baseP("Compliance sectorial", "Regulaciones específicas del sector y certificaciones", 3, "Amenaza"),
+      baseP("Normativa antimonopolio", "Restricciones a alianzas, fusiones o prácticas comerciales", 2, "Amenaza"),
+    ],
   };
-  // Pequeños ajustes por sector
+  // Ajustes específicos por sector
   if (sector === "tecnologia") {
-    com.Tecnologico.push(baseP("IA generativa", "Disrupción de productos y procesos", 5, "Oportunidad"));
+    com.Tecnologico.push(baseP("Open source y APIs abiertas", "Modelos colaborativos y plataformización", 4, "Oportunidad"));
+    com.Legal.push(baseP("Regulación de IA", "AI Act y normativas emergentes sobre modelos", 4, "Amenaza"));
   }
   if (sector === "salud") {
-    com.Legal.push(baseP("Regulación sanitaria", "Cambios en aprobaciones y licencias", 5, "Amenaza"));
+    com.Legal.push(baseP("Regulación sanitaria", "Cambios en aprobaciones, licencias y farmacovigilancia", 5, "Amenaza"));
+    com.Tecnologico.push(baseP("Telemedicina", "Atención remota y dispositivos conectados", 4, "Oportunidad"));
   }
   if (sector === "manufactura") {
-    com.Economico.push(baseP("Costo de materias primas", "Volatilidad de commodities", 5, "Amenaza"));
+    com.Economico.push(baseP("Costo de materias primas", "Volatilidad de commodities e insumos clave", 5, "Amenaza"));
+    com.Tecnologico.push(baseP("Industria 4.0", "IoT, robótica y manufactura inteligente", 4, "Oportunidad"));
+  }
+  if (sector === "retail") {
+    com.Social.push(baseP("E-commerce y D2C", "Cambio de hábitos hacia compra online", 5, "Oportunidad"));
+    com.Economico.push(baseP("Logística y última milla", "Costos de distribución y expectativa de inmediatez", 4, "Amenaza"));
+  }
+  if (sector === "financiero") {
+    com.Tecnologico.push(baseP("Fintech y open banking", "Nuevos competidores no bancarios", 5, "Amenaza"));
+    com.Legal.push(baseP("Regulación financiera", "Basilea, KYC/AML y supervisión", 5, "Amenaza"));
+  }
+  if (sector === "educacion") {
+    com.Tecnologico.push(baseP("EdTech y aprendizaje híbrido", "Plataformas digitales y microcredenciales", 4, "Oportunidad"));
+  }
+  if (sector === "construccion") {
+    com.Economico.push(baseP("Ciclo inmobiliario", "Sensibilidad a tasas y demanda de vivienda", 4, "Amenaza"));
+    com.Ambiental.push(baseP("Construcción sostenible", "Certificaciones LEED/EDGE y materiales verdes", 3, "Oportunidad"));
+  }
+  if (sector === "agro") {
+    com.Ambiental.push(baseP("Disponibilidad hídrica", "Estrés hídrico y riego eficiente", 5, "Amenaza"));
+    com.Economico.push(baseP("Precios internacionales", "Volatilidad de commodities agrícolas", 4, "Amenaza"));
   }
   return com;
 };
