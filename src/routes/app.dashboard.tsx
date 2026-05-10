@@ -153,6 +153,42 @@ function Dashboard() {
         </Button>
       </header>
 
+      {urgentes.length > 0 && (
+        <section className="a360-card p-5 border-l-4 border-l-red-500">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg text-navy flex items-center gap-2">
+              <Bell className="w-5 h-5 text-red-600" /> Pendientes urgentes
+              <span className="ml-2 text-xs font-normal bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                {urgentes.length}
+              </span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {urgentes.map((a) => (
+              <Link
+                key={a.id}
+                to={a.to}
+                className={`flex items-start gap-3 p-3 rounded-md border transition-colors hover:bg-muted/40 ${
+                  a.severidad === "critica" ? "border-red-200 bg-red-50/30" : "border-amber-200 bg-amber-50/30"
+                }`}
+              >
+                <div className={`mt-0.5 shrink-0 ${a.severidad === "critica" ? "text-red-600" : "text-amber-600"}`}>
+                  {a.tipo === "sesion_proxima" ? <Clock className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-sm font-semibold text-navy truncate">{a.titulo}</p>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{formatearDelta(a.diasDelta)}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{a.clienteNombre}</p>
+                  <p className="text-xs text-foreground/80 line-clamp-1 mt-0.5">{a.detalle}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* KPIs principales */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {metrics.map((m) => (
