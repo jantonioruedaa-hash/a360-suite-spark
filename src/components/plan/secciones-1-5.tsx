@@ -133,13 +133,13 @@ export function Sec03({ data, onChange, sector }: { data: Sec03Data; onChange: (
 
   const guia = diagnosticoInternoSugerido(sector);
   const cargarGuia = (k: keyof Sec03Data) => {
-    const v = (guia as Record<string, string>)[k];
+    const v = (guia as unknown as Record<string, string>)[k];
     if (v && !((data as Record<string, string>)[k] ?? "").trim()) onChange({ ...data, [k]: v });
   };
   const cargarTodaLaGuia = () => {
     const next: Sec03Data = { ...data };
     (Object.keys(guia) as (keyof Sec03Data)[]).forEach((k) => {
-      if (!((data as Record<string, string>)[k] ?? "").trim()) (next as Record<string, string>)[k as string] = (guia as Record<string, string>)[k as string];
+      if (!((data as Record<string, string>)[k] ?? "").trim()) (next as Record<string, string>)[k as string] = (guia as unknown as Record<string, string>)[k as string];
     });
     onChange(next);
   };
@@ -161,7 +161,7 @@ export function Sec03({ data, onChange, sector }: { data: Sec03Data; onChange: (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {labels.map(([k, l]) => {
           const valor = (data as Record<string, string>)[k as string] ?? "";
-          const placeholder = (guia as Record<string, string>)[k as string];
+          const placeholder = (guia as unknown as Record<string, string>)[k as string];
           return (
             <div key={k as string}>
               <div className="flex items-center justify-between">
