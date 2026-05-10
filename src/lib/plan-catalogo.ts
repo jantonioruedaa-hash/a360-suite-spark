@@ -482,3 +482,418 @@ export const valoresSugeridos = () => [
   { nombre: "Aprendizaje",  descripcion: "Aprendemos de los errores y los aciertos." },
   { nombre: "Sostenibilidad", descripcion: "Generamos valor económico, social y ambiental." },
 ];
+
+// ═══════════════════════════════════════════════════════════════
+//  FASE 3 — Secciones 10 a 13
+// ═══════════════════════════════════════════════════════════════
+
+// ───────────────── Sec 10: ESG / Sostenibilidad ─────────────────
+export type DimensionESG = "Ambiental" | "Social" | "Gobernanza";
+export interface MaterialidadESG {
+  tema: string;
+  dimension: DimensionESG;
+  impacto_negocio: number;     // 1-5
+  importancia_grupos: number;  // 1-5
+  prioridad: "Alta" | "Media" | "Baja";
+  accion: string;
+}
+export interface ObjetivoESG {
+  dimension: DimensionESG;
+  objetivo: string;
+  indicador: string;
+  meta: string;
+  plazo: string;
+  responsable: string;
+  ods: string;          // Ej. "ODS 13"
+}
+export interface Sec10Data {
+  proposito_sostenibilidad?: string;
+  marco_referencia?: string[];     // GRI, SASB, TCFD, ISO 26000…
+  ods_priorizados?: string[];
+  materialidad?: MaterialidadESG[];
+  objetivos?: ObjetivoESG[];
+  riesgos_climaticos?: string;
+  cadena_valor_responsable?: string;
+  reporte_y_gobierno?: string;
+}
+
+export const marcoReferenciaESG = (): string[] => [
+  "GRI Standards", "SASB", "TCFD", "ISO 26000", "Pacto Mundial ONU",
+  "ODS 2030", "CDP (Carbon Disclosure)", "SBTi (Science Based Targets)",
+  "B Corp", "ISO 14001", "ISO 45001", "ISO 37301 (Compliance)"
+];
+export const odsSugeridos = (sector: SectorKey): string[] => {
+  const base = ["ODS 8 — Trabajo decente", "ODS 9 — Industria e innovación", "ODS 12 — Producción responsable", "ODS 13 — Acción climática"];
+  const map: Partial<Record<SectorKey, string[]>> = {
+    salud: ["ODS 3 — Salud y bienestar", "ODS 10 — Reducción de desigualdades"],
+    educacion: ["ODS 4 — Educación de calidad", "ODS 5 — Igualdad de género"],
+    agro: ["ODS 2 — Hambre cero", "ODS 6 — Agua limpia", "ODS 15 — Vida de ecosistemas"],
+    construccion: ["ODS 11 — Ciudades sostenibles", "ODS 6 — Agua limpia"],
+    tecnologia: ["ODS 4 — Educación de calidad", "ODS 5 — Igualdad de género"],
+    financiero: ["ODS 1 — Fin de la pobreza", "ODS 10 — Reducción de desigualdades"],
+    manufactura: ["ODS 7 — Energía asequible", "ODS 12 — Producción responsable"],
+    retail: ["ODS 12 — Producción responsable", "ODS 5 — Igualdad de género"],
+  };
+  return Array.from(new Set([...base, ...(map[sector] ?? [])]));
+};
+const m = (tema: string, dimension: DimensionESG, impacto = 4, importancia = 4, accion = ""): MaterialidadESG =>
+  ({ tema, dimension, impacto_negocio: impacto, importancia_grupos: importancia, prioridad: impacto + importancia >= 8 ? "Alta" : impacto + importancia >= 6 ? "Media" : "Baja", accion });
+export const materialidadSugerida = (sector: SectorKey): MaterialidadESG[] => {
+  const base: MaterialidadESG[] = [
+    m("Cambio climático y emisiones GEI", "Ambiental", 5, 5, "Plan de descarbonización con SBTi"),
+    m("Eficiencia energética", "Ambiental", 4, 4, "Auditoría energética y plan de eficiencia"),
+    m("Gestión del agua", "Ambiental", 3, 4, "Medición y reducción de huella hídrica"),
+    m("Economía circular y residuos", "Ambiental", 4, 4, "Programa de reducción y reciclaje"),
+    m("Diversidad, equidad e inclusión", "Social", 4, 5, "Plan DEI con metas medibles"),
+    m("Salud y seguridad ocupacional", "Social", 5, 5, "Sistema de gestión SST (ISO 45001)"),
+    m("Desarrollo del talento", "Social", 4, 4, "Plan de formación y carrera"),
+    m("Comunidades locales", "Social", 3, 4, "Programa de inversión social"),
+    m("Derechos humanos en cadena de valor", "Social", 4, 4, "Debida diligencia en proveedores"),
+    m("Ética y anticorrupción", "Gobernanza", 5, 5, "Programa de compliance ISO 37301"),
+    m("Gobierno corporativo y consejo", "Gobernanza", 4, 4, "Profesionalización del directorio"),
+    m("Ciberseguridad y protección de datos", "Gobernanza", 5, 5, "Plan director de ciberseguridad"),
+    m("Transparencia y reporte", "Gobernanza", 4, 4, "Reporte integrado anual GRI/SASB"),
+  ];
+  if (sector === "manufactura" || sector === "construccion") base.push(
+    m("Materiales y abastecimiento responsable", "Ambiental", 4, 4, "Política de compras sostenibles"),
+    m("Biodiversidad", "Ambiental", 3, 4, "Evaluación de impacto en biodiversidad"),
+  );
+  if (sector === "agro") base.push(
+    m("Uso del suelo y agroquímicos", "Ambiental", 5, 5, "Manejo integrado y certificación"),
+    m("Bienestar animal", "Social", 3, 4, "Estándares de bienestar animal"),
+  );
+  if (sector === "financiero") base.push(
+    m("Finanzas sostenibles y taxonomía", "Gobernanza", 5, 5, "Cartera con criterios ESG"),
+    m("Inclusión financiera", "Social", 4, 5, "Productos para segmentos no bancarizados"),
+  );
+  if (sector === "salud") base.push(
+    m("Acceso a la salud", "Social", 5, 5, "Programas de acceso y precios diferenciados"),
+    m("Privacidad de datos clínicos", "Gobernanza", 5, 5, "Cumplimiento HIPAA / normativa local"),
+  );
+  if (sector === "tecnologia") base.push(
+    m("IA responsable y ética algorítmica", "Gobernanza", 5, 5, "Marco de IA responsable"),
+    m("Huella digital y data centers", "Ambiental", 4, 4, "Cloud verde y eficiencia de cómputo"),
+  );
+  return base;
+};
+export const objetivosESGSugeridos = (): ObjetivoESG[] => [
+  { dimension: "Ambiental", objetivo: "Reducir emisiones GEI alcance 1+2", indicador: "tCO₂e", meta: "-30%", plazo: "2030", responsable: "ESG / Operaciones", ods: "ODS 13" },
+  { dimension: "Ambiental", objetivo: "Energía renovable en operaciones", indicador: "% energía renovable", meta: "≥ 80%", plazo: "2028", responsable: "Operaciones", ods: "ODS 7" },
+  { dimension: "Ambiental", objetivo: "Cero residuos a vertedero", indicador: "% residuos valorizados", meta: "≥ 90%", plazo: "2027", responsable: "Operaciones", ods: "ODS 12" },
+  { dimension: "Ambiental", objetivo: "Reducir consumo de agua", indicador: "m³/unidad producida", meta: "-20%", plazo: "2027", responsable: "Operaciones", ods: "ODS 6" },
+  { dimension: "Social", objetivo: "Cero accidentes graves", indicador: "Tasa de frecuencia (LTIFR)", meta: "< 1.0", plazo: "12 meses", responsable: "SST", ods: "ODS 8" },
+  { dimension: "Social", objetivo: "Diversidad en liderazgo", indicador: "% mujeres en posiciones directivas", meta: "≥ 40%", plazo: "2027", responsable: "RRHH / DEI", ods: "ODS 5" },
+  { dimension: "Social", objetivo: "Brecha salarial de género", indicador: "Brecha (%)", meta: "< 3%", plazo: "2026", responsable: "RRHH", ods: "ODS 5" },
+  { dimension: "Social", objetivo: "Inversión en comunidad", indicador: "% utilidades reinvertidas", meta: "≥ 1%", plazo: "Anual", responsable: "Sostenibilidad", ods: "ODS 11" },
+  { dimension: "Social", objetivo: "Cadena de valor auditada en DDHH", indicador: "% proveedores auditados", meta: "100% críticos", plazo: "24 meses", responsable: "Compras", ods: "ODS 8" },
+  { dimension: "Gobernanza", objetivo: "Programa de compliance certificado", indicador: "Certificación ISO 37301", meta: "Lograda", plazo: "24 meses", responsable: "Compliance", ods: "ODS 16" },
+  { dimension: "Gobernanza", objetivo: "Independencia del directorio", indicador: "% miembros independientes", meta: "≥ 33%", plazo: "12 meses", responsable: "Directorio", ods: "ODS 16" },
+  { dimension: "Gobernanza", objetivo: "Reporte de sostenibilidad", indicador: "Reporte GRI verificado", meta: "Anual", plazo: "12 meses", responsable: "ESG", ods: "ODS 12" },
+  { dimension: "Gobernanza", objetivo: "Gestión integral de riesgos ESG", indicador: "Matriz de riesgos ESG", meta: "Implementada", plazo: "12 meses", responsable: "Riesgos", ods: "ODS 16" },
+];
+
+// ───────────────── Sec 11: Alianzas estratégicas ─────────────────
+export type TipoAlianza = "Comercial" | "Tecnológica" | "I+D / Innovación" | "Operativa / Logística" | "Financiera" | "Joint Venture" | "Académica" | "Institucional / Sectorial" | "ESG / Comunidad";
+export interface Alianza {
+  socio: string;
+  tipo: TipoAlianza;
+  objetivo: string;
+  aporte_propio: string;
+  aporte_socio: string;
+  modelo_relacion: string;     // Acuerdo marco, contrato, JV…
+  estado: "Identificada" | "En conversación" | "Negociación" | "Activa" | "Pausada";
+  responsable: string;
+  riesgo: "Bajo" | "Medio" | "Alto";
+  valor_esperado: string;
+}
+export interface Sec11Data {
+  estrategia_alianzas?: string;
+  criterios_seleccion?: string;
+  alianzas?: Alianza[];
+  ecosistema_actual?: string;
+  gobernanza_alianzas?: string;
+}
+
+const a = (socio: string, tipo: TipoAlianza, objetivo: string, aporte_propio = "", aporte_socio = "", modelo = "Acuerdo marco", estado: Alianza["estado"] = "Identificada", responsable = "Dirección de Estrategia", riesgo: Alianza["riesgo"] = "Medio", valor_esperado = ""): Alianza =>
+  ({ socio, tipo, objetivo, aporte_propio, aporte_socio, modelo_relacion: modelo, estado, responsable, riesgo, valor_esperado });
+
+export const alianzasSugeridas = (sector: SectorKey): Alianza[] => {
+  const base: Alianza[] = [
+    a("Cliente ancla del segmento prioritario", "Comercial", "Co-creación de propuesta de valor y caso de éxito flagship", "Producto/servicio", "Volumen y referencia", "Acuerdo marco", "En conversación", "Comercial", "Bajo", "Caso de éxito + 20% incremento en pipeline"),
+    a("Distribuidor regional especializado", "Comercial", "Ampliar cobertura geográfica con bajo CapEx", "Marca y producto", "Red comercial y logística", "Contrato de distribución", "Identificada", "Comercial", "Medio", "Acceso a 3 nuevos mercados"),
+    a("Marketplace o plataforma digital líder", "Comercial", "Acelerar canal digital y captación", "Catálogo y operación", "Tráfico y marca", "Acuerdo de marketplace", "Identificada", "Marketing Digital", "Bajo", "Nuevo canal de ingresos"),
+    a("Proveedor estratégico crítico", "Operativa / Logística", "Asegurar suministro y mejorar costos vía partnership", "Volumen y previsión", "Capacidad y desarrollo conjunto", "Contrato a largo plazo", "Negociación", "Compras / Supply Chain", "Medio", "Reducción 8-12% en costo de insumos"),
+    a("Operador logístico (3PL/4PL)", "Operativa / Logística", "Externalizar logística no core y elevar OTIF", "Volumen", "Red, tecnología y SLAs", "Contrato de servicio", "Identificada", "Supply Chain", "Bajo", "OTIF ≥ 95%"),
+    a("Universidad / Centro de I+D", "Académica", "Desarrollo conjunto de capacidades y captación de talento", "Casos reales y financiación", "Investigación y talento", "Convenio marco", "Identificada", "Innovación / RRHH", "Bajo", "Pipeline de talento + proyectos I+D"),
+    a("Proveedor tecnológico (cloud / SaaS / IA)", "Tecnológica", "Acelerar transformación digital y reducir time-to-market", "Casos de uso y presupuesto", "Plataforma, expertise y co-marketing", "Acuerdo de partnership", "Negociación", "TI", "Bajo", "Reducción 30% en time-to-market"),
+    a("Partner integrador / consultor", "Tecnológica", "Implementación rápida de plataformas críticas (ERP/CRM)", "Sponsor ejecutivo", "Implementación y change mgmt", "Contrato de servicio", "Identificada", "TI / Procesos", "Medio", "Implementación en plazo y presupuesto"),
+    a("Startup del ecosistema (open innovation)", "I+D / Innovación", "Pilotos de innovación con bajo riesgo", "Acceso a clientes y datos", "Tecnología disruptiva", "Acuerdo de pilotaje", "Identificada", "Innovación", "Medio", "2-3 pilotos al año, 1 escalado"),
+    a("Banca corporativa / fondo", "Financiera", "Financiamiento estructurado para crecimiento o M&A", "Plan de inversión", "Capital y asesoría", "Línea de crédito / equity", "En conversación", "CFO", "Medio", "Acceso a USD X de capital"),
+    a("Aseguradora / corredor especializado", "Financiera", "Cobertura integral de riesgos del negocio", "Información y volumen", "Pólizas y asesoría", "Contrato anual", "Identificada", "Riesgos / CFO", "Bajo", "Reducción de exposición a riesgos clave"),
+    a("Gremio o asociación sectorial", "Institucional / Sectorial", "Influencia regulatoria y networking de alto nivel", "Cuota y participación activa", "Voz colectiva e información", "Membresía", "Activa", "Dirección General", "Bajo", "Posicionamiento sectorial"),
+    a("ONG / fundación local", "ESG / Comunidad", "Programa de inversión social con impacto medible", "Recursos y voluntariado", "Conocimiento territorial", "Convenio de colaboración", "Identificada", "Sostenibilidad / RRHH", "Bajo", "Programa con impacto reportable"),
+    a("Competidor complementario", "Joint Venture", "Acceso conjunto a mercado/producto que ninguno cubre solo", "Capacidades complementarias", "Capacidades complementarias", "Joint Venture", "Identificada", "Estrategia / CFO", "Alto", "Nueva línea de negocio compartida"),
+  ];
+  if (sector === "tecnologia") base.push(
+    a("Hyperscaler (AWS / Azure / GCP)", "Tecnológica", "Programa de partnership y co-selling", "Casos y arquitectura", "Créditos cloud y leads", "Programa de partner", "En conversación", "TI / Comercial", "Bajo", "Pipeline conjunto + créditos"),
+  );
+  if (sector === "manufactura" || sector === "construccion") base.push(
+    a("Proveedor de tecnología 4.0 / BIM", "Tecnológica", "Modernización de planta/obra y eficiencia", "Casos piloto", "Tecnología y soporte", "Contrato + pilotos", "Identificada", "Operaciones", "Medio", "Mejora de productividad 10-15%"),
+  );
+  if (sector === "salud") base.push(
+    a("Aseguradoras y EPS", "Comercial", "Convenios para acceso de pacientes", "Servicios y calidad", "Volumen de afiliados", "Convenio", "Negociación", "Comercial", "Medio", "Crecimiento de demanda"),
+  );
+  if (sector === "agro") base.push(
+    a("Cadena exportadora / trading", "Comercial", "Acceso a mercados internacionales", "Producto certificado", "Logística y comercialización", "Contrato de exportación", "Identificada", "Comercial", "Medio", "Nuevos mercados de exportación"),
+  );
+  if (sector === "financiero") base.push(
+    a("Fintech / wallet", "Tecnológica", "Open banking y nuevos canales", "Base de clientes", "Tecnología y UX", "Acuerdo de integración", "Identificada", "Innovación", "Medio", "Nuevos productos digitales"),
+  );
+  return base;
+};
+
+// ───────────────── Sec 12: Innovación e I+D+i ─────────────────
+export type TipoInnovacion = "Producto" | "Servicio" | "Proceso" | "Modelo de negocio" | "Marketing" | "Organizacional" | "Tecnológica";
+export type HorizonteInnovacion = "H1 (Core 0-12m)" | "H2 (Adyacente 12-36m)" | "H3 (Disruptiva 36m+)";
+export interface IniciativaInnovacion {
+  nombre: string;
+  tipo: TipoInnovacion;
+  horizonte: HorizonteInnovacion;
+  descripcion: string;
+  responsable: string;
+  presupuesto: number;
+  kpi: string;
+  estado: "Idea" | "Pilotaje" | "Escalado" | "Descartada";
+}
+export interface Sec12Data {
+  vision_innovacion?: string;
+  modelo_innovacion?: string;        // abierta, cerrada, mixta
+  inversion_idi_pct_ventas?: string;
+  fuentes_financiamiento?: string[]; // créditos fiscales, fondos, capital propio
+  metodologias?: string[];           // Design Thinking, Lean Startup, Stage-Gate, Scrum
+  ecosistema?: string;               // universidades, startups, hubs
+  iniciativas?: IniciativaInnovacion[];
+  proteccion_pi?: string;            // patentes, marcas, secreto industrial
+  cultura_innovacion?: string;
+}
+export const metodologiasInnovacion = (): string[] => [
+  "Design Thinking", "Lean Startup", "Stage-Gate", "Agile / Scrum", "Jobs-to-be-Done",
+  "Design Sprint", "Open Innovation", "Co-creación con clientes", "Hackathons internos", "Innovation Labs"
+];
+export const fuentesFinanciamientoIdi = (): string[] => [
+  "Capital propio (CapEx I+D)", "Créditos fiscales / deducciones I+D",
+  "Fondos públicos / agencias de innovación", "Cooperación internacional",
+  "Capital de riesgo / corporate venture", "Crowdfunding", "Banca de desarrollo"
+];
+
+const inn = (nombre: string, tipo: TipoInnovacion, horizonte: HorizonteInnovacion, descripcion: string, responsable = "Innovación", presupuesto = 0, kpi = "", estado: IniciativaInnovacion["estado"] = "Idea"): IniciativaInnovacion =>
+  ({ nombre, tipo, horizonte, descripcion, responsable, presupuesto, kpi, estado });
+
+export const iniciativasInnovacionSugeridas = (sector: SectorKey): IniciativaInnovacion[] => {
+  const base: IniciativaInnovacion[] = [
+    inn("Mejora continua del producto principal", "Producto", "H1 (Core 0-12m)", "Roadmap trimestral basado en feedback de clientes y datos de uso", "Producto", 0, "NPS / adopción"),
+    inn("Personalización por segmento", "Producto", "H1 (Core 0-12m)", "Versiones adaptadas a 2-3 segmentos clave", "Producto", 0, "Conversión por segmento"),
+    inn("Servicios postventa de valor agregado", "Servicio", "H1 (Core 0-12m)", "Mantenimiento, monitoreo y consultoría como ingreso recurrente", "Customer Success", 0, "ARR servicios"),
+    inn("Automatización de procesos críticos (RPA)", "Proceso", "H1 (Core 0-12m)", "Identificar 5 procesos repetitivos y automatizarlos", "TI / Procesos", 0, "Horas ahorradas"),
+    inn("Modelo de suscripción / 'as-a-service'", "Modelo de negocio", "H2 (Adyacente 12-36m)", "Migrar parte de la oferta a ingresos recurrentes", "Estrategia", 0, "% ingresos recurrentes"),
+    inn("Plataforma digital de cliente", "Tecnológica", "H2 (Adyacente 12-36m)", "Portal/app con autoservicio, soporte y comunidad", "TI / Producto", 0, "Usuarios activos / NPS digital"),
+    inn("Analítica avanzada y casos de IA", "Tecnológica", "H2 (Adyacente 12-36m)", "3-5 casos de uso de IA priorizados (forecast, churn, pricing)", "Data / TI", 0, "Casos en producción"),
+    inn("Producto sostenible / línea verde", "Producto", "H2 (Adyacente 12-36m)", "Línea con menor huella, certificación y narrativa propia", "Producto / ESG", 0, "Ventas línea verde"),
+    inn("Programa de innovación abierta", "Organizacional", "H2 (Adyacente 12-36m)", "Pilotos con startups y universidades, 4 retos al año", "Innovación", 0, "Pilotos / escalados"),
+    inn("Co-creación con clientes clave", "Marketing", "H1 (Core 0-12m)", "Advisory board y sesiones trimestrales de co-creación", "Producto / Comercial", 0, "Ideas implementadas"),
+    inn("Nuevo modelo de distribución", "Modelo de negocio", "H2 (Adyacente 12-36m)", "D2C, marketplace propio o partner", "Comercial", 0, "Ingresos nuevo canal"),
+    inn("Spin-off o nueva línea disruptiva", "Modelo de negocio", "H3 (Disruptiva 36m+)", "Explorar negocio adyacente con potencial 10x", "Estrategia / CEO", 0, "TIR proyecto"),
+    inn("Ingreso a mercado internacional", "Modelo de negocio", "H3 (Disruptiva 36m+)", "Mercado ancla con socio local", "Internacional", 0, "Ventas exportación"),
+    inn("Cultura y capacidades de innovación", "Organizacional", "H1 (Core 0-12m)", "Formación, premios internos, tiempo dedicado a innovar", "RRHH / Innovación", 0, "Ideas presentadas"),
+  ];
+  if (sector === "tecnologia") base.push(
+    inn("Producto nativo de IA generativa", "Producto", "H2 (Adyacente 12-36m)", "Feature/producto basado en LLMs con caso de uso claro", "Producto / Data", 0, "Adopción + ARR"),
+    inn("Marketplace de extensiones / API pública", "Tecnológica", "H3 (Disruptiva 36m+)", "Plataforma abierta con ecosistema de partners", "Producto / Plataforma", 0, "N° integraciones activas"),
+  );
+  if (sector === "manufactura") base.push(
+    inn("Mantenimiento predictivo IoT", "Proceso", "H2 (Adyacente 12-36m)", "Sensores + ML para reducir paradas no planificadas", "Operaciones / TI", 0, "Downtime no planificado"),
+    inn("Producto conectado (servitización)", "Modelo de negocio", "H3 (Disruptiva 36m+)", "Vender uso del activo, no el activo", "Estrategia", 0, "% ingresos por uso"),
+  );
+  if (sector === "retail") base.push(
+    inn("Personalización con IA en e-commerce", "Tecnológica", "H1 (Core 0-12m)", "Recomendaciones, búsqueda y pricing dinámico", "Marketing Digital", 0, "Conversión / AOV"),
+    inn("Tienda híbrida / phygital", "Servicio", "H2 (Adyacente 12-36m)", "Click & collect, AR, escaparate digital", "Operaciones", 0, "Tráfico cruzado canales"),
+  );
+  if (sector === "salud") base.push(
+    inn("Telemedicina y monitoreo remoto", "Servicio", "H1 (Core 0-12m)", "Consulta remota y seguimiento crónico", "Médica / TI", 0, "Pacientes atendidos"),
+    inn("Plataforma de expediente y datos clínicos", "Tecnológica", "H2 (Adyacente 12-36m)", "Interoperabilidad y analítica clínica", "TI", 0, "Adopción"),
+  );
+  if (sector === "financiero") base.push(
+    inn("App móvil de nueva generación", "Producto", "H1 (Core 0-12m)", "UX líder + onboarding 100% digital", "Digital", 0, "Usuarios activos / NPS"),
+    inn("Open banking y APIs", "Tecnológica", "H2 (Adyacente 12-36m)", "APIs para fintechs y comercios", "TI / Producto", 0, "N° integraciones"),
+  );
+  if (sector === "agro") base.push(
+    inn("Agricultura de precisión", "Tecnológica", "H2 (Adyacente 12-36m)", "Sensores, drones, prescripciones por lote", "Operaciones", 0, "Rendimiento por hectárea"),
+  );
+  if (sector === "construccion") base.push(
+    inn("Adopción BIM nivel 2/3", "Proceso", "H2 (Adyacente 12-36m)", "Modelado integral y coordinación digital de obra", "Proyectos", 0, "Reducción de retrabajos"),
+  );
+  if (sector === "educacion") base.push(
+    inn("Aprendizaje adaptativo con IA", "Producto", "H2 (Adyacente 12-36m)", "Rutas personalizadas y analítica de aprendizaje", "Académica / TI", 0, "Tasa de finalización"),
+  );
+  return base;
+};
+
+// ───────────────── Sec 13: Marketing estratégico ─────────────────
+export interface SegmentoCliente {
+  nombre: string;
+  descripcion: string;
+  tamano_mercado: string;
+  necesidad_clave: string;
+  prioridad: "Alta" | "Media" | "Baja";
+}
+export interface BuyerPersona {
+  nombre: string;
+  rol: string;
+  motivaciones: string;
+  dolores: string;
+  canales: string;
+}
+export interface PropuestaValor {
+  segmento: string;
+  problema: string;
+  solucion: string;
+  diferencial: string;
+  prueba: string;       // testimonios, métricas, certificaciones
+}
+export interface MarketingMix {
+  producto: string;
+  precio: string;
+  plaza: string;          // canales
+  promocion: string;
+  personas: string;
+  procesos: string;
+  evidencia_fisica: string;
+}
+export interface IniciativaMarketing {
+  nombre: string;
+  categoria: "Marca" | "Demand Gen" | "Contenidos" | "Performance" | "ABM" | "Eventos" | "PR" | "CRM / Fidelización" | "Producto / Pricing";
+  objetivo: string;
+  canal: string;
+  kpi: string;
+  presupuesto: number;
+  responsable: string;
+  estado: "Por iniciar" | "En curso" | "Completada" | "En riesgo";
+}
+export interface Sec13Data {
+  posicionamiento?: string;
+  segmentacion?: SegmentoCliente[];
+  buyer_personas?: BuyerPersona[];
+  propuestas_valor?: PropuestaValor[];
+  marketing_mix?: MarketingMix;
+  funnel_y_journey?: string;
+  estrategia_marca?: string;
+  estrategia_pricing?: string;
+  canales_y_distribucion?: string;
+  iniciativas?: IniciativaMarketing[];
+  presupuesto_total?: number;
+  kpis_globales?: string;
+}
+
+export const segmentosSugeridos = (sector: SectorKey): SegmentoCliente[] => {
+  const com: SegmentoCliente[] = [
+    { nombre: "Cliente premium", descripcion: "Alto poder adquisitivo, valora calidad y servicio sobre precio", tamano_mercado: "—", necesidad_clave: "Calidad superior y experiencia diferenciada", prioridad: "Alta" },
+    { nombre: "Cliente masivo", descripcion: "Sensible a precio, busca relación calidad-precio", tamano_mercado: "—", necesidad_clave: "Accesibilidad y conveniencia", prioridad: "Media" },
+    { nombre: "Cliente corporativo / B2B", descripcion: "Compra profesional, ciclos largos, decisión por comité", tamano_mercado: "—", necesidad_clave: "ROI demostrable y soporte continuo", prioridad: "Alta" },
+  ];
+  if (sector === "tecnologia") return [
+    ...com,
+    { nombre: "Mid-market SaaS", descripcion: "Empresas 50-500 empleados con necesidad de digitalización", tamano_mercado: "—", necesidad_clave: "Implementación rápida y ROI < 12m", prioridad: "Alta" },
+    { nombre: "Enterprise", descripcion: "Grandes corporaciones con ciclos largos y alta personalización", tamano_mercado: "—", necesidad_clave: "Seguridad, compliance e integración", prioridad: "Media" },
+  ];
+  if (sector === "retail") return [
+    ...com,
+    { nombre: "Comprador digital nativo", descripcion: "Millennials/Z que compran principalmente online", tamano_mercado: "—", necesidad_clave: "Experiencia móvil y entrega rápida", prioridad: "Alta" },
+  ];
+  if (sector === "salud") return [
+    { nombre: "Paciente particular", descripcion: "Paga directo, busca calidad y trato personal", tamano_mercado: "—", necesidad_clave: "Atención humana y rápida", prioridad: "Alta" },
+    { nombre: "Asegurado por EPS/aseguradora", descripcion: "Acceso vía convenio", tamano_mercado: "—", necesidad_clave: "Cobertura y oportunidad", prioridad: "Alta" },
+    { nombre: "Empresas (medicina ocupacional)", descripcion: "Convenios corporativos", tamano_mercado: "—", necesidad_clave: "Cumplimiento y precio", prioridad: "Media" },
+  ];
+  return com;
+};
+
+export const buyerPersonasSugeridos = (sector: SectorKey): BuyerPersona[] => {
+  if (sector === "tecnologia") return [
+    { nombre: "CIO / Director TI", rol: "Decisor técnico", motivaciones: "Modernizar stack, reducir deuda técnica, ciberseguridad", dolores: "Presupuesto limitado, riesgo de fracaso", canales: "LinkedIn, eventos sectoriales, analyst reports" },
+    { nombre: "CFO", rol: "Decisor económico", motivaciones: "ROI claro, control de costos", dolores: "Gastos imprevistos, vendor lock-in", canales: "Webinars, business cases, referencias" },
+    { nombre: "Head of Operations", rol: "Usuario / champion interno", motivaciones: "Eficiencia operativa, automatización", dolores: "Procesos manuales, errores", canales: "Demos, comunidades, contenidos prácticos" },
+  ];
+  if (sector === "retail") return [
+    { nombre: "Comprador digital 25-40", rol: "Consumidor final", motivaciones: "Conveniencia, variedad, precio", dolores: "Tiempos de entrega, devoluciones", canales: "Instagram, TikTok, email, Google" },
+    { nombre: "Comprador familiar", rol: "Consumidor final con poder de decisión familiar", motivaciones: "Calidad-precio, confianza", dolores: "Falta de tiempo, ofertas confusas", canales: "Tienda física, WhatsApp, Facebook" },
+  ];
+  return [
+    { nombre: "Decisor B2B", rol: "Gerente / director del área compradora", motivaciones: "Resultados medibles, bajar riesgo", dolores: "Presión por resultados, falta de tiempo", canales: "LinkedIn, referidos, eventos" },
+    { nombre: "Influenciador técnico", rol: "Especialista que recomienda", motivaciones: "Solución que funcione y le simplifique trabajo", dolores: "Soluciones que prometen y no cumplen", canales: "Demos, contenidos técnicos, comunidades" },
+    { nombre: "Usuario final", rol: "Quien usará el producto/servicio", motivaciones: "Facilidad de uso, soporte", dolores: "Curva de aprendizaje, falta de soporte", canales: "Onboarding, tutoriales, soporte" },
+  ];
+};
+
+export const propuestasValorSugeridas = (sector: SectorKey): PropuestaValor[] => [
+  { segmento: "Cliente prioritario", problema: "Pierde tiempo y dinero por procesos ineficientes / oferta indiferenciada", solucion: `Solución integral del sector ${sector} con acompañamiento experto`, diferencial: "Experiencia, time-to-value rápido y soporte dedicado", prueba: "Casos de éxito, métricas verificables y testimonios" },
+  { segmento: "Cliente corporativo", problema: "Necesita escalar con confianza y cumplimiento", solucion: "Servicio enterprise con SLA, seguridad y gobierno", diferencial: "Capacidad de escalado y certificaciones", prueba: "Logos de clientes, certificaciones, SLAs cumplidos" },
+];
+
+export const marketingMixSugerido = (): MarketingMix => ({
+  producto: "Portafolio segmentado por necesidad: línea core, premium y entry. Roadmap evolutivo trimestral.",
+  precio: "Pricing por valor (value-based) con paquetes (good/better/best). Descuentos por volumen y compromiso multianual.",
+  plaza: "Canales: venta directa consultiva (B2B), e-commerce propio (B2C), marketplaces y partners/distribuidores en regiones secundarias.",
+  promocion: "Mix: marketing de contenidos + SEO/SEM + ABM para top accounts + eventos sectoriales + PR + email automation.",
+  personas: "Equipo comercial consultivo, customer success dedicado, voz del cliente integrada en producto.",
+  procesos: "Funnel automatizado en CRM, SLA de respuesta, journeys de onboarding y fidelización medidos.",
+  evidencia_fisica: "Identidad de marca consistente, casos de éxito, certificaciones, oficinas/web/app que reflejen la promesa.",
+});
+
+const im = (nombre: string, categoria: IniciativaMarketing["categoria"], objetivo: string, canal: string, kpi: string, responsable = "Marketing"): IniciativaMarketing =>
+  ({ nombre, categoria, objetivo, canal, kpi, presupuesto: 0, responsable, estado: "Por iniciar" });
+
+export const iniciativasMarketingSugeridas = (sector: SectorKey): IniciativaMarketing[] => {
+  const base: IniciativaMarketing[] = [
+    im("Reposicionamiento y rebranding", "Marca", "Reforzar promesa de marca y diferenciación", "Identidad, web, comunicación", "Brand awareness asistido"),
+    im("Estrategia de contenidos / inbound", "Contenidos", "Atraer demanda cualificada con autoridad de categoría", "Blog, SEO, LinkedIn, YouTube", "Tráfico orgánico / MQL"),
+    im("Plan SEO técnico y de contenidos", "Contenidos", "Posicionar en términos de alto intento de compra", "Google", "Posiciones top 3 / sesiones"),
+    im("Performance: Google + Meta Ads", "Performance", "Generación de leads y ventas con ROAS positivo", "Google Ads, Meta Ads", "ROAS / CAC"),
+    im("Programa ABM (Account-Based Marketing)", "ABM", "Penetrar 50 cuentas top con campañas 1:1 y 1:few", "LinkedIn, email, eventos privados", "Reuniones / pipeline ABM"),
+    im("Email marketing y nurturing", "CRM / Fidelización", "Convertir base de leads y reactivar clientes", "Email / Marketing automation", "Open / CTR / conversiones"),
+    im("Programa de referidos y embajadores", "CRM / Fidelización", "Crecer vía recomendación de clientes y empleados", "Comunidad / programa", "Leads referidos"),
+    im("Eventos propios y participación sectorial", "Eventos", "Generar relación y pipeline con decisores", "Eventos físicos e híbridos", "Leads y oportunidades"),
+    im("Webinars y demos masivas", "Demand Gen", "Educar mercado y alimentar pipeline", "Webinar / video", "Inscritos / SQL"),
+    im("Plan de PR y relaciones públicas", "PR", "Posicionamiento como referente sectorial", "Medios, podcasts, foros", "Menciones / share of voice"),
+    im("Caso de éxito flagship con cliente ancla", "Contenidos", "Dotar al equipo comercial de prueba potente", "Video, PDF, charlas", "Uso en deals / win rate"),
+    im("Optimización de la web y CRO", "Performance", "Subir conversión del tráfico actual", "Web", "Tasa de conversión"),
+    im("Implementación / madurez de CRM", "CRM / Fidelización", "Visibilidad full funnel y forecasting confiable", "CRM (HubSpot/Salesforce)", "Adopción y forecast accuracy"),
+    im("Estrategia de pricing y empaquetado", "Producto / Pricing", "Mejorar margen y ticket promedio", "Comercial", "Ticket promedio / margen"),
+    im("Programa de fidelización y lealtad", "CRM / Fidelización", "Reducir churn y aumentar LTV", "App / email / tarjeta", "Churn / LTV"),
+    im("Voz del cliente y NPS", "CRM / Fidelización", "Captura sistemática de NPS y CSAT con loops de mejora", "Encuestas / entrevistas", "NPS / CSAT"),
+    im("Estrategia de redes sociales orgánicas", "Contenidos", "Construir comunidad y autoridad", "LinkedIn, Instagram, TikTok", "Engagement / followers cualificados"),
+    im("Influencer / partner marketing", "Performance", "Aprovechar audiencias afines de terceros", "Influencers / partners", "CAC / leads"),
+  ];
+  if (sector === "tecnologia") base.push(
+    im("Programa de partners y co-marketing", "ABM", "Generar pipeline conjunto con hyperscalers/integradores", "Co-marketing", "Pipeline conjunto"),
+    im("Comunidad de usuarios y developers", "CRM / Fidelización", "Crear moat vía comunidad activa", "Foro / Slack / eventos", "Miembros activos"),
+  );
+  if (sector === "retail") base.push(
+    im("Estrategia omnicanal (online + tienda)", "Demand Gen", "Integrar experiencia entre canales", "Web, app, tienda", "Cliente cross-canal"),
+    im("Marketplace y D2C", "Demand Gen", "Diversificar canales digitales", "Marketplaces / web propia", "Ingresos por canal"),
+  );
+  if (sector === "salud") base.push(
+    im("Convenios con aseguradoras y empresas", "ABM", "Acceso a flujo continuo de pacientes", "B2B salud", "Pacientes/mes por convenio"),
+    im("Educación al paciente / contenidos salud", "Contenidos", "Generar confianza y diferenciación", "Web, video, redes", "Tráfico / leads"),
+  );
+  if (sector === "financiero") base.push(
+    im("Marketing de productos digitales", "Performance", "Onboarding 100% digital de clientes nuevos", "App / web", "CAC / activación"),
+    im("Educación financiera", "Contenidos", "Posicionamiento como aliado financiero", "Contenidos / talleres", "Engagement / leads"),
+  );
+  if (sector === "agro") base.push(
+    im("Ferias y demostraciones de campo", "Eventos", "Demostrar valor con productores en terreno", "Ferias / días de campo", "Leads cualificados"),
+  );
+  if (sector === "construccion") base.push(
+    im("Showroom virtual / tour 360", "Producto / Pricing", "Mostrar proyectos terminados a distancia", "Web / VR", "Visitas / leads"),
+  );
+  return base;
+};
