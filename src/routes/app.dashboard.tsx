@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import {
   Briefcase, Activity, Users2, BookOpen, ArrowUpRight, Plus, MapPin,
-  FileText, AlertTriangle, CheckCircle2, Clock, TrendingUp, DollarSign,
+  FileText, AlertTriangle, CheckCircle2, Clock, TrendingUp, DollarSign, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAlertas, formatearDelta } from "@/lib/alertas-helpers";
 
 export const Route = createFileRoute("/app/dashboard")({ component: Dashboard });
 
