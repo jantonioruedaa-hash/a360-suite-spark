@@ -272,16 +272,52 @@ export const cameSugerido = () => ({
 export interface EjeEstrategico { nombre: string; descripcion: string; prioridad: "Alta" | "Media" | "Baja"; }
 export const ejesSugeridos = (sector: SectorKey): EjeEstrategico[] => {
   const base: EjeEstrategico[] = [
-    { nombre: "Crecimiento rentable",       descripcion: "Aumentar ingresos y margen sostenible mediante nuevos clientes, líneas y canales.", prioridad: "Alta" },
-    { nombre: "Excelencia operativa",       descripcion: "Optimizar procesos críticos, productividad y calidad de la operación.",            prioridad: "Alta" },
-    { nombre: "Experiencia del cliente",    descripcion: "Elevar NPS, fidelización y diferenciación a través de la experiencia.",             prioridad: "Alta" },
-    { nombre: "Talento y cultura",          descripcion: "Atraer, desarrollar y retener al talento crítico en una cultura de alto desempeño.", prioridad: "Media" },
-    { nombre: "Transformación digital",     descripcion: "Digitalizar procesos, datos y oferta para escalar y diferenciarse.",                prioridad: "Media" },
-    { nombre: "Sostenibilidad y reputación",descripcion: "Integrar criterios ESG en estrategia y reforzar reputación de marca.",              prioridad: "Media" },
+    { nombre: "Crecimiento rentable",         descripcion: "Aumentar ingresos y margen sostenible mediante nuevos clientes, líneas, canales y geografías.", prioridad: "Alta" },
+    { nombre: "Excelencia operativa",         descripcion: "Optimizar procesos críticos, productividad, calidad y costos de la operación.",                  prioridad: "Alta" },
+    { nombre: "Experiencia del cliente",      descripcion: "Elevar NPS, fidelización y diferenciación a través de la experiencia end-to-end.",               prioridad: "Alta" },
+    { nombre: "Talento y cultura",            descripcion: "Atraer, desarrollar y retener al talento crítico en una cultura de alto desempeño.",             prioridad: "Alta" },
+    { nombre: "Transformación digital",       descripcion: "Digitalizar procesos, datos, canales y oferta para escalar y diferenciarse.",                    prioridad: "Alta" },
+    { nombre: "Sostenibilidad y ESG",         descripcion: "Integrar criterios ambientales, sociales y de gobierno en la estrategia y la reputación.",       prioridad: "Media" },
+    { nombre: "Innovación y desarrollo",      descripcion: "Sistematizar la innovación de producto, servicio y modelo de negocio.",                          prioridad: "Media" },
+    { nombre: "Marca y posicionamiento",      descripcion: "Consolidar reputación, narrativa y visibilidad en el mercado objetivo.",                         prioridad: "Media" },
+    { nombre: "Solidez financiera",           descripcion: "Asegurar liquidez, estructura de capital sana y disciplina de inversión.",                       prioridad: "Alta" },
+    { nombre: "Gobierno corporativo y riesgos", descripcion: "Profesionalizar la gestión, controles internos y gestión integral de riesgos.",                prioridad: "Media" },
   ];
-  if (sector === "tecnologia") base.push({ nombre: "Innovación de producto", descripcion: "Roadmap de producto basado en evidencia y feedback de clientes.", prioridad: "Alta" });
-  if (sector === "manufactura") base.push({ nombre: "Industria 4.0 y eficiencia energética", descripcion: "Automatización y uso eficiente de recursos.", prioridad: "Media" });
-  if (sector === "retail") base.push({ nombre: "Omnicanalidad", descripcion: "Integración fluida entre canal físico y digital.", prioridad: "Alta" });
+  if (sector === "tecnologia") base.push(
+    { nombre: "Innovación de producto",          descripcion: "Roadmap de producto basado en evidencia, métricas y feedback de clientes.",  prioridad: "Alta" },
+    { nombre: "Plataforma y arquitectura",       descripcion: "Escalabilidad, observabilidad, ciberseguridad y deuda técnica controlada.", prioridad: "Alta" },
+  );
+  if (sector === "manufactura") base.push(
+    { nombre: "Industria 4.0",                   descripcion: "Automatización, IoT, mantenimiento predictivo y manufactura inteligente.",   prioridad: "Alta" },
+    { nombre: "Eficiencia energética y residuos", descripcion: "Reducción de consumo, huella de carbono y economía circular.",              prioridad: "Media" },
+    { nombre: "Cadena de suministro resiliente", descripcion: "Diversificación de proveedores, near-shoring y trazabilidad.",               prioridad: "Alta" },
+  );
+  if (sector === "retail") base.push(
+    { nombre: "Omnicanalidad",                   descripcion: "Integración fluida entre tienda física, e-commerce, marketplace y app.",    prioridad: "Alta" },
+    { nombre: "Logística y última milla",        descripcion: "Optimización de fulfillment, inventarios y experiencia de entrega.",        prioridad: "Alta" },
+  );
+  if (sector === "salud") base.push(
+    { nombre: "Calidad asistencial y seguridad", descripcion: "Estándares de atención, acreditaciones y seguridad del paciente.",          prioridad: "Alta" },
+    { nombre: "Telemedicina y salud digital",    descripcion: "Atención remota, expediente digital y dispositivos conectados.",            prioridad: "Media" },
+  );
+  if (sector === "financiero") base.push(
+    { nombre: "Gestión de riesgos y compliance", descripcion: "Riesgo de crédito, mercado, operativo, KYC/AML y ciberseguridad.",         prioridad: "Alta" },
+    { nombre: "Banca digital y open banking",    descripcion: "Canales digitales, APIs y nuevos modelos de ingreso.",                      prioridad: "Alta" },
+  );
+  if (sector === "educacion") base.push(
+    { nombre: "Innovación pedagógica",           descripcion: "Modelos híbridos, microcredenciales y experiencia del estudiante.",         prioridad: "Alta" },
+  );
+  if (sector === "construccion") base.push(
+    { nombre: "Construcción sostenible",         descripcion: "Materiales verdes, certificaciones LEED/EDGE y eficiencia en obra.",        prioridad: "Media" },
+    { nombre: "Gestión de proyectos y BIM",      descripcion: "Estándares BIM, control de plazos, costos y calidad.",                      prioridad: "Alta" },
+  );
+  if (sector === "agro") base.push(
+    { nombre: "Productividad y agricultura de precisión", descripcion: "Tecnología, riego eficiente y manejo de cultivos basado en datos.", prioridad: "Alta" },
+    { nombre: "Trazabilidad y certificaciones",  descripcion: "Trazabilidad end-to-end, certificaciones orgánicas y de comercio justo.",   prioridad: "Media" },
+  );
+  if (sector === "servicios") base.push(
+    { nombre: "Productización del servicio",     descripcion: "Empaquetar servicios en ofertas escalables y replicables.",                  prioridad: "Alta" },
+  );
   return base;
 };
 
@@ -297,14 +333,40 @@ export interface ObjetivoBSC {
   iniciativa?: string;
 }
 export const objetivosBSCSugeridos = (): ObjetivoBSC[] => [
-  { perspectiva: "Financiera",   objetivo: "Incrementar ingresos anuales",            indicador: "Ventas netas (USD)",          meta: "+20% anual",   plazo: "12 meses", responsable: "Gerencia Comercial",  iniciativa: "Plan comercial 2026" },
-  { perspectiva: "Financiera",   objetivo: "Mejorar margen operativo",                indicador: "EBITDA / Ventas",              meta: "≥ 18%",        plazo: "12 meses", responsable: "Dirección Financiera",iniciativa: "Plan de eficiencia de costos" },
-  { perspectiva: "Cliente",      objetivo: "Elevar satisfacción y fidelización",      indicador: "NPS",                          meta: "≥ 60",         plazo: "12 meses", responsable: "Customer Success",    iniciativa: "Programa de experiencia de cliente" },
-  { perspectiva: "Cliente",      objetivo: "Aumentar cuota en clientes clave",         indicador: "Share of wallet (%)",         meta: "+10 pp",       plazo: "12 meses", responsable: "Key Account Mgmt",    iniciativa: "Programa Key Account" },
-  { perspectiva: "Procesos",     objetivo: "Estandarizar procesos críticos",          indicador: "% procesos documentados",      meta: "100%",         plazo: "9 meses",  responsable: "Operaciones",         iniciativa: "Proyecto de mapeo y SOP" },
-  { perspectiva: "Procesos",     objetivo: "Reducir tiempos de entrega",              indicador: "Lead time promedio (días)",    meta: "-30%",         plazo: "12 meses", responsable: "Operaciones",         iniciativa: "Lean / Mejora continua" },
-  { perspectiva: "Aprendizaje",  objetivo: "Desarrollar competencias clave del equipo", indicador: "Horas formación/colaborador", meta: "≥ 40 h/año", plazo: "12 meses", responsable: "RRHH",                iniciativa: "Plan de formación 2026" },
-  { perspectiva: "Aprendizaje",  objetivo: "Retener talento crítico",                 indicador: "Rotación voluntaria (%)",      meta: "< 10%",        plazo: "12 meses", responsable: "RRHH",                iniciativa: "Plan de retención y carrera" },
+  // FINANCIERA
+  { perspectiva: "Financiera",   objetivo: "Incrementar ingresos anuales",                    indicador: "Ventas netas (USD)",            meta: "+20% anual",   plazo: "12 meses", responsable: "Gerencia Comercial",    iniciativa: "Plan comercial anual" },
+  { perspectiva: "Financiera",   objetivo: "Mejorar margen operativo",                        indicador: "EBITDA / Ventas",                meta: "≥ 18%",        plazo: "12 meses", responsable: "Dirección Financiera",  iniciativa: "Plan de eficiencia de costos" },
+  { perspectiva: "Financiera",   objetivo: "Optimizar capital de trabajo",                    indicador: "Días de ciclo de caja",          meta: "≤ 45 días",    plazo: "9 meses",  responsable: "CFO",                   iniciativa: "Gestión de cobranzas e inventarios" },
+  { perspectiva: "Financiera",   objetivo: "Diversificar fuentes de ingreso",                 indicador: "% ingresos recurrentes",          meta: "≥ 35%",        plazo: "18 meses", responsable: "Estrategia",            iniciativa: "Modelo de suscripción / servicios" },
+  { perspectiva: "Financiera",   objetivo: "Asegurar rentabilidad por cliente",               indicador: "Margen por cliente (USD)",        meta: "+15%",         plazo: "12 meses", responsable: "Comercial",             iniciativa: "Pricing y mix de productos" },
+  { perspectiva: "Financiera",   objetivo: "Reducir costos operativos",                       indicador: "Costos OpEx / Ventas",            meta: "-8 pp",        plazo: "12 meses", responsable: "COO",                   iniciativa: "Programa de eficiencia y compras" },
+
+  // CLIENTE
+  { perspectiva: "Cliente",      objetivo: "Elevar satisfacción y fidelización",              indicador: "NPS",                            meta: "≥ 60",         plazo: "12 meses", responsable: "Customer Success",      iniciativa: "Programa de experiencia de cliente" },
+  { perspectiva: "Cliente",      objetivo: "Aumentar cuota en clientes clave",                indicador: "Share of wallet (%)",            meta: "+10 pp",       plazo: "12 meses", responsable: "Key Account Mgmt",      iniciativa: "Programa Key Account" },
+  { perspectiva: "Cliente",      objetivo: "Captar nuevos clientes en segmento prioritario",  indicador: "Nuevos clientes/mes",            meta: "≥ 15",         plazo: "12 meses", responsable: "Marketing y Ventas",    iniciativa: "Plan de demand generation" },
+  { perspectiva: "Cliente",      objetivo: "Reducir churn de clientes",                       indicador: "Tasa de churn anual (%)",        meta: "< 8%",         plazo: "12 meses", responsable: "Customer Success",      iniciativa: "Plan de retención y health score" },
+  { perspectiva: "Cliente",      objetivo: "Fortalecer marca y reputación",                   indicador: "Brand awareness asistido (%)",   meta: "+15 pp",       plazo: "12 meses", responsable: "Marketing",             iniciativa: "Plan de comunicación y PR" },
+  { perspectiva: "Cliente",      objetivo: "Mejorar conversión digital",                      indicador: "Tasa de conversión web (%)",     meta: "≥ 4%",         plazo: "9 meses",  responsable: "Marketing Digital",     iniciativa: "Optimización de funnel y UX" },
+
+  // PROCESOS
+  { perspectiva: "Procesos",     objetivo: "Estandarizar procesos críticos",                  indicador: "% procesos documentados",        meta: "100%",         plazo: "9 meses",  responsable: "Operaciones",           iniciativa: "Mapeo y SOP" },
+  { perspectiva: "Procesos",     objetivo: "Reducir tiempos de entrega",                      indicador: "Lead time promedio (días)",      meta: "-30%",         plazo: "12 meses", responsable: "Operaciones",           iniciativa: "Lean / mejora continua" },
+  { perspectiva: "Procesos",     objetivo: "Elevar calidad del producto/servicio",            indicador: "Tasa de no-conformidades",       meta: "< 1%",         plazo: "12 meses", responsable: "Calidad",               iniciativa: "Sistema de gestión de calidad" },
+  { perspectiva: "Procesos",     objetivo: "Digitalizar procesos clave",                      indicador: "% procesos digitalizados",       meta: "≥ 80%",        plazo: "18 meses", responsable: "TI / Transformación",   iniciativa: "Programa de transformación digital" },
+  { perspectiva: "Procesos",     objetivo: "Fortalecer ciberseguridad",                       indicador: "Madurez NIST (1-5)",             meta: "≥ 3.5",        plazo: "12 meses", responsable: "CISO / TI",             iniciativa: "Plan director de ciberseguridad" },
+  { perspectiva: "Procesos",     objetivo: "Reducir huella ambiental",                        indicador: "Toneladas CO₂e",                 meta: "-15%",         plazo: "18 meses", responsable: "ESG / Operaciones",     iniciativa: "Plan de descarbonización" },
+  { perspectiva: "Procesos",     objetivo: "Optimizar cadena de suministro",                  indicador: "OTIF (%)",                       meta: "≥ 95%",        plazo: "12 meses", responsable: "Supply Chain",          iniciativa: "Plan S&OP y diversificación de proveedores" },
+  { perspectiva: "Procesos",     objetivo: "Implementar gestión de riesgos",                  indicador: "% riesgos mitigados",            meta: "≥ 80%",        plazo: "12 meses", responsable: "Compliance / Riesgos",  iniciativa: "Matriz de riesgos y BCP" },
+
+  // APRENDIZAJE
+  { perspectiva: "Aprendizaje",  objetivo: "Desarrollar competencias clave del equipo",       indicador: "Horas formación/colaborador",    meta: "≥ 40 h/año",   plazo: "12 meses", responsable: "RRHH",                  iniciativa: "Plan de formación anual" },
+  { perspectiva: "Aprendizaje",  objetivo: "Retener talento crítico",                         indicador: "Rotación voluntaria (%)",        meta: "< 10%",        plazo: "12 meses", responsable: "RRHH",                  iniciativa: "Plan de retención y carrera" },
+  { perspectiva: "Aprendizaje",  objetivo: "Elevar compromiso del equipo",                    indicador: "eNPS",                           meta: "≥ 40",         plazo: "12 meses", responsable: "RRHH / Cultura",        iniciativa: "Plan de engagement y bienestar" },
+  { perspectiva: "Aprendizaje",  objetivo: "Construir cantera de liderazgo",                  indicador: "% posiciones críticas con sucesor", meta: "≥ 70%",     plazo: "18 meses", responsable: "RRHH",                  iniciativa: "Plan de sucesión y desarrollo" },
+  { perspectiva: "Aprendizaje",  objetivo: "Fomentar cultura de innovación",                  indicador: "N° ideas implementadas/año",     meta: "≥ 12",         plazo: "12 meses", responsable: "Innovación",            iniciativa: "Programa de innovación interna" },
+  { perspectiva: "Aprendizaje",  objetivo: "Diversidad e inclusión",                          indicador: "% diversidad en liderazgo",      meta: "≥ 40%",        plazo: "18 meses", responsable: "RRHH / DEI",            iniciativa: "Plan DEI" },
+  { perspectiva: "Aprendizaje",  objetivo: "Adopción de herramientas digitales",              indicador: "% usuarios activos en CRM/ERP",  meta: "≥ 90%",        plazo: "9 meses",  responsable: "TI / Procesos",         iniciativa: "Plan de adopción y change mgmt" },
 ];
 
 // ───────────────── Sec 08: Estrategias corporativas ─────────────────
@@ -319,14 +381,37 @@ export interface EstrategiaSeleccion {
 }
 export const estrategiasSugeridas = (): { iniciativas: string[]; tips: Record<string, string> } => ({
   iniciativas: [
+    // Comercial / Mercado
     "Lanzar nueva propuesta de valor diferenciada en el segmento prioritario",
     "Plan de cross-selling y up-selling sobre cartera actual",
-    "Desarrollo de canal digital propio (e-commerce / SaaS)",
-    "Alianzas con partners para acelerar cobertura geográfica",
-    "Programa de innovación abierta con clientes",
-    "Reposicionamiento de marca y nueva narrativa",
-    "Plan de internacionalización selectiva",
+    "Programa Key Account para los 20 clientes top",
+    "Plan de internacionalización selectiva (mercados ancla)",
+    "Apertura de nuevos canales (distribuidores, marketplace, partners)",
+    // Producto / Innovación
+    "Roadmap de producto basado en evidencia y feedback de clientes",
     "Modelo de ingresos recurrentes (suscripción / servicios gestionados)",
+    "Programa de innovación abierta con clientes y startups",
+    "Lanzamiento de línea premium / línea económica para ampliar mercado",
+    // Marca y Marketing
+    "Reposicionamiento de marca y nueva narrativa estratégica",
+    "Plan de marketing digital (SEO, performance, content, ABM)",
+    "Programa de embajadores y referrals",
+    // Digital y Operaciones
+    "Desarrollo de canal digital propio (e-commerce / portal cliente / SaaS)",
+    "Implementación de CRM y automatización del funnel comercial",
+    "Implementación de ERP y digitalización del back office",
+    "Plan director de ciberseguridad y protección de datos",
+    "Programa de analítica avanzada e IA para decisiones",
+    // Personas y Cultura
+    "Plan de atracción y retención de talento crítico",
+    "Programa de desarrollo de mandos medios y sucesión",
+    "Transformación cultural hacia alto desempeño",
+    // Sostenibilidad / ESG
+    "Plan de descarbonización y reporte ESG",
+    "Programa de proveedores responsables",
+    // Finanzas / M&A
+    "Plan de fortalecimiento financiero y acceso a capital",
+    "Búsqueda activa de alianzas estratégicas y posibles M&A",
   ],
   tips: {
     porter: "Liderazgo en costos requiere escala y eficiencia. Diferenciación exige capacidades únicas y marca. Enfoque/Nicho concentra recursos en un segmento específico.",
@@ -347,11 +432,41 @@ export interface IniciativaOperativa {
   estado: "Por iniciar" | "En curso" | "Completada" | "En riesgo";
 }
 export const planOperativoSugerido = (): IniciativaOperativa[] => [
-  { nombre: "Plan comercial 2026",          eje: "Crecimiento rentable",   responsable: "Gerencia Comercial", fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Ventas netas",   estado: "Por iniciar" },
-  { nombre: "Programa de experiencia CX",   eje: "Experiencia del cliente",responsable: "Customer Success",   fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "NPS",            estado: "Por iniciar" },
-  { nombre: "Mapeo y estandarización SOP",  eje: "Excelencia operativa",   responsable: "Operaciones",        fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "% procesos doc.",estado: "Por iniciar" },
-  { nombre: "Plan de formación 2026",       eje: "Talento y cultura",      responsable: "RRHH",               fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Horas/colab.",   estado: "Por iniciar" },
-  { nombre: "Implementación CRM",           eje: "Transformación digital", responsable: "TI",                 fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Adopción CRM",   estado: "Por iniciar" },
+  // Comercial
+  { nombre: "Plan comercial anual",                eje: "Crecimiento rentable",        responsable: "Gerencia Comercial", fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Ventas netas",          estado: "Por iniciar" },
+  { nombre: "Programa Key Account",                eje: "Crecimiento rentable",        responsable: "Key Account Mgmt",   fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Share of wallet",       estado: "Por iniciar" },
+  { nombre: "Apertura de nuevos canales",          eje: "Crecimiento rentable",        responsable: "Comercial",          fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Ingresos por canal",    estado: "Por iniciar" },
+  // Marketing y Marca
+  { nombre: "Plan de marketing digital",           eje: "Marca y posicionamiento",     responsable: "Marketing",          fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "MQL / SQL",             estado: "Por iniciar" },
+  { nombre: "Reposicionamiento de marca",          eje: "Marca y posicionamiento",     responsable: "Marketing",          fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Brand awareness",       estado: "Por iniciar" },
+  // Cliente
+  { nombre: "Programa de experiencia de cliente",  eje: "Experiencia del cliente",     responsable: "Customer Success",   fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "NPS",                   estado: "Por iniciar" },
+  { nombre: "Plan de retención y health score",    eje: "Experiencia del cliente",     responsable: "Customer Success",   fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Churn",                 estado: "Por iniciar" },
+  // Operaciones
+  { nombre: "Mapeo y estandarización SOP",         eje: "Excelencia operativa",        responsable: "Operaciones",        fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "% procesos doc.",       estado: "Por iniciar" },
+  { nombre: "Programa Lean / mejora continua",     eje: "Excelencia operativa",        responsable: "Operaciones",        fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Lead time",             estado: "Por iniciar" },
+  { nombre: "Sistema de gestión de calidad",       eje: "Excelencia operativa",        responsable: "Calidad",            fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "No-conformidades",      estado: "Por iniciar" },
+  { nombre: "Optimización de cadena de suministro",eje: "Excelencia operativa",        responsable: "Supply Chain",       fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "OTIF",                  estado: "Por iniciar" },
+  // TI / Digital
+  { nombre: "Implementación CRM",                  eje: "Transformación digital",      responsable: "TI",                 fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Adopción CRM",          estado: "Por iniciar" },
+  { nombre: "Implementación ERP",                  eje: "Transformación digital",      responsable: "TI / Finanzas",      fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Adopción ERP",          estado: "Por iniciar" },
+  { nombre: "Plan director de ciberseguridad",     eje: "Transformación digital",      responsable: "CISO / TI",          fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Madurez NIST",          estado: "Por iniciar" },
+  { nombre: "Programa de analítica e IA",          eje: "Transformación digital",      responsable: "Data / TI",          fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Casos de uso en prod.", estado: "Por iniciar" },
+  // Talento
+  { nombre: "Plan de formación anual",             eje: "Talento y cultura",           responsable: "RRHH",               fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Horas/colab.",          estado: "Por iniciar" },
+  { nombre: "Plan de retención y carrera",         eje: "Talento y cultura",           responsable: "RRHH",               fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Rotación voluntaria",   estado: "Por iniciar" },
+  { nombre: "Plan de sucesión y liderazgo",        eje: "Talento y cultura",           responsable: "RRHH",               fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "% sucesores",           estado: "Por iniciar" },
+  { nombre: "Programa de cultura y engagement",    eje: "Talento y cultura",           responsable: "RRHH / Cultura",     fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "eNPS",                  estado: "Por iniciar" },
+  // Innovación
+  { nombre: "Programa de innovación interna",      eje: "Innovación y desarrollo",     responsable: "Innovación",         fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Ideas implementadas",   estado: "Por iniciar" },
+  { nombre: "Roadmap de producto/servicio",        eje: "Innovación y desarrollo",     responsable: "Producto",           fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Time-to-market",        estado: "Por iniciar" },
+  // Finanzas / Riesgos
+  { nombre: "Plan de eficiencia de costos",        eje: "Solidez financiera",          responsable: "CFO",                fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "OpEx / Ventas",         estado: "Por iniciar" },
+  { nombre: "Gestión de capital de trabajo",       eje: "Solidez financiera",          responsable: "Tesorería",          fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Días ciclo de caja",    estado: "Por iniciar" },
+  { nombre: "Matriz de riesgos y BCP",             eje: "Gobierno corporativo y riesgos", responsable: "Compliance",      fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "% riesgos mitigados",   estado: "Por iniciar" },
+  // ESG
+  { nombre: "Plan de descarbonización",            eje: "Sostenibilidad y ESG",        responsable: "ESG / Operaciones",  fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Toneladas CO₂e",        estado: "Por iniciar" },
+  { nombre: "Reporte ESG y materialidad",          eje: "Sostenibilidad y ESG",        responsable: "ESG",                fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "Cumplimiento KPIs ESG", estado: "Por iniciar" },
 ];
 
 // ───────────────── Sec 05: Valores corporativos ─────────────────
