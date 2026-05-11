@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Loader2, Edit3, Save, RotateCw, Brain } from "lucide-react";
 import { analizarSesionCoaching } from "@/server/coaching-ia.functions";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+
 
 interface Props {
   sesionId: string;

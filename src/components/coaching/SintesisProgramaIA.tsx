@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Brain, Loader2, Edit3, Save, RotateCw, Sparkles } from "lucide-react";
 import { sintetizarProgramaCoaching } from "@/server/coaching-ia.functions";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+
 
 export function SintesisProgramaIA({
   clienteId, contextoCliente, sintesisInicial, fechaInicial, onGuardar,
