@@ -17,6 +17,8 @@ export type Database = {
       cliente_actividades: {
         Row: {
           adjunto_url: string | null
+          analisis_ia: string | null
+          analisis_ia_fecha: string | null
           cliente_id: string
           consultor_id: string | null
           contacto_id: string | null
@@ -51,6 +53,8 @@ export type Database = {
         }
         Insert: {
           adjunto_url?: string | null
+          analisis_ia?: string | null
+          analisis_ia_fecha?: string | null
           cliente_id: string
           consultor_id?: string | null
           contacto_id?: string | null
@@ -85,6 +89,8 @@ export type Database = {
         }
         Update: {
           adjunto_url?: string | null
+          analisis_ia?: string | null
+          analisis_ia_fecha?: string | null
           cliente_id?: string
           consultor_id?: string | null
           contacto_id?: string | null
