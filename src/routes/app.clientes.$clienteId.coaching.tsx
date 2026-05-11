@@ -28,6 +28,8 @@ import {
   type SesionCoaching,
 } from "@/lib/coaching-helpers";
 import { Plus, Check, Trash2, Sparkles, FileText, Clock } from "lucide-react";
+import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
+import { SintesisProgramaIA } from "@/components/coaching/SintesisProgramaIA";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
   component: CoachingClienteWorkspace,
@@ -378,7 +380,7 @@ function DialogoSesion({
               datosSesion={datos}
               analisisActual={(datos as any)?.analisis_ia ?? null}
               analisisFecha={(datos as any)?.analisis_ia_fecha ?? null}
-              onAnalisisGenerado={(t, f) => setDatos({ ...datos, analisis_ia: t, analisis_ia_fecha: f })}
+              onAnalisisGenerado={(t: string, f: string) => setDatos({ ...datos, analisis_ia: t, analisis_ia_fecha: f })}
             />
           )}
           {!existing && (
