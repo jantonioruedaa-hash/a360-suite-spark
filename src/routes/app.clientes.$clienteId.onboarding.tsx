@@ -499,17 +499,47 @@ function Paso5({ v, set }: { v: OnboardingPaso5; set: (v: OnboardingPaso5) => vo
           <F label="Forma de pago"><Input value={v.forma_pago ?? ""} onChange={(e) => set({ ...v, forma_pago: e.target.value })} /></F>
         </Grid>
       </Card>
-      <Card title="5C. Compromisos">
-        <Grid>
-          <F label="Compromisos del cliente"><ListaEditable items={v.compromisos_cliente} onChange={(x) => set({ ...v, compromisos_cliente: x })} placeholder="+ Agregar compromiso del cliente" label="compromisos" /></F>
-          <F label="Compromisos del consultor"><ListaEditable items={v.compromisos_consultor} onChange={(x) => set({ ...v, compromisos_consultor: x })} placeholder="+ Agregar compromiso del consultor" label="compromisos" /></F>
-        </Grid>
+      <Card title="5C. Compromisos del cliente">
+        <p className="text-xs text-muted-foreground">Marca los compromisos estándar A360SP que el cliente acepta y agrega los específicos del programa.</p>
+        <CheckList
+          options={[...COMPROMISOS_CLIENTE_DEFAULT]}
+          selected={v.compromisos_cliente}
+          onChange={(x) => set({ ...v, compromisos_cliente: x })}
+        />
+        <div className="mt-3">
+          <Label className="text-xs">Compromisos adicionales</Label>
+          <ListaEditable
+            items={v.compromisos_cliente.filter((c) => !COMPROMISOS_CLIENTE_DEFAULT.includes(c))}
+            onChange={(extras) => set({ ...v, compromisos_cliente: [...v.compromisos_cliente.filter((c) => COMPROMISOS_CLIENTE_DEFAULT.includes(c)), ...extras] })}
+            placeholder="+ Compromiso específico del cliente" label="compromisos"
+          />
+        </div>
       </Card>
-      <Card title="5D. Condiciones y notas">
-        <Grid>
-          <F label="Condiciones del servicio" wide><Textarea rows={3} value={v.condiciones ?? ""} onChange={(e) => set({ ...v, condiciones: e.target.value })} /></F>
-          <F label="Notas finales del consultor" wide><Textarea rows={2} value={v.notas ?? ""} onChange={(e) => set({ ...v, notas: e.target.value })} /></F>
-        </Grid>
+      <Card title="5D. Compromisos del consultor">
+        <CheckList
+          options={[...COMPROMISOS_CONSULTOR_DEFAULT]}
+          selected={v.compromisos_consultor}
+          onChange={(x) => set({ ...v, compromisos_consultor: x })}
+        />
+        <div className="mt-3">
+          <Label className="text-xs">Compromisos adicionales</Label>
+          <ListaEditable
+            items={v.compromisos_consultor.filter((c) => !COMPROMISOS_CONSULTOR_DEFAULT.includes(c))}
+            onChange={(extras) => set({ ...v, compromisos_consultor: [...v.compromisos_consultor.filter((c) => COMPROMISOS_CONSULTOR_DEFAULT.includes(c)), ...extras] })}
+            placeholder="+ Compromiso específico del consultor" label="compromisos"
+          />
+        </div>
+      </Card>
+      <Card title="5E. Condiciones del servicio">
+        <CheckList
+          options={[...CONDICIONES_DEFAULT]}
+          selected={v.condiciones_aceptadas ?? []}
+          onChange={(x) => set({ ...v, condiciones_aceptadas: x })}
+        />
+        <div className="mt-3">
+          <F label="Condiciones especiales" wide><Textarea rows={2} value={v.condiciones ?? ""} onChange={(e) => set({ ...v, condiciones: e.target.value })} placeholder="Cualquier condición particular fuera del estándar..." /></F>
+          <F label="Notas finales del consultor" wide><Textarea rows={2} value={v.notas ?? ""} onChange={(e) => set({ ...v, notas: e.target.value })} placeholder="Observaciones, condiciones especiales, aspectos a monitorear..." /></F>
+        </div>
       </Card>
     </>
   );
