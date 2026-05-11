@@ -405,6 +405,9 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       condiciones: form.condiciones || null,
       ime_estimado: form.ime_estimado || null,
       justificacion_programa: form.justificacion_programa || null,
+      entregables: form.entregables ?? [],
+      objetivos_propuesta: form.objetivos_propuesta ?? [],
+      diagnostico_resumen: form.diagnostico_resumen || null,
     };
     const { error } = form.id
       ? await supabase.from("cliente_cotizaciones").update(payload as never).eq("id", form.id)
