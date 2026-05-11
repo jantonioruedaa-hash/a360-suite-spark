@@ -81,8 +81,8 @@ function Cotizaciones() {
   const reload = async () => {
     const [{ data: cs }, { data: cli }, { data: cts }] = await Promise.all([
       supabase.from("cliente_cotizaciones").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false }),
-      supabase.from("clientes").select("nombre_empresa,nombre_comercial,direccion,ciudad,pais").eq("id", clienteId).maybeSingle(),
-      supabase.from("cliente_contactos").select("id,nombre,apellido,email").eq("cliente_id", clienteId).eq("activo", true),
+      supabase.from("clientes").select("nombre_empresa,nombre_comercial,sector,direccion,ciudad,pais").eq("id", clienteId).maybeSingle(),
+      supabase.from("cliente_contactos").select("id,nombre,apellido,email,telefono_oficina,celular").eq("cliente_id", clienteId).eq("activo", true),
     ]);
     setList((cs ?? []) as unknown as Cotizacion[]);
     setCliente(cli as ClienteData | null);
