@@ -340,6 +340,25 @@ function Actividades() {
                   </Select>
                 </div>
               </div>
+              <div className="flex justify-end">
+                <Button
+                  type="button" variant="outline" size="sm"
+                  onClick={() => {
+                    const p = obtenerPlantilla(formSesion.programa, formSesion.etapa_programa);
+                    if (!p) { toast.info("No hay plantilla para esta combinación. Completa manualmente."); return; }
+                    setFormSesion({
+                      ...formSesion,
+                      objetivo: formSesion.objetivo || p.objetivo,
+                      temas_text: formSesion.temas_text || p.temas.join("\n"),
+                      herramientas_text: formSesion.herramientas_text || p.herramientas.join("\n"),
+                      proxima_temas_text: formSesion.proxima_temas_text || p.proxima_temas.join("\n"),
+                    });
+                    toast.success("Plantilla cargada");
+                  }}
+                >
+                  <Wand2 className="w-3 h-3 mr-1" /> Cargar plantilla A360 según programa + etapa
+                </Button>
+              </div>
               <div><Label>Participantes (uno por línea)</Label><Textarea rows={3} value={formSesion.participantes_text} onChange={(e) => setFormSesion({ ...formSesion, participantes_text: e.target.value })} placeholder="Juan Pérez (CEO)\nMaría López (CFO)" /></div>
               <div><Label>Objetivo de la sesión *</Label><Textarea rows={2} value={formSesion.objetivo} onChange={(e) => setFormSesion({ ...formSesion, objetivo: e.target.value })} /></div>
             </TabsContent>
