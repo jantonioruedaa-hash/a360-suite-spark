@@ -247,7 +247,7 @@ function Actividades() {
           <Button variant="outline" onClick={() => setOpenBasic(true)}>
             <Plus className="w-4 h-4 mr-1" /> Actividad rápida
           </Button>
-          <Button onClick={() => { setFormSesion({ ...EMPTY_SESION, numero_sesion: String(numSesiones + 1) }); setOpenSesion(true); }} className="bg-navy hover:bg-navy/90">
+          <Button onClick={() => { setEditingId(null); setKpis([]); setCompromisos([]); setFormSesion({ ...EMPTY_SESION, numero_sesion: String(numSesiones + 1) }); setOpenSesion(true); }} className="bg-navy hover:bg-navy/90">
             <Sparkles className="w-4 h-4 mr-1" /> Reporte de sesión
           </Button>
         </div>
