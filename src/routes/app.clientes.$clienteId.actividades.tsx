@@ -123,27 +123,84 @@ function Actividades() {
       proxima_temas: splitLines(formSesion.proxima_temas_text),
       mensaje_cliente: formSesion.mensaje_cliente || null,
     };
-    const { data: act, error } = await supabase.from("cliente_actividades").insert(payload).select("id").single();
-    if (error || !act) { toast.error(error?.message ?? "Error"); return; }
 
-    if (kpis.length) {
+    let actId: string | null = null;
+    if (editingId) {
+      const { error } = await supabase.from("cliente_actividades").update(payload).eq("id", editingId);
+      if (error) { toast.error(error.message); return; }
+      actId = editingId;
+      // reemplazar KPIs y compromisos asociados
+      await supabase.from("cliente_kpis").delete().eq("actividad_id", editingId);
+      await supabase.from("cliente_compromisos").delete().eq("actividad_id", editingId).eq("origen", "sesion");
+    } else {
+      const { data: act, error } = await supabase.from("cliente_actividades").insert(payload).select("id").single();
+      if (error || !act) { toast.error(error?.message ?? "Error"); return; }
+      actId = act.id;
+    }
+
+    if (kpis.length && actId) {
       await supabase.from("cliente_kpis").insert(kpis.map((k) => ({
-        cliente_id: clienteId, actividad_id: act.id,
+        cliente_id: clienteId, actividad_id: actId,
         categoria: k.categoria, nombre: k.nombre, unidad: k.unidad ?? null, formula: k.formula ?? null,
         valor_actual: k.valor_actual ? parseFloat(k.valor_actual) : null,
         valor_meta: k.valor_meta ? parseFloat(k.valor_meta) : null,
         semaforo: k.semaforo, observacion: k.observacion ?? null,
       })));
     }
-    if (compromisos.length) {
+    if (compromisos.length && actId) {
       await supabase.from("cliente_compromisos").insert(compromisos.map((c) => ({
-        cliente_id: clienteId, actividad_id: act.id, origen: "sesion",
+        cliente_id: clienteId, actividad_id: actId, origen: "sesion",
         descripcion: c.descripcion, responsable: c.responsable,
         fecha_limite: c.fecha_limite || null, estado: "pendiente",
       })));
     }
-    toast.success("Reporte de sesión guardado");
-    setOpenSesion(false); setFormSesion(EMPTY_SESION); setKpis([]); setCompromisos([]); reload();
+    toast.success(editingId ? "Reporte actualizado" : "Reporte de sesión guardado");
+    setOpenSesion(false); setFormSesion(EMPTY_SESION); setKpis([]); setCompromisos([]); setEditingId(null); reload();
+  };
+
+  const editarSesion = async (a: Actividad) => {
+    const [{ data: ks }, { data: cs }] = await Promise.all([
+      supabase.from("cliente_kpis").select("*").eq("actividad_id", a.id),
+      supabase.from("cliente_compromisos").select("*").eq("actividad_id", a.id).eq("origen", "sesion"),
+    ]);
+    setEditingId(a.id);
+    setFormSesion({
+      numero_sesion: String(a.numero_sesion ?? 1),
+      programa: a.programa ?? "Coaching Ejecutivo",
+      etapa_programa: a.etapa_programa ?? "Diagnóstico",
+      modalidad: a.modalidad ?? "Virtual",
+      fecha: a.fecha ? new Date(a.fecha).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+      duracion_minutos: a.duracion_minutos?.toString() ?? "",
+      objetivo: a.objetivo ?? "",
+      participantes_text: (a.participantes ?? []).join("\n"),
+      temas_text: (a.temas ?? []).join("\n"),
+      logros_text: (a.logros ?? []).join("\n"),
+      herramientas_text: (a.herramientas ?? []).join("\n"),
+      semaforo: a.semaforo ?? "verde",
+      justificacion_semaforo: a.justificacion_semaforo ?? "",
+      proxima_fecha: a.proxima_fecha ? new Date(a.proxima_fecha).toISOString().slice(0, 16) : "",
+      proxima_temas_text: (a.proxima_temas ?? []).join("\n"),
+      mensaje_cliente: a.mensaje_cliente ?? "",
+    });
+    setKpis((ks ?? []).map((k) => ({
+      categoria: k.categoria, nombre: k.nombre, unidad: k.unidad ?? undefined, formula: k.formula ?? undefined,
+      valor_actual: k.valor_actual?.toString(), valor_meta: k.valor_meta?.toString(),
+      semaforo: (k.semaforo ?? "verde") as "verde" | "amarillo" | "rojo", observacion: k.observacion ?? undefined,
+    })));
+    setCompromisos((cs ?? []).map((c) => ({
+      descripcion: c.descripcion, responsable: c.responsable ?? "", fecha_limite: c.fecha_limite ?? "",
+    })));
+    setOpenSesion(true);
+  };
+
+  const eliminarActividad = async (a: Actividad) => {
+    const tipo = a.es_sesion_consultoria ? "el reporte de sesión" : "esta actividad";
+    if (!confirm(`¿Eliminar ${tipo}? Esto también eliminará sus KPIs y compromisos asociados. Esta acción no se puede deshacer.`)) return;
+    await supabase.from("cliente_kpis").delete().eq("actividad_id", a.id);
+    await supabase.from("cliente_compromisos").delete().eq("actividad_id", a.id);
+    const { error } = await supabase.from("cliente_actividades").delete().eq("id", a.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Eliminado"); reload();
   };
 
   const exportarPDF = async (a: Actividad) => {
