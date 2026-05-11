@@ -483,3 +483,191 @@ export const FASES_CONTINUIDAD_INSTRUMENTO: FaseContinuidadInstrumento[] = [
     ],
   },
 ];
+
+// ─── 7. BIBLIOTECA EXPANDIDA — 72 PREGUNTAS PODEROSAS ────────────────
+export interface PreguntaPoderosa {
+  id: string;
+  texto: string;
+  dimension: "vision" | "decision" | "influencia" | "ejecucion" | "resiliencia" | "consciencia";
+  intensidad: 1 | 2 | 3; // 1 abre, 2 desafía, 3 confronta
+  cuandoUsar: string;
+  ejemploEfecto: string;
+}
+
+export const PREGUNTAS_PODEROSAS: PreguntaPoderosa[] = [
+  // VISIÓN (12)
+  { id: "v1", texto: "Si tuvieras que renunciar a 2 prioridades hoy, ¿cuáles serían y por qué?", dimension: "vision", intensidad: 2, cuandoUsar: "Cuando el líder dice estar 'desbordado' sin priorizar.", ejemploEfecto: "Forzó a un CEO a soltar 2 proyectos heredados que drenaban 30% del comité." },
+  { id: "v2", texto: "¿Qué decisión que tomas hoy te avergonzaría dentro de 3 años?", dimension: "vision", intensidad: 3, cuandoUsar: "Decisiones cortoplacistas frecuentes.", ejemploEfecto: "Reveló que la promoción de un gerente era política, no por mérito." },
+  { id: "v3", texto: "¿Tu visión es tuya o la heredaste sin cuestionar?", dimension: "vision", intensidad: 3, cuandoUsar: "Líder de empresa familiar o sucesión reciente.", ejemploEfecto: "Hijo del fundador descubrió que persistía un negocio que él no quería." },
+  { id: "v4", texto: "¿Dónde estarás en 5 años si NO cambias nada de lo que haces hoy?", dimension: "vision", intensidad: 2, cuandoUsar: "Inicio del programa, primera sesión.", ejemploEfecto: "Director comercial vio claramente su techo profesional sin coaching." },
+  { id: "v5", texto: "¿Qué crees que será cierto en tu industria en 3 años que casi nadie ve hoy?", dimension: "vision", intensidad: 1, cuandoUsar: "Trabajo de pensamiento estratégico.", ejemploEfecto: "Originó pivot de modelo de negocio anticipado por 18 meses." },
+  { id: "v6", texto: "¿Qué legado quieres dejar en esta organización cuando salgas?", dimension: "vision", intensidad: 2, cuandoUsar: "Líder en consolidación o cerca de transición.", ejemploEfecto: "Reordenó 3 prioridades para enfocar en talento sucesor." },
+  { id: "v7", texto: "Si la visión no se cumple, ¿qué se te perdió en el camino?", dimension: "vision", intensidad: 3, cuandoUsar: "Después de fracaso visible.", ejemploEfecto: "Aceptó que la visión nunca fue compartida con su equipo." },
+  { id: "v8", texto: "¿Qué proyecto activo NO contribuye a la visión y por qué sigue vivo?", dimension: "vision", intensidad: 2, cuandoUsar: "Para ejercicio de cierre / poda.", ejemploEfecto: "Se cerraron 4 proyectos en 30 días, liberando USD 800K." },
+  { id: "v9", texto: "¿Qué pasaría si tu visión fuera mucho más ambiciosa?", dimension: "vision", intensidad: 1, cuandoUsar: "Líder que se autocensura.", ejemploEfecto: "Visión 5x el tamaño actual, no 1.3x. Cambió toda la estrategia." },
+  { id: "v10", texto: "¿En qué decisión clave te dejaste convencer por miedo, no por estrategia?", dimension: "vision", intensidad: 3, cuandoUsar: "Después de un trimestre tibio.", ejemploEfecto: "CFO admitió haber bloqueado expansión por su propia ansiedad." },
+  { id: "v11", texto: "¿Qué te dirías hoy a ti mismo de hace 5 años sobre la dirección que tomaste?", dimension: "vision", intensidad: 2, cuandoUsar: "Reflexión de cierre de programa.", ejemploEfecto: "Identificó patrón: 'siempre eligió lo seguro sobre lo grande'." },
+  { id: "v12", texto: "¿Qué deja de ser cierto el día que tu visión se cumple?", dimension: "vision", intensidad: 1, cuandoUsar: "Pensar identidad post-éxito.", ejemploEfecto: "Líder vio que su rol cambiaría — empezó a construir sucesión 18 meses antes." },
+
+  // DECISIÓN (12)
+  { id: "d1", texto: "¿Qué información te falta para decidir, y por qué no la has buscado?", dimension: "decision", intensidad: 2, cuandoUsar: "Decisión postergada >2 semanas.", ejemploEfecto: "Reveló que evitaba conversación con cofundador, no datos." },
+  { id: "d2", texto: "Si tuvieras 30 segundos para decidir esto, ¿qué decidirías?", dimension: "decision", intensidad: 2, cuandoUsar: "Parálisis por análisis.", ejemploEfecto: "El instinto del líder coincidía con la decisión que postergaba 6 semanas." },
+  { id: "d3", texto: "¿Qué decides por miedo y qué decides por estrategia?", dimension: "decision", intensidad: 3, cuandoUsar: "Patrón de conservadurismo o agresividad inconsistente.", ejemploEfecto: "60% de sus 'noes' eran por miedo, no por riesgo real." },
+  { id: "d4", texto: "¿Cuál fue tu última decisión que sorprendió a alguien que te conoce bien?", dimension: "decision", intensidad: 1, cuandoUsar: "Líder predecible / acomodado.", ejemploEfecto: "Llevaba 3 años sin tomar una decisión 'no esperada'. Diagnóstico de zona de confort." },
+  { id: "d5", texto: "¿Qué decisión vienes posponiendo y qué te cuesta cada día que no la tomas?", dimension: "decision", intensidad: 3, cuandoUsar: "Procrastinación crónica.", ejemploEfecto: "Cuantificar el costo (USD 15K/semana) detonó decisión en 48h." },
+  { id: "d6", texto: "Si esto fuera de otro líder, ¿qué le aconsejarías?", dimension: "decision", intensidad: 1, cuandoUsar: "Líder demasiado cercano al problema.", ejemploEfecto: "Distancia desbloqueó el camino claro inmediatamente." },
+  { id: "d7", texto: "¿Qué pasaría si no decides nada en 30 días?", dimension: "decision", intensidad: 2, cuandoUsar: "Para calibrar urgencia real.", ejemploEfecto: "Reveló que la 'urgencia' era inventada por el sponsor, no real." },
+  { id: "d8", texto: "¿Cuál de las opciones es la que más te incomoda? ¿Por qué?", dimension: "decision", intensidad: 3, cuandoUsar: "La incomodidad suele señalar la correcta.", ejemploEfecto: "La opción incómoda era la honesta — la cómoda perpetuaba problema." },
+  { id: "d9", texto: "Si esta decisión fuera reversible, ¿qué probarías ya?", dimension: "decision", intensidad: 1, cuandoUsar: "Líder que sobre-pondera riesgo.", ejemploEfecto: "Lanzó piloto en 10 días — había 2 años postergándolo." },
+  { id: "d10", texto: "¿Qué decisión tomaste por consenso que en realidad nadie quería?", dimension: "decision", intensidad: 3, cuandoUsar: "Decisiones tibias del comité.", ejemploEfecto: "Comité reabrió 2 decisiones del trimestre y las cambió." },
+  { id: "d11", texto: "¿Quién tendría que estar en esta decisión y no está?", dimension: "decision", intensidad: 2, cuandoUsar: "Decisión que afecta a varios stakeholders.", ejemploEfecto: "Sumar a 1 persona evitó conflicto post-implementación." },
+  { id: "d12", texto: "¿Qué dirías si tuvieras que defender esta decisión ante el consejo?", dimension: "decision", intensidad: 2, cuandoUsar: "Probar solidez del argumento.", ejemploEfecto: "Líder vio que el argumento era débil — buscó datos faltantes." },
+
+  // INFLUENCIA (12)
+  { id: "i1", texto: "¿Quién en tu organización te dice que NO? ¿Por qué tan pocos?", dimension: "influencia", intensidad: 3, cuandoUsar: "Líder con culto de aprobación.", ejemploEfecto: "Identificó que silenció a 2 voces críticas — las invitó de regreso." },
+  { id: "i2", texto: "¿Qué tendrías que dejar de hacer para que tu equipo crezca?", dimension: "influencia", intensidad: 2, cuandoUsar: "Equipo dependiente del líder.", ejemploEfecto: "Dejó de revisar todos los entregables — equipo subió calidad en 2 meses." },
+  { id: "i3", texto: "Si no tuvieras tu cargo, ¿te seguirían?", dimension: "influencia", intensidad: 3, cuandoUsar: "Líder que confunde autoridad con liderazgo.", ejemploEfecto: "Pregunta rompió 6 meses de negación. Inicio del trabajo real." },
+  { id: "i4", texto: "¿Cuándo cambiaste de opinión por alguien de tu equipo, y cuándo se enteraron?", dimension: "influencia", intensidad: 2, cuandoUsar: "Líder que rara vez retrocede.", ejemploEfecto: "Empezó a nombrar públicamente cuando alguien lo movía." },
+  { id: "i5", texto: "¿Qué historia se cuenta tu equipo sobre ti cuando no estás?", dimension: "influencia", intensidad: 3, cuandoUsar: "Para confrontar reputación interna.", ejemploEfecto: "Pidió feedback 360° por primera vez — 9 hallazgos nuevos." },
+  { id: "i6", texto: "¿A quién no estás escuchando que tendría algo importante que decirte?", dimension: "influencia", intensidad: 2, cuandoUsar: "Conflicto entre niveles.", ejemploEfecto: "Reabrió canal con jefe de operaciones tras 4 meses de silencio." },
+  { id: "i7", texto: "¿Qué pides explícitamente y qué pides por insinuación?", dimension: "influencia", intensidad: 1, cuandoUsar: "Comunicación ambigua.", ejemploEfecto: "Reveló que el equipo adivinaba 70% de sus expectativas." },
+  { id: "i8", texto: "¿En qué reunión recurrente eres el cuello de botella?", dimension: "influencia", intensidad: 2, cuandoUsar: "Reuniones eternas.", ejemploEfecto: "Eliminó su intervención en 1 reunión — bajó 40 min/semana." },
+  { id: "i9", texto: "¿Qué relación clave estás descuidando y qué te costará si se rompe?", dimension: "influencia", intensidad: 2, cuandoUsar: "Mapa de stakeholders.", ejemploEfecto: "Reactivó relación con cliente clave antes de pérdida de cuenta." },
+  { id: "i10", texto: "¿Qué petición legítima de tu equipo llevas más de 30 días sin responder?", dimension: "influencia", intensidad: 3, cuandoUsar: "Procrastinación selectiva.", ejemploEfecto: "Resolvió 7 peticiones en 1 día — equipo recuperó confianza." },
+  { id: "i11", texto: "¿Qué cambiaría si tu equipo te diera un sí solo cuando es sí real?", dimension: "influencia", intensidad: 2, cuandoUsar: "Cultura del 'sí' obligado.", ejemploEfecto: "Comité empezó a votar abiertamente — 2 propuestas se rechazaron." },
+  { id: "i12", texto: "¿Cómo te ven en su peor día contigo?", dimension: "influencia", intensidad: 3, cuandoUsar: "Confrontación de sombra.", ejemploEfecto: "Líder pidió 3 ejemplos concretos — los recibió y trabajó cada uno." },
+
+  // EJECUCIÓN (12)
+  { id: "e1", texto: "¿Qué proyecto llevas más de 90 días sin cerrar y por qué?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Bucles abiertos crónicos.", ejemploEfecto: "Cerró 3 proyectos zombie — recuperó USD 45K y energía del equipo." },
+  { id: "e2", texto: "¿Qué bucle abierto te roba energía sin que lo notes?", dimension: "ejecucion", intensidad: 1, cuandoUsar: "Líder fatigado sin razón clara.", ejemploEfecto: "Identificó 8 conversaciones pendientes — agenda de 90 min las cerró." },
+  { id: "e3", texto: "¿Tu equipo sabe qué es 'terminado' para ti?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Calidad inconsistente.", ejemploEfecto: "Definió checklist de 'definition of done' — re-trabajos bajaron 60%." },
+  { id: "e4", texto: "¿Qué dejarías de hacer si nadie lo notara?", dimension: "ejecucion", intensidad: 3, cuandoUsar: "Sobrecarga / actividades vanidosas.", ejemploEfecto: "Identificó 4 tareas de 'apariencia' — eliminó 6 horas/semana." },
+  { id: "e5", texto: "¿Qué hábito ejecutivo tuyo es el que más copia tu equipo (bueno o malo)?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Para visibilizar modelaje.", ejemploEfecto: "Equipo replicaba su 'urgencia falsa' — modificó su propio ritmo." },
+  { id: "e6", texto: "¿Qué decisión ejecutaría tu equipo en 1 día si tú no estuvieras?", dimension: "ejecucion", intensidad: 1, cuandoUsar: "Líder que microgestiona.", ejemploEfecto: "Encontró 12 decisiones que delegó esa misma semana." },
+  { id: "e7", texto: "¿Qué KPI ya no mide lo que necesitas y por qué sigue ahí?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Tablero saturado.", ejemploEfecto: "Eliminó 5 KPIs heredados, agregó 2 conductuales — claridad +." },
+  { id: "e8", texto: "¿Cuántos minutos al día gastas en cosas que no deberían existir?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Auditoría de tiempo.", ejemploEfecto: "Detectó 95 min/día en aprobaciones triviales — automatizó." },
+  { id: "e9", texto: "¿Qué reunión recurrente cancelarías hoy si pudieras?", dimension: "ejecucion", intensidad: 1, cuandoUsar: "Calendario saturado.", ejemploEfecto: "Canceló 2 reuniones semanales = 6 horas/mes recuperadas." },
+  { id: "e10", texto: "¿Qué compromiso tuyo no estás cumpliendo y nadie te lo cobra?", dimension: "ejecucion", intensidad: 3, cuandoUsar: "Coherencia personal.", ejemploEfecto: "Cumplió compromiso de 1:1 mensual con cada reporte por primera vez." },
+  { id: "e11", texto: "¿Qué pasaría si subieras el estándar 20% en una sola cosa?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Líder con estándar promedio.", ejemploEfecto: "Subió estándar de propuestas comerciales — tasa de cierre +18%." },
+  { id: "e12", texto: "¿Cuál es la tarea más cara que sigues haciendo tú mismo?", dimension: "ejecucion", intensidad: 2, cuandoUsar: "Anti-delegación.", ejemploEfecto: "Cuantificó: 4 horas/semana en algo que un junior haría igual de bien." },
+
+  // RESILIENCIA (12)
+  { id: "r1", texto: "¿Cuál es tu reserva de energía hoy de 1 a 10? ¿Y la semana pasada?", dimension: "resiliencia", intensidad: 1, cuandoUsar: "Cada sesión, como apertura.", ejemploEfecto: "Tendencia 4-3-3-2 en 4 semanas — gatilló pausa terapéutica." },
+  { id: "r2", texto: "¿De qué fracaso aún no te has recuperado del todo?", dimension: "resiliencia", intensidad: 3, cuandoUsar: "Trabajo de cierre emocional.", ejemploEfecto: "Procesó despido masivo de 2 años atrás — paró ciclo de culpa." },
+  { id: "r3", texto: "¿Quién sostiene tu peso emocional hoy? ¿Lo sabe?", dimension: "resiliencia", intensidad: 3, cuandoUsar: "Soledad directiva.", ejemploEfecto: "Identificó que dependía de su pareja sin decírselo — abrió conversación." },
+  { id: "r4", texto: "¿Qué hábito te recargaba y cuándo lo dejaste?", dimension: "resiliencia", intensidad: 2, cuandoUsar: "Burnout silencioso.", ejemploEfecto: "Retomó deporte 3x/semana — energía subió 3 puntos en 30 días." },
+  { id: "r5", texto: "¿Qué necesitarías escuchar hoy y nadie te lo está diciendo?", dimension: "resiliencia", intensidad: 2, cuandoUsar: "Líder agotado.", ejemploEfecto: "Pidió a su mentor 1 hora — recibió validación que necesitaba." },
+  { id: "r6", texto: "¿Qué pasaría si te tomaras 7 días sin acceso al trabajo?", dimension: "resiliencia", intensidad: 1, cuandoUsar: "Adicción al trabajo.", ejemploEfecto: "Lo hizo. Equipo no colapsó. Reseteó la auto-percepción de imprescindibilidad." },
+  { id: "r7", texto: "¿Cuál es tu señal personal de que estás cerca del límite?", dimension: "resiliencia", intensidad: 2, cuandoUsar: "Sistema de auto-cuidado.", ejemploEfecto: "Identificó 'irritabilidad con familia' como señal — instaló alerta." },
+  { id: "r8", texto: "¿Qué emoción evitas sentir esta semana?", dimension: "resiliencia", intensidad: 3, cuandoUsar: "Trabajo con sombra.", ejemploEfecto: "Reconoció miedo al fracaso del Q4 — pudo nombrarlo y trabajarlo." },
+  { id: "r9", texto: "¿De qué te ríes últimamente y de qué no?", dimension: "resiliencia", intensidad: 1, cuandoUsar: "Termómetro de estado.", ejemploEfecto: "'No me río hace meses' — abrió conversación de salud mental." },
+  { id: "r10", texto: "¿Qué historia te repites que ya no te sirve?", dimension: "resiliencia", intensidad: 3, cuandoUsar: "Narrativa victimista o heroica.", ejemploEfecto: "Soltó historia de 'soy el único que sostiene esto'." },
+  { id: "r11", texto: "¿Qué te llena fuera del trabajo y cuándo fue la última vez que lo hiciste?", dimension: "resiliencia", intensidad: 1, cuandoUsar: "Reconectar con vida personal.", ejemploEfecto: "Volvió a tocar guitarra — no lo había hecho en 2 años." },
+  { id: "r12", texto: "¿Qué pedirías si supieras que no te juzgarían?", dimension: "resiliencia", intensidad: 3, cuandoUsar: "Pedidos retenidos.", ejemploEfecto: "Pidió sabbatical de 3 semanas — fue concedido sin drama." },
+
+  // AUTO-CONSCIENCIA (12)
+  { id: "c1", texto: "¿Qué dirían tus colaboradores que NO escuchas?", dimension: "consciencia", intensidad: 3, cuandoUsar: "Punto ciego de escucha.", ejemploEfecto: "Pidió 5 ejemplos — 3 coincidieron en el mismo tema." },
+  { id: "c2", texto: "¿Qué patrón se repite en todos tus equipos sin importar dónde estés?", dimension: "consciencia", intensidad: 3, cuandoUsar: "Para mostrar que el factor común es el líder.", ejemploEfecto: "Vio que en 3 empresas perdió a su #2 al año — patrón propio." },
+  { id: "c3", texto: "¿Qué emoción tuya incomoda a otros sin que lo notes?", dimension: "consciencia", intensidad: 2, cuandoUsar: "Impacto emocional inconsciente.", ejemploEfecto: "Su impaciencia paralizaba equipo — pidió señal cuando ocurriera." },
+  { id: "c4", texto: "¿Cuál es tu punto ciego favorito?", dimension: "consciencia", intensidad: 2, cuandoUsar: "Pregunta abridora con humor.", ejemploEfecto: "Risa primero, luego: 'creer que la gente entiende lo que pienso'." },
+  { id: "c5", texto: "¿Qué crees de ti que ya no es cierto?", dimension: "consciencia", intensidad: 2, cuandoUsar: "Identidad estancada.", ejemploEfecto: "Soltó identidad de 'el que arregla todo' — se permitió pedir ayuda." },
+  { id: "c6", texto: "¿Qué te dice tu cuerpo que tu mente está negando?", dimension: "consciencia", intensidad: 3, cuandoUsar: "Síntomas físicos sin causa clara.", ejemploEfecto: "Dolor de espalda crónico → reorganizó vida. Desapareció en 6 sem." },
+  { id: "c7", texto: "¿Qué tema evitas en terapia, en coaching y en tu cabeza?", dimension: "consciencia", intensidad: 3, cuandoUsar: "Trabajo de sombra avanzado.", ejemploEfecto: "Nombró por primera vez tema familiar de fondo — desbloqueó." },
+  { id: "c8", texto: "¿Cómo eres en tu peor día y quién lo sabe?", dimension: "consciencia", intensidad: 3, cuandoUsar: "Aceptación integral.", ejemploEfecto: "Compartió en sesión y luego con cofundador — relación se profundizó." },
+  { id: "c9", texto: "¿Qué te halaga y qué te importa de verdad?", dimension: "consciencia", intensidad: 2, cuandoUsar: "Discernir ego vs propósito.", ejemploEfecto: "Vio cuánto tiempo gastaba en lo que halagaba pero no importaba." },
+  { id: "c10", texto: "Cuando alguien te dice una verdad incómoda, ¿qué haces típicamente?", dimension: "consciencia", intensidad: 2, cuandoUsar: "Patrón defensivo.", ejemploEfecto: "Reconoció su sobre-explicación como defensa — practicó silencio." },
+  { id: "c11", texto: "¿Cuándo fue la última vez que te equivocaste en público y qué hiciste?", dimension: "consciencia", intensidad: 2, cuandoUsar: "Permiso al error visible.", ejemploEfecto: "Compartió error frente a comité — equipo lo replicó cultura sana." },
+  { id: "c12", texto: "Si pudieras decirle algo a tu yo de hace 10 años, ¿qué sería?", dimension: "consciencia", intensidad: 1, cuandoUsar: "Reflexión de cierre.", ejemploEfecto: "Mensaje de auto-compasión — primera vez que se la permitió." },
+];
+
+// ─── 8. PLAN 90 DÍAS — TABLA DE COMPROMISOS CON EJEMPLOS ────────────
+export interface FilaCompromiso {
+  id: string;
+  fase: string;          // f1..f4
+  actividad: string;
+  accion: string;        // verbo concreto
+  responsable: string;
+  testigo: string;
+  fechaLimite: string;   // ISO date
+  indicadorExito: string;
+  estado: "pendiente" | "en-curso" | "logrado" | "ajustado";
+}
+
+// Filas-ejemplo precargadas (el coach las puede duplicar y ajustar)
+export const PLAN_FILAS_EJEMPLO: Omit<FilaCompromiso, "id">[] = [
+  { fase: "f1", actividad: "Compartir manifiesto con sponsor",
+    accion: "Reunión 30 min para entregar manifiesto firmado y acordar hitos de seguimiento",
+    responsable: "Líder", testigo: "Sponsor",
+    fechaLimite: "", indicadorExito: "Sponsor confirma hitos por escrito",
+    estado: "pendiente" },
+  { fase: "f1", actividad: "Aplicar 3 compromisos del manifiesto",
+    accion: "Identificar 3 decisiones reales esta semana donde se aplicará el nuevo comportamiento",
+    responsable: "Líder", testigo: "Equipo directo",
+    fechaLimite: "", indicadorExito: "3 decisiones registradas en bitácora con autoevaluación",
+    estado: "pendiente" },
+  { fase: "f2", actividad: "Rediseñar 1 reunión recurrente",
+    accion: "Modificar agenda y dinámica del comité semanal según compromisos del manifiesto (p.ej. cerrar yo, no abrir)",
+    responsable: "Líder", testigo: "Asistente / equipo",
+    fechaLimite: "", indicadorExito: "Comité dura 30% menos y participa 100% del equipo",
+    estado: "pendiente" },
+  { fase: "f2", actividad: "Pulso semanal personal",
+    accion: "Cada lunes 8am: 4 preguntas (energía, foco, logro, obstáculo) en 3 min",
+    responsable: "Líder", testigo: "Coach (revisa al mes 2)",
+    fechaLimite: "", indicadorExito: "12 pulsos consecutivos registrados",
+    estado: "pendiente" },
+  { fase: "f3", actividad: "Sesión de 60 min con equipo",
+    accion: "Reunión '¿qué cambia en cómo te lidero?' — abrir, escuchar, cerrar con compromisos",
+    responsable: "Líder", testigo: "Equipo directo",
+    fechaLimite: "", indicadorExito: "Equipo declara 2 cambios percibidos y 1 que falta",
+    estado: "pendiente" },
+  { fase: "f3", actividad: "Pedir feedback estructurado a 3 reportes",
+    accion: "Conversación 1:1 de 20 min con 3 preguntas: 1 cosa que sostengo, 1 que mejora, 1 que aún falta",
+    responsable: "Líder", testigo: "Reportes directos",
+    fechaLimite: "", indicadorExito: "3 conversaciones cerradas con notas archivadas",
+    estado: "pendiente" },
+  { fase: "f4", actividad: "Re-aplicar Radar y comparar",
+    accion: "Auto-aplicar el mismo radar inicial / cierre y conversar delta con coach o testigo",
+    responsable: "Líder", testigo: "Coach o sponsor",
+    fechaLimite: "", indicadorExito: "Radar comparativo con narrativa propia escrita",
+    estado: "pendiente" },
+  { fase: "f4", actividad: "Definir nuevo manifiesto 90 días",
+    accion: "Sesión solo para escribir el siguiente manifiesto de continuidad sin coach",
+    responsable: "Líder", testigo: "Pareja / mentor",
+    fechaLimite: "", indicadorExito: "Manifiesto firmado y compartido con 1 testigo",
+    estado: "pendiente" },
+];
+
+// ─── 9. REPORTE DE TRANSFORMACIÓN — SECCIONES ────────────────────────
+export interface SeccionReporte {
+  id: string;
+  titulo: string;
+  guia: string;
+  ejemplo: string;
+}
+
+export const REPORTE_SECCIONES: SeccionReporte[] = [
+  { id: "contexto", titulo: "1. Contexto del programa",
+    guia: "Resumen del momento del líder al iniciar, sponsor, motivos del programa.",
+    ejemplo: "CEO de empresa familiar mediana en proceso de profesionalización tras 18 años al frente. Sponsor: consejo familiar. Motivo: dificultad para delegar y construir sucesión." },
+  { id: "linea-base", titulo: "2. Línea base (Diagnóstico)",
+    guia: "Hallazgos del Radar inicial, 3 creencias mapeadas, contexto.",
+    ejemplo: "Radar promedio 6.2/10. Mayor: Visión 9. Menor: Auto-consciencia 4. Creencias activas: 'sin mí esto se cae', 'pedir ayuda es debilidad', 'el conflicto es mal síntoma'." },
+  { id: "trabajo", titulo: "3. Trabajo realizado",
+    guia: "Manifiesto firmado, simulaciones aplicadas, retos completados, pulsos.",
+    ejemplo: "Manifiesto en 5 dimensiones firmado en sesión 3. 4 simulaciones de decisión aplicadas. Reto 7 días 'soltar el control' completado. 11 pulsos semanales registrados." },
+  { id: "delta", titulo: "4. Delta de transformación",
+    guia: "Radar de cierre vs inicial, dimensiones donde más cambió, evidencia conductual.",
+    ejemplo: "Radar promedio 7.4/10 (+1.2). Mayor cambio: Auto-consciencia 4→7 (+3). Visión bajó 9→7 (recalibración honesta). Equipo reporta: 'pregunta más, decide menos solo'." },
+  { id: "evidencia", titulo: "5. Evidencia observable",
+    guia: "Cambios concretos en conducta, decisiones, equipo, resultados.",
+    ejemplo: "Eliminó 2 reuniones recurrentes. Delegó 4 decisiones que antes tomaba solo. Equipo presentó 3x más iniciativas. Vacaciones de 2 semanas sin call de emergencia." },
+  { id: "continuidad", titulo: "6. Plan de continuidad",
+    guia: "Resumen de las 4 fases del plan 90 días con hitos clave y testigos.",
+    ejemplo: "F1: compartir manifiesto con sponsor. F2: rediseñar comité. F3: feedback a 3 reportes. F4: re-aplicar radar. Testigo principal: cofundador." },
+  { id: "recomendaciones", titulo: "7. Recomendaciones",
+    guia: "Para el líder y para la organización: qué cuidar, qué riesgos, qué próximo nivel.",
+    ejemplo: "Para el líder: cuidar la sostenibilidad del nuevo ritmo. Para la organización: institucionalizar la práctica de comité con cierre en lugar de apertura del CEO." },
+  { id: "narrativa", titulo: "8. Narrativa del coach (1 página)",
+    guia: "Síntesis cualitativa del coach sobre la transformación observada.",
+    ejemplo: "Lo más significativo no fue el cambio en los puntajes sino que el líder pasó de defenderse a observarse. La grieta se abrió en sesión 4 cuando..." },
+];
