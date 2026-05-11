@@ -25,6 +25,8 @@ export interface ReporteSesionData {
   proxima_fecha?: string | null;
   proxima_temas: string[];
   mensaje_cliente?: string | null;
+  analisis_ia?: string | null;
+  analisis_ia_fecha?: string | null;
   consultor?: { nombre?: string | null };
 }
 
