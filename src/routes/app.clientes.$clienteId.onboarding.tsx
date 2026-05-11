@@ -442,6 +442,28 @@ function Paso4({ v, set }: { v: OnboardingPaso4; set: (v: OnboardingPaso4) => vo
           ))}
         </div>
       </Card>
+      <Card title="4B-bis. Importancia de cada expectativa del programa (1-5)">
+        <p className="text-xs text-muted-foreground">El cliente evalúa qué tan importante es cada uno de estos resultados típicos del programa.</p>
+        <div className="space-y-2">
+          {EXPECTATIVAS_PROGRAMA.map((e) => {
+            const cur = v.expectativas?.[e.id] ?? 0;
+            return (
+              <div key={e.id} className="flex items-center justify-between gap-3 bg-muted/30 rounded px-3 py-2">
+                <span className="text-sm flex-1">{e.label}</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} type="button"
+                      onClick={() => set({ ...v, expectativas: { ...v.expectativas, [e.id]: n } })}
+                      className={`w-7 h-7 text-xs rounded border ${cur === n ? "bg-gold text-navy border-gold font-bold" : "bg-white text-muted-foreground border-border hover:border-gold"}`}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
       <Card title="4C. Resultados esperados">
         <Grid>
           <F label="¿Qué resultado concreto espera en 3 meses?" wide><Textarea rows={2} value={v.resultado_3m ?? ""} onChange={(e) => set({ ...v, resultado_3m: e.target.value })} /></F>
