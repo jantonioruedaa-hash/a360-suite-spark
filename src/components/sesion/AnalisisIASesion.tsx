@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, RefreshCw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { analizarReporteSesion } from "@/server/sesion-ia.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Props {
@@ -22,7 +23,9 @@ export function AnalisisIASesion({ actividadId, contextoCliente, initialAnalisis
   const run = async () => {
     setLoading(true);
     try {
-      const r = await analizar({ data: { actividadId, contextoCliente } });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
+      const r = await analizar({ data: { actividadId, contextoCliente, accessToken: session.access_token } });
       setAnalisis(r.analisis);
       setFecha(r.fecha);
       onSaved?.(r.analisis, r.fecha);
