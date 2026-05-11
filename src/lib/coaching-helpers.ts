@@ -7,7 +7,7 @@ export interface SesionCoaching {
   consultor_id: string | null;
   herramienta_id: string | null;
   etapa: string | null;
-  datos: Record<string, unknown>;
+  datos: any;
   completada: boolean;
   created_at: string;
 }
@@ -36,7 +36,7 @@ export async function crearSesion(input: {
   cliente_id: string;
   herramienta_id: string;
   etapa: string;
-  datos: Record<string, unknown>;
+  datos: any;
   completada?: boolean;
 }) {
   const { data: u } = await supabase.auth.getUser();
@@ -56,7 +56,7 @@ export async function crearSesion(input: {
   return data as SesionCoaching;
 }
 
-export async function actualizarSesion(id: string, patch: Partial<Pick<SesionCoaching, "datos" | "completada" | "etapa">>) {
+export async function actualizarSesion(id: string, patch: { datos?: any; completada?: boolean; etapa?: string }) {
   const { data, error } = await supabase
     .from("coaching_sesiones")
     .update(patch)
