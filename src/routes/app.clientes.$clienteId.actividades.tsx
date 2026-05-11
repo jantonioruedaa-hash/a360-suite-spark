@@ -518,7 +518,7 @@ function Actividades() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenSesion(false)}>Cancelar</Button>
-            <Button onClick={saveSesion} className="bg-gold text-navy hover:bg-gold/90">Guardar reporte</Button>
+            <Button onClick={saveSesion} className="bg-gold text-navy hover:bg-gold/90">{editingId ? "Actualizar reporte" : "Guardar reporte"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
