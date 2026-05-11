@@ -369,10 +369,10 @@ function Actividades() {
       </Dialog>
 
       {/* Diálogo Reporte de sesión */}
-      <Dialog open={openSesion} onOpenChange={setOpenSesion}>
+      <Dialog open={openSesion} onOpenChange={(v) => { setOpenSesion(v); if (!v) { setEditingId(null); setFormSesion(EMPTY_SESION); setKpis([]); setCompromisos([]); } }}>
         <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-gold" /> Reporte de sesión de consultoría</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-gold" /> {editingId ? "Editar reporte de sesión" : "Reporte de sesión de consultoría"}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="contexto">
             <TabsList className="grid grid-cols-5 w-full">
