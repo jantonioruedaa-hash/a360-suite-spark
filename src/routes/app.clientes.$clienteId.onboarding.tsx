@@ -13,12 +13,13 @@ import {
   TIPOS_EMPRESA, MERCADOS_OBJETIVO, COBERTURAS, ORG_OPCIONES, PROC_OPCIONES, HERR_OPCIONES,
   ESTILOS_LIDERAZGO, ROLES_LIDER, DISPONIBILIDAD, EXPERIENCIA_CONSULTORES, ACTITUD_CAMBIO,
   DIMENSIONES_SIDE_12, PROGRAMAS_RECOMENDADOS, FRECUENCIAS, MODALIDADES, PASOS_ONBOARDING,
+  EXPECTATIVAS_PROGRAMA, COMPROMISOS_CLIENTE_DEFAULT, COMPROMISOS_CONSULTOR_DEFAULT, CONDICIONES_DEFAULT,
   type OnboardingPaso1, type OnboardingPaso2, type OnboardingPaso3, type OnboardingPaso4, type OnboardingPaso5,
 } from "@/lib/onboarding-helpers";
 import { generarPerfilClientePDF } from "@/lib/onboarding-pdf";
 import { generarAnalisisOnboarding } from "@/server/onboarding-ia.functions";
 import {
-  Plus, Trash2, ArrowLeft, ArrowRight, Save, FileDown, Sparkles, CheckCircle2, Loader2,
+  Plus, Trash2, ArrowLeft, ArrowRight, Save, FileDown, Sparkles, CheckCircle2, Loader2, ClipboardList, Users, Target, Handshake, FileText,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/onboarding")({ component: OnboardingPage });
