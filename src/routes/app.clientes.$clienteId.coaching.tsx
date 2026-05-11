@@ -70,7 +70,7 @@ function CoachingClienteWorkspace() {
         <div>
           <h2 className="font-display text-2xl text-navy">Coaching A360 — Workspace</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Etapa actual: <Badge className="bg-navy text-white ml-1">{etapa}</Badge>
+            {clienteNombre} · Etapa actual: <Badge className="bg-navy text-white ml-1">{etapa}</Badge>
           </p>
         </div>
         <div className="text-right">
@@ -79,6 +79,13 @@ function CoachingClienteWorkspace() {
           <div className="text-xs">{totalCompletadas} / {HERRAMIENTAS_A360.length} herramientas</div>
         </div>
       </div>
+
+      <CoachingExportImport
+        clienteId={clienteId}
+        clienteNombre={clienteNombre}
+        sesiones={sesiones}
+        onImported={cargar}
+      />
 
       {/* Progreso por etapa */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
