@@ -115,19 +115,15 @@ function PlanPanel() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">Marco metodológico — 18 secciones</CardTitle>
+          <p className="text-[11px] text-muted-foreground">
+            Click en cada sección para ver propósito, metodología, preguntas detonadoras, KPIs y conexiones con otras secciones.
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-            {SECCIONES_PLAN.map((s) => {
-              const Icon = s.icon;
-              return (
-                <div key={s.key} className="flex items-center gap-2 p-2 rounded border bg-muted/20">
-                  <Icon className="w-3.5 h-3.5 text-gold shrink-0" />
-                  <span className="text-[10px] font-mono text-muted-foreground">{String(s.numero).padStart(2, "0")}</span>
-                  <span className="truncate">{s.titulo}</span>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {SECCIONES_PLAN.map((s) => (
+              <MarcoSeccionCard key={s.key} seccion={s} />
+            ))}
           </div>
         </CardContent>
       </Card>
