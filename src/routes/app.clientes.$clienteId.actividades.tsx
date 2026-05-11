@@ -320,6 +320,14 @@ function Actividades() {
                     <Button size="sm" variant="outline" onClick={() => setShareTarget(a)}>
                       <Share2 className="w-3 h-3 mr-1" /> Compartir
                     </Button>
+                    {a.es_sesion_consultoria && (
+                      <Button size="sm" variant="outline" onClick={() => editarSesion(a)}>
+                        <Pencil className="w-3 h-3 mr-1" /> Editar
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => eliminarActividad(a)}>
+                      <Trash2 className="w-3 h-3 mr-1" /> Eliminar
+                    </Button>
                   </div>
                 </li>
               );
