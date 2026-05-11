@@ -13,10 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { TIPOS_ACTIVIDAD } from "@/lib/clientes-helpers";
 import { ETAPAS_PROGRAMA, PROGRAMAS, MODALIDADES_SESION, SEMAFOROS, KPI_LIBRARY, CATEGORIAS_KPI, type KpiInput, type CompromisoInput } from "@/lib/sesion-helpers";
 import { generarReporteSesionPDF } from "@/lib/sesion-pdf";
+import { obtenerPlantilla } from "@/lib/sesion-templates";
 import { toast } from "sonner";
-import { Plus, Trash2, FileDown, Sparkles, Share2 } from "lucide-react";
+import { Plus, Trash2, FileDown, Sparkles, Share2, Wand2 } from "lucide-react";
 import { ShareDialog } from "@/components/ShareDialog";
-import { generarReporteSesionPDF as _genPdf } from "@/lib/sesion-pdf";
+import { InstructivoSesion } from "@/components/sesion/InstructivoSesion";
+import { AnalisisIASesion } from "@/components/sesion/AnalisisIASesion";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/actividades")({ component: Actividades });
 
@@ -29,6 +31,7 @@ interface Actividad {
   participantes: string[]; temas: string[]; logros: string[]; herramientas: string[];
   semaforo: string | null; justificacion_semaforo: string | null;
   proxima_fecha: string | null; proxima_temas: string[]; mensaje_cliente: string | null;
+  analisis_ia: string | null; analisis_ia_fecha: string | null;
 }
 
 interface ContactoLite { id: string; nombre: string; apellido: string }
@@ -177,6 +180,8 @@ function Actividades() {
 
   return (
     <div className="space-y-4 max-w-5xl">
+      <InstructivoSesion />
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="font-display text-2xl text-navy">Actividades y seguimiento</h2>
         <div className="flex gap-2">
@@ -243,6 +248,15 @@ function Actividades() {
                       <Button size="sm" variant="outline" onClick={() => exportarPDF(a)}>
                         <FileDown className="w-3 h-3 mr-1" /> PDF de sesión
                       </Button>
+                    )}
+                    {a.es_sesion_consultoria && (
+                      <AnalisisIASesion
+                        actividadId={a.id}
+                        contextoCliente={`${empresa?.nombre_empresa ?? ""} · ${empresa?.sector ?? ""}`}
+                        initialAnalisis={a.analisis_ia}
+                        initialFecha={a.analisis_ia_fecha}
+                        onSaved={(an, f) => setList((prev) => prev.map((x) => x.id === a.id ? { ...x, analisis_ia: an, analisis_ia_fecha: f } : x))}
+                      />
                     )}
                     <Button size="sm" variant="outline" onClick={() => setShareTarget(a)}>
                       <Share2 className="w-3 h-3 mr-1" /> Compartir
@@ -325,6 +339,25 @@ function Actividades() {
                     <SelectContent>{MODALIDADES_SESION.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="button" variant="outline" size="sm"
+                  onClick={() => {
+                    const p = obtenerPlantilla(formSesion.programa, formSesion.etapa_programa);
+                    if (!p) { toast.info("No hay plantilla para esta combinación. Completa manualmente."); return; }
+                    setFormSesion({
+                      ...formSesion,
+                      objetivo: formSesion.objetivo || p.objetivo,
+                      temas_text: formSesion.temas_text || p.temas.join("\n"),
+                      herramientas_text: formSesion.herramientas_text || p.herramientas.join("\n"),
+                      proxima_temas_text: formSesion.proxima_temas_text || p.proxima_temas.join("\n"),
+                    });
+                    toast.success("Plantilla cargada");
+                  }}
+                >
+                  <Wand2 className="w-3 h-3 mr-1" /> Cargar plantilla A360 según programa + etapa
+                </Button>
               </div>
               <div><Label>Participantes (uno por línea)</Label><Textarea rows={3} value={formSesion.participantes_text} onChange={(e) => setFormSesion({ ...formSesion, participantes_text: e.target.value })} placeholder="Juan Pérez (CEO)\nMaría López (CFO)" /></div>
               <div><Label>Objetivo de la sesión *</Label><Textarea rows={2} value={formSesion.objetivo} onChange={(e) => setFormSesion({ ...formSesion, objetivo: e.target.value })} /></div>
