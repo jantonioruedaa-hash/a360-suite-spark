@@ -25,6 +25,8 @@ export interface ReporteSesionData {
   proxima_fecha?: string | null;
   proxima_temas: string[];
   mensaje_cliente?: string | null;
+  analisis_ia?: string | null;
+  analisis_ia_fecha?: string | null;
   consultor?: { nombre?: string | null };
 }
 
@@ -150,6 +152,40 @@ export function generarReporteSesionPDF(data: ReporteSesionData): jsPDF {
   y = checkPage(doc, y); y = section(doc, y, "5. Próxima sesión");
   y = field(doc, y, "Fecha próxima", data.proxima_fecha ? new Date(data.proxima_fecha).toLocaleString() : null);
   y = list(doc, y, "Temas planificados", data.proxima_temas);
+
+  if (data.analisis_ia) {
+    y = checkPage(doc, y);
+    y = section(doc, y, `6. Análisis IA${data.analisis_ia_fecha ? ` · ${new Date(data.analisis_ia_fecha).toLocaleString()}` : ""}`);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(40);
+    // Render markdown-like content: headings (## / ###) bold, bullets indented
+    const raw = data.analisis_ia.split("\n");
+    for (const line of raw) {
+      y = checkPage(doc, y);
+      const trimmed = line.trim();
+      if (!trimmed) { y += 6; continue; }
+      if (trimmed.startsWith("## ")) {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...NAVY);
+        const t = doc.splitTextToSize(trimmed.replace(/^##\s+/, ""), doc.internal.pageSize.getWidth() - 80);
+        doc.text(t, 40, y); y += t.length * 13 + 2;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(40);
+      } else if (trimmed.startsWith("### ")) {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...NAVY);
+        const t = doc.splitTextToSize(trimmed.replace(/^###\s+/, ""), doc.internal.pageSize.getWidth() - 80);
+        doc.text(t, 40, y); y += t.length * 12 + 2;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(40);
+      } else if (/^[-*]\s+/.test(trimmed)) {
+        const t = doc.splitTextToSize(`• ${trimmed.replace(/^[-*]\s+/, "")}`, doc.internal.pageSize.getWidth() - 96);
+        doc.text(t, 50, y); y += t.length * 12;
+      } else if (/^\d+\.\s+/.test(trimmed)) {
+        const t = doc.splitTextToSize(trimmed, doc.internal.pageSize.getWidth() - 96);
+        doc.text(t, 50, y); y += t.length * 12;
+      } else {
+        const t = doc.splitTextToSize(trimmed, doc.internal.pageSize.getWidth() - 80);
+        doc.text(t, 40, y); y += t.length * 12;
+      }
+    }
+    y += 6;
+  }
 
   if (data.mensaje_cliente) {
     y = checkPage(doc, y); y = section(doc, y, "Mensaje para el cliente");
