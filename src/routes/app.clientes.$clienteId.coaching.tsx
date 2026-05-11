@@ -43,6 +43,7 @@ function CoachingClienteWorkspace() {
   const [loading, setLoading] = useState(true);
   const [openNueva, setOpenNueva] = useState<{ herramientaId: string } | null>(null);
   const [editing, setEditing] = useState<SesionCoaching | null>(null);
+  const [clienteNombre, setClienteNombre] = useState<string>("Cliente");
 
   const cargar = async () => {
     setLoading(true);
@@ -52,7 +53,11 @@ function CoachingClienteWorkspace() {
       setLoading(false);
     }
   };
-  useEffect(() => { cargar(); }, [clienteId]);
+  useEffect(() => {
+    cargar();
+    supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).maybeSingle()
+      .then(({ data }) => { if (data?.nombre_empresa) setClienteNombre(data.nombre_empresa); });
+  }, [clienteId]);
 
   const progreso = useMemo(() => progresoPorEtapa(sesiones), [sesiones]);
   const etapa = useMemo(() => etapaActual(sesiones), [sesiones]);
