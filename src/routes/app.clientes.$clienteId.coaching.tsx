@@ -36,6 +36,9 @@ import { ContextoInstrumentado } from "@/components/coaching/editores/ContextoIn
 import { ManifiestoInstrumentado } from "@/components/coaching/editores/ManifiestoInstrumentado";
 import { SimuladorInstrumentado } from "@/components/coaching/editores/SimuladorInstrumentado";
 import { RetoInstrumentado } from "@/components/coaching/editores/RetoInstrumentado";
+import { BibliotecaPreguntasInstrumentado } from "@/components/coaching/editores/BibliotecaPreguntasInstrumentado";
+import { PlanContinuidadInstrumentado } from "@/components/coaching/editores/PlanContinuidadInstrumentado";
+import { ReporteTransformacionInstrumentado } from "@/components/coaching/editores/ReporteTransformacionInstrumentado";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
@@ -382,7 +385,10 @@ function DialogoSesion({
           {h.tipo === "reto" && <RetoInstrumentado datos={datos} setDatos={setDatos} />}
           {h.tipo === "espejo" && <EspejoEditor datos={datos} setDatos={setDatos} />}
           {h.tipo === "pulso" && <PulsoEditor datos={datos} setDatos={setDatos} />}
-          {!["radar", "creencias", "perfil", "manifiesto", "simulador", "reto", "espejo", "pulso"].includes(h.tipo) && (
+          {h.tipo === "biblioteca" && <BibliotecaPreguntasInstrumentado datos={datos} setDatos={setDatos} />}
+          {h.tipo === "plan" && <PlanContinuidadInstrumentado datos={datos} setDatos={setDatos} />}
+          {h.tipo === "reporte" && <ReporteTransformacionInstrumentado datos={datos} setDatos={setDatos} />}
+          {!["radar", "creencias", "perfil", "manifiesto", "simulador", "reto", "espejo", "pulso", "biblioteca", "plan", "reporte"].includes(h.tipo) && (
             <NotasEditor datos={datos} setDatos={setDatos} />
           )}
 
