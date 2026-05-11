@@ -31,6 +31,11 @@ import { Plus, Check, Trash2, Sparkles, FileText, Clock } from "lucide-react";
 import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
 import { SintesisProgramaIA } from "@/components/coaching/SintesisProgramaIA";
 import { CoachingExportImport } from "@/components/coaching/CoachingExportImport";
+import { CreenciasInstrumentado } from "@/components/coaching/editores/CreenciasInstrumentado";
+import { ContextoInstrumentado } from "@/components/coaching/editores/ContextoInstrumentado";
+import { ManifiestoInstrumentado } from "@/components/coaching/editores/ManifiestoInstrumentado";
+import { SimuladorInstrumentado } from "@/components/coaching/editores/SimuladorInstrumentado";
+import { RetoInstrumentado } from "@/components/coaching/editores/RetoInstrumentado";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
@@ -370,11 +375,14 @@ function DialogoSesion({
 
           {/* Editor específico por tipo */}
           {h.tipo === "radar" && <RadarEditor datos={datos} setDatos={setDatos} />}
-          {h.tipo === "creencias" && <CreenciasEditor datos={datos} setDatos={setDatos} />}
-          {h.tipo === "manifiesto" && <ManifiestoEditor datos={datos} setDatos={setDatos} />}
+          {h.tipo === "creencias" && <CreenciasInstrumentado datos={datos} setDatos={setDatos} />}
+          {h.tipo === "perfil" && <ContextoInstrumentado datos={datos} setDatos={setDatos} />}
+          {h.tipo === "manifiesto" && <ManifiestoInstrumentado datos={datos} setDatos={setDatos} />}
+          {h.tipo === "simulador" && <SimuladorInstrumentado datos={datos} setDatos={setDatos} />}
+          {h.tipo === "reto" && <RetoInstrumentado datos={datos} setDatos={setDatos} />}
           {h.tipo === "espejo" && <EspejoEditor datos={datos} setDatos={setDatos} />}
           {h.tipo === "pulso" && <PulsoEditor datos={datos} setDatos={setDatos} />}
-          {!["radar", "creencias", "manifiesto", "espejo", "pulso"].includes(h.tipo) && (
+          {!["radar", "creencias", "perfil", "manifiesto", "simulador", "reto", "espejo", "pulso"].includes(h.tipo) && (
             <NotasEditor datos={datos} setDatos={setDatos} />
           )}
 
