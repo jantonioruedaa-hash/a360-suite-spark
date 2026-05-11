@@ -56,9 +56,9 @@ function OnboardingPage() {
         const p3raw = (o.paso3_contexto as Partial<OnboardingPaso3>) ?? {};
         setP3({ fortalezas: [], debilidades: [], oportunidades: [], amenazas: [], dimensiones_urgentes: [], ...p3raw });
         const p4raw = (o.paso4_expectativas as Partial<OnboardingPaso4>) ?? {};
-        setP4({ objetivos: [], prioridades: {}, ...p4raw });
+        setP4({ objetivos: [], prioridades: {}, expectativas: {}, ...p4raw });
         const p5raw = (o.paso5_acuerdo as Partial<OnboardingPaso5>) ?? {};
-        setP5({ compromisos_cliente: [], compromisos_consultor: [], ...p5raw });
+        setP5({ compromisos_cliente: [], compromisos_consultor: [], condiciones_aceptadas: [], ...p5raw });
         setAnalisisIa(o.analisis_ia ?? null);
         setCompletado(o.completado ?? false);
         setPaso(Math.min(Math.max(o.paso_actual ?? 1, 1), 6));
