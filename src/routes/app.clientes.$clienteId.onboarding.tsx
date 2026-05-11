@@ -266,20 +266,69 @@ function ListaEditable({ items, onChange, placeholder, label }: { items: string[
 function Paso1({ v, set }: { v: OnboardingPaso1; set: (v: OnboardingPaso1) => void }) {
   const u = (k: keyof OnboardingPaso1, val: string) => set({ ...v, [k]: val });
   return (
-    <Card title="1. Perfil de la empresa">
-      <Grid>
-        <F label="Año de fundación"><Input value={v.anio_fundacion ?? ""} onChange={(e) => u("anio_fundacion", e.target.value)} /></F>
-        <F label="Tipo de empresa"><Sel value={v.tipo_empresa} onChange={(x) => u("tipo_empresa", x)} options={TIPOS_EMPRESA} /></F>
-        <F label="Mercado objetivo"><Sel value={v.mercado_objetivo} onChange={(x) => u("mercado_objetivo", x)} options={MERCADOS_OBJETIVO} /></F>
-        <F label="Cobertura geográfica"><Sel value={v.cobertura} onChange={(x) => u("cobertura", x)} options={COBERTURAS} /></F>
-        <F label="¿Tiene organigrama definido?"><Sel value={v.organigrama} onChange={(x) => u("organigrama", x)} options={ORG_OPCIONES} /></F>
-        <F label="¿Tiene procesos documentados?"><Sel value={v.procesos} onChange={(x) => u("procesos", x)} options={PROC_OPCIONES} /></F>
-        <F label="¿Usa herramientas digitales de gestión?"><Sel value={v.herramientas_digitales} onChange={(x) => u("herramientas_digitales", x)} options={HERR_OPCIONES} /></F>
-        <F label="Breve historia de la empresa" wide><Textarea rows={3} value={v.historia ?? ""} onChange={(e) => u("historia", e.target.value)} /></F>
-        <F label="Principales productos o servicios" wide><Textarea rows={2} value={v.productos ?? ""} onChange={(e) => u("productos", e.target.value)} /></F>
-        <F label="Propuesta de valor actual" wide><Textarea rows={2} value={v.propuesta_valor ?? ""} onChange={(e) => u("propuesta_valor", e.target.value)} /></F>
-      </Grid>
+    <>
+      <Instructivo />
+      <Card title="1. Perfil de la empresa">
+        <Grid>
+          <F label="Año de fundación"><Input value={v.anio_fundacion ?? ""} onChange={(e) => u("anio_fundacion", e.target.value)} placeholder="Ej. 2010" /></F>
+          <F label="Tipo de empresa"><Sel value={v.tipo_empresa} onChange={(x) => u("tipo_empresa", x)} options={TIPOS_EMPRESA} /></F>
+          <F label="Número de empleados"><Input type="number" value={v.num_empleados ?? ""} onChange={(e) => u("num_empleados", e.target.value)} placeholder="Ej. 25" /></F>
+          <F label="Facturación anual (USD)"><Input value={v.facturacion_anual ?? ""} onChange={(e) => u("facturacion_anual", e.target.value)} placeholder="Ej. $500,000" /></F>
+          <F label="Mercado objetivo"><Sel value={v.mercado_objetivo} onChange={(x) => u("mercado_objetivo", x)} options={MERCADOS_OBJETIVO} /></F>
+          <F label="Cobertura geográfica"><Sel value={v.cobertura} onChange={(x) => u("cobertura", x)} options={COBERTURAS} /></F>
+          <F label="¿Tiene organigrama definido?"><Sel value={v.organigrama} onChange={(x) => u("organigrama", x)} options={ORG_OPCIONES} /></F>
+          <F label="¿Tiene procesos documentados?"><Sel value={v.procesos} onChange={(x) => u("procesos", x)} options={PROC_OPCIONES} /></F>
+          <F label="¿Usa herramientas digitales de gestión?"><Sel value={v.herramientas_digitales} onChange={(x) => u("herramientas_digitales", x)} options={HERR_OPCIONES} /></F>
+          <F label="Breve historia de la empresa" wide><Textarea rows={3} value={v.historia ?? ""} onChange={(e) => u("historia", e.target.value)} placeholder="¿Cómo nació la empresa? ¿Cuáles han sido los hitos más importantes?" /></F>
+          <F label="Principales productos o servicios" wide><Textarea rows={2} value={v.productos ?? ""} onChange={(e) => u("productos", e.target.value)} placeholder="¿Qué vende? ¿Cuáles son sus líneas más importantes?" /></F>
+          <F label="Propuesta de valor actual" wide><Textarea rows={2} value={v.propuesta_valor ?? ""} onChange={(e) => u("propuesta_valor", e.target.value)} placeholder="¿Por qué los clientes eligen esta empresa y no a la competencia?" /></F>
+        </Grid>
+      </Card>
+    </>
+  );
+}
+
+function Instructivo() {
+  const pasos = [
+    { n: 1, t: "Empresa", d: "Historia, estructura y modelo de negocio", i: ClipboardList, c: "border-l-gold bg-amber-50" },
+    { n: 2, t: "Líder", d: "Perfil del empresario, estilo y motivación", i: Users, c: "border-l-violet-500 bg-violet-50" },
+    { n: 3, t: "Contexto", d: "Situación actual, retos y oportunidades", i: Target, c: "border-l-blue-500 bg-blue-50" },
+    { n: 4, t: "Expectativas", d: "Objetivos, prioridades y resultados esperados", i: Sparkles, c: "border-l-emerald-500 bg-emerald-50" },
+    { n: 5, t: "Acuerdo", d: "Compromisos mutuos y condiciones de trabajo", i: Handshake, c: "border-l-orange-500 bg-orange-50" },
+  ];
+  return (
+    <Card title="Onboarding · Cómo se construye el Perfil del Cliente">
+      <p className="text-xs text-muted-foreground">
+        Esta herramienta se completa en la <b>primera sesión</b> con el cliente. Levanta el perfil completo de la empresa y el líder, establece el acuerdo de trabajo y genera el <b>Perfil del Cliente</b> que alimenta directamente el diagnóstico SIDE y las apps del Plan Estratégico.
+      </p>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {pasos.map((p) => {
+          const Icon = p.i;
+          return (
+            <div key={p.n} className={`border-l-4 rounded p-2.5 ${p.c}`}>
+              <div className="flex items-center gap-1.5 text-navy font-bold text-xs"><Icon className="w-3.5 h-3.5" /> {p.n}. {p.t}</div>
+              <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{p.d}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] mt-2">
+        <Eco color="bg-navy text-white" t="Onboarding" s="Perfil del cliente" icon="📋" />
+        <Eco color="bg-emerald-50 text-emerald-800 border border-emerald-200" t="SIDE" s="Diagnóstico" icon="🔍" />
+        <Eco color="bg-blue-50 text-blue-800 border border-blue-200" t="Plan Estratégico" s="18 secciones" icon="📈" />
+        <Eco color="bg-amber-50 text-amber-800 border border-amber-200" t="KPIs / BSC" s="Seguimiento" icon="📊" />
+      </div>
     </Card>
+  );
+}
+
+function Eco({ color, t, s, icon }: { color: string; t: string; s: string; icon: string }) {
+  return (
+    <div className={`rounded p-2 text-center ${color}`}>
+      <div className="text-base">{icon}</div>
+      <div className="font-bold mt-0.5">{t}</div>
+      <div className="opacity-70">{s}</div>
+    </div>
   );
 }
 
