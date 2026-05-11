@@ -11,12 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ESTADOS_COTIZACION } from "@/lib/clientes-helpers";
 import { generarCotizacionPDF, PLANES_PRESET } from "@/lib/cotizacion-pdf";
+import { generarPropuestaComercialPDF } from "@/lib/propuesta-pdf";
+import { ENTREGABLES_PLAN, OBJETIVOS_PLAN, type EntregableItem } from "@/lib/cotizacion-entregables";
 import {
   PAISES_LATAM, getPais, ajustarPrecioPorPais,
   RANGOS_FACTURACION, calcularIME, justificacionPorPlan,
 } from "@/lib/cotizacion-helpers";
 import { toast } from "sonner";
-import { Plus, Download, Pencil, FileText, Sparkles } from "lucide-react";
+import { Plus, Download, Pencil, FileText, Sparkles, FileBadge, Trash2, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/cotizaciones")({ component: Cotizaciones });
 
