@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SECCIONES_PLAN, seccionesParaNivel, seccionPorKey, type NivelPlan, type SeccionData } from "@/lib/plan-helpers";
 import { detectSector, detectTamano } from "@/lib/plan-catalogo";
 import { AnalisisIABox } from "@/components/plan/AnalisisIABox";
+import { MarcoSeccionBanner } from "@/components/plan/MarcoSeccionCard";
 import { usePlanSeccionAutosave, AutosaveBadge } from "@/components/plan/usePlanAutosave";
 import { Sec01, Sec02, Sec03, Sec04, Sec05, type Sec01Data, type Sec02Data, type Sec03Data, type Sec04Data, type Sec05Data } from "@/components/plan/secciones-1-5";
 import { Sec06, Sec07, Sec08, Sec09, type Sec06Data, type Sec07Data, type Sec08Data, type Sec09Data } from "@/components/plan/secciones-6-9";
@@ -211,6 +212,9 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
           {seccion.titulo}
         </h2>
         <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
+      </div>
+      <div className="mb-4">
+        <MarcoSeccionBanner seccion={seccion} clienteId={clienteId} />
       </div>
       {renderSeccion()}
       {seccion.numero <= 18 && (
