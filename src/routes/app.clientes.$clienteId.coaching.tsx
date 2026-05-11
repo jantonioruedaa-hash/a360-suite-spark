@@ -28,6 +28,8 @@ import {
   type SesionCoaching,
 } from "@/lib/coaching-helpers";
 import { Plus, Check, Trash2, Sparkles, FileText, Clock } from "lucide-react";
+import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
+import { SintesisProgramaIA } from "@/components/coaching/SintesisProgramaIA";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
   component: CoachingClienteWorkspace,
@@ -214,6 +216,11 @@ function CoachingClienteWorkspace() {
         </CardContent>
       </Card>
 
+      {/* Síntesis IA del programa completo */}
+      {sesiones.length > 0 && (
+        <SintesisProgramaIA clienteId={clienteId} />
+      )}
+
       {/* Diálogo nueva sesión */}
       {openNueva && (
         <DialogoSesion
@@ -367,6 +374,25 @@ function DialogoSesion({
             />
             <label htmlFor="completada" className="text-sm">Marcar como completada</label>
           </div>
+
+          {/* Análisis IA — solo si la sesión ya existe persistida */}
+          {existing && (
+            <AnalisisIACoaching
+              sesionId={existing.id}
+              herramientaNombre={h.nombre}
+              herramientaProposito={h.proposito}
+              etapa={h.etapa}
+              datosSesion={datos}
+              analisisActual={(datos as any)?.analisis_ia ?? null}
+              analisisFecha={(datos as any)?.analisis_ia_fecha ?? null}
+              onAnalisisGenerado={(t: string, f: string) => setDatos({ ...datos, analisis_ia: t, analisis_ia_fecha: f })}
+            />
+          )}
+          {!existing && (
+            <p className="text-[11px] text-muted-foreground italic border-t pt-2">
+              💡 Guarda primero el registro y vuelve a abrirlo para generar el análisis IA del coach.
+            </p>
+          )}
         </div>
 
         <DialogFooter className="gap-2">
