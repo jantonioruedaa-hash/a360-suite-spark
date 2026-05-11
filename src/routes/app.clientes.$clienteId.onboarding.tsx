@@ -581,35 +581,117 @@ function Paso6({
   return (
     <>
       <Card title="Vista previa del Perfil del Cliente">
-        <div className="border border-border rounded p-5 space-y-4 bg-white">
-          <div className="border-b border-gold pb-3">
-            <div className="text-xs text-gold uppercase tracking-wider">A360SGP · Perfil del Cliente</div>
-            <h3 className="font-display text-navy text-xl mt-1">{cliente?.nombre_empresa ?? "—"}</h3>
-            <p className="text-sm text-muted-foreground">{[cliente?.sector, cliente?.ciudad, cliente?.pais].filter(Boolean).join(" · ")}</p>
+        <div className="border border-border rounded p-5 space-y-5 bg-white">
+          <div className="border-b-2 border-gold pb-3">
+            <div className="text-[10px] text-gold uppercase tracking-[0.15em] font-bold">A360SP · Documento de entrada</div>
+            <h3 className="font-display text-navy text-2xl mt-1">{cliente?.nombre_empresa ?? "—"}</h3>
+            <p className="text-xs text-muted-foreground">{[cliente?.sector, cliente?.ciudad, cliente?.pais].filter(Boolean).join(" · ")}</p>
           </div>
-          <Resumen titulo="1. Empresa" items={[
-            ["Tipo", p1.tipo_empresa], ["Mercado", p1.mercado_objetivo], ["Cobertura", p1.cobertura],
-            ["Fundación", p1.anio_fundacion], ["Organigrama", p1.organigrama], ["Procesos", p1.procesos],
-          ]} />
-          <Resumen titulo="2. Líder" items={[
-            ["Nombre", p2.nombre], ["Cargo", p2.cargo], ["Estilo", p2.estilo], ["Rol", p2.rol],
-            ["Disponibilidad", p2.disponibilidad], ["Actitud al cambio", p2.actitud_cambio],
-          ]} />
-          <Resumen titulo="3. Contexto" items={[
-            ["Fortalezas", `${p3.fortalezas.length}`], ["Debilidades", `${p3.debilidades.length}`],
-            ["Oportunidades", `${p3.oportunidades.length}`], ["Amenazas", `${p3.amenazas.length}`],
-            ["Dim. urgentes", `${p3.dimensiones_urgentes.length}`],
-          ]} />
-          <Resumen titulo="4. Expectativas" items={[
-            ["Objetivos", `${p4.objetivos.length}`],
-            ["Programa", p4.programa_recomendado],
-            ["Resultado 3m", p4.resultado_3m ? "Definido" : "—"],
-          ]} />
-          <Resumen titulo="5. Acuerdo" items={[
-            ["Inicio", p5.fecha_inicio], ["Cierre", p5.fecha_cierre],
-            ["Frecuencia", p5.frecuencia], ["Modalidad", p5.modalidad],
-            ["Inversión", p5.inversion],
-          ]} />
+
+          <PerfilSection titulo="1. Identidad y modelo de negocio">
+            <Resumen items={[
+              ["Tipo de empresa", p1.tipo_empresa], ["Año fundación", p1.anio_fundacion],
+              ["Empleados", p1.num_empleados], ["Facturación", p1.facturacion_anual],
+              ["Mercado", p1.mercado_objetivo], ["Cobertura", p1.cobertura],
+              ["Organigrama", p1.organigrama], ["Procesos doc.", p1.procesos], ["Digitalización", p1.herramientas_digitales],
+            ]} />
+            {p1.historia && <Narrative title="Historia" text={p1.historia} />}
+            {p1.productos && <Narrative title="Productos / Servicios" text={p1.productos} />}
+            {p1.propuesta_valor && <Narrative title="Propuesta de valor actual" text={p1.propuesta_valor} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="2. Líder">
+            <Resumen items={[
+              ["Nombre", p2.nombre], ["Cargo", p2.cargo], ["Edad", p2.edad], ["Experiencia", p2.experiencia],
+              ["Formación", p2.formacion], ["Estilo", p2.estilo], ["Rol principal", p2.rol],
+              ["Disponibilidad", p2.disponibilidad], ["Actitud al cambio", p2.actitud_cambio],
+            ]} />
+            {p2.fortaleza && <Narrative title="Fortaleza principal" text={p2.fortaleza} />}
+            {p2.area_desarrollo && <Narrative title="Área de desarrollo prioritaria" text={p2.area_desarrollo} />}
+            {p2.vision_5_anios && <Narrative title="Visión a 5 años" text={p2.vision_5_anios} />}
+            {p2.motivacion && <Narrative title="Motivación para buscar consultoría" text={p2.motivacion} />}
+            {p2.temor && <Narrative title="Temores / resistencias" text={p2.temor} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="3. Contexto estratégico (FODA preliminar)">
+            {p3.situacion_actual && <Narrative title="Situación actual descrita por el líder" text={p3.situacion_actual} />}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <FodaBox titulo="Fortalezas" color="emerald" items={p3.fortalezas} />
+              <FodaBox titulo="Debilidades" color="rose" items={p3.debilidades} />
+              <FodaBox titulo="Oportunidades" color="blue" items={p3.oportunidades} />
+              <FodaBox titulo="Amenazas" color="amber" items={p3.amenazas} />
+            </div>
+            {p3.dimensiones_urgentes.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Dimensiones SIDE urgentes</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {p3.dimensiones_urgentes.map((k) => {
+                    const d = DIMENSIONES_SIDE_12.find((x) => x.key === k);
+                    return <span key={k} className="text-[11px] px-2 py-0.5 rounded-full bg-navy text-white">{d?.nombre ?? k}</span>;
+                  })}
+                </div>
+              </div>
+            )}
+            {p3.contexto_sector && <Narrative title="Contexto del sector" text={p3.contexto_sector} />}
+            {p3.competencia && <Narrative title="Competencia principal" text={p3.competencia} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="4. Expectativas y programa recomendado">
+            {p4.objetivos.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Objetivos del cliente</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{p4.objetivos.map((o, i) => <li key={i}>{o}</li>)}</ul>
+              </div>
+            )}
+            {Object.keys(p4.expectativas ?? {}).length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Importancia (1-5)</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
+                  {EXPECTATIVAS_PROGRAMA.filter((e) => p4.expectativas?.[e.id]).map((e) => (
+                    <div key={e.id} className="flex justify-between gap-2 bg-muted/40 rounded px-2 py-0.5">
+                      <span>{e.label}</span><span className="font-bold text-navy">{p4.expectativas[e.id]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <Resumen items={[
+              ["Programa recomendado", p4.programa_recomendado],
+              ["Indicador de éxito", p4.indicador_exito],
+            ]} />
+            {p4.resultado_3m && <Narrative title="Resultado esperado a 3 meses" text={p4.resultado_3m} />}
+            {p4.resultado_final && <Narrative title="Resultado esperado al cierre" text={p4.resultado_final} />}
+            {p4.justificacion && <Narrative title="Justificación del programa" text={p4.justificacion} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="5. Acuerdo de trabajo">
+            <Resumen items={[
+              ["Inicio", p5.fecha_inicio], ["Cierre", p5.fecha_cierre],
+              ["Frecuencia", p5.frecuencia], ["Modalidad", p5.modalidad],
+              ["Consultor", p5.consultor_responsable],
+              ["Inversión", p5.inversion], ["Forma de pago", p5.forma_pago],
+            ]} />
+            {p5.compromisos_cliente.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Compromisos del cliente</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{p5.compromisos_cliente.map((c, i) => <li key={i}>{c}</li>)}</ul>
+              </div>
+            )}
+            {p5.compromisos_consultor.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Compromisos del consultor</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{p5.compromisos_consultor.map((c, i) => <li key={i}>{c}</li>)}</ul>
+              </div>
+            )}
+            {(p5.condiciones_aceptadas ?? []).length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Condiciones aceptadas</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{(p5.condiciones_aceptadas ?? []).map((c, i) => <li key={i}>{c}</li>)}</ul>
+              </div>
+            )}
+            {p5.condiciones && <Narrative title="Condiciones especiales" text={p5.condiciones} />}
+            {p5.notas && <Narrative title="Notas finales" text={p5.notas} />}
+          </PerfilSection>
         </div>
       </Card>
 
