@@ -533,6 +533,63 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
             />
           </div>
 
+          {/* Diagnóstico para Propuesta Comercial */}
+          <div className="border-2 border-navy/20 bg-navy/5 rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Diagnóstico (para Propuesta Comercial)</Label>
+              <Button size="sm" variant="outline" onClick={importarDiagnostico}>
+                <RefreshCw className="w-3 h-3 mr-1" /> Importar del Onboarding
+              </Button>
+            </div>
+            <Textarea
+              rows={3}
+              placeholder="Resumen del diagnóstico actual del cliente (situación, retos, contexto)…"
+              value={form.diagnostico_resumen ?? ""}
+              onChange={(e) => setForm({ ...form, diagnostico_resumen: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">El SIDE más reciente y los retos del Onboarding se anexan automáticamente al PDF.</p>
+          </div>
+
+          {/* Objetivos del programa */}
+          <div className="border rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Objetivos del programa</Label>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={recargarEntregables} title="Recargar del catálogo según plan"><Sparkles className="w-3 h-3 mr-1" /> Catálogo</Button>
+                <Button size="sm" variant="outline" onClick={addObjetivo}><Plus className="w-3 h-3" /></Button>
+              </div>
+            </div>
+            <div className="space-y-1">
+              {(form.objetivos_propuesta ?? []).map((o, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <Input value={o} onChange={(e) => updateObjetivo(i, e.target.value)} placeholder="Objetivo concreto y medible" />
+                  <Button size="sm" variant="ghost" className="text-red-600" onClick={() => removeObjetivo(i)}><Trash2 className="w-3 h-3" /></Button>
+                </div>
+              ))}
+              {(form.objetivos_propuesta ?? []).length === 0 && (
+                <div className="text-xs text-muted-foreground">Selecciona un plan o agrega objetivos.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Entregables */}
+          <div className="border rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Entregables del programa</Label>
+              <Button size="sm" variant="outline" onClick={addEntregable}><Plus className="w-3 h-3 mr-1" /> Agregar</Button>
+            </div>
+            <div className="space-y-2">
+              {(form.entregables ?? []).map((e, i) => (
+                <div key={i} className="grid grid-cols-12 gap-2 items-start">
+                  <Input className="col-span-4" placeholder="Entregable" value={e.titulo} onChange={(ev) => updateEntregable(i, "titulo", ev.target.value)} />
+                  <Input className="col-span-7" placeholder="Descripción" value={e.descripcion} onChange={(ev) => updateEntregable(i, "descripcion", ev.target.value)} />
+                  <Button size="sm" variant="ghost" className="col-span-1 text-red-600" onClick={() => removeEntregable(i)}><Trash2 className="w-3 h-3" /></Button>
+                </div>
+              ))}
+              {(form.entregables ?? []).length === 0 && <div className="text-xs text-muted-foreground">Selecciona un plan para precargar.</div>}
+            </div>
+          </div>
+
           <div><Label>Condiciones</Label><Textarea rows={2} value={form.condiciones ?? ""} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} /></div>
           <div><Label>Notas</Label><Textarea rows={2} value={form.notas ?? ""} onChange={(e) => setForm({ ...form, notas: e.target.value })} /></div>
         </div>
