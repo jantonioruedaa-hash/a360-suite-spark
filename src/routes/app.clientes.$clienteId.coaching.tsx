@@ -367,6 +367,25 @@ function DialogoSesion({
             />
             <label htmlFor="completada" className="text-sm">Marcar como completada</label>
           </div>
+
+          {/* Análisis IA — solo si la sesión ya existe persistida */}
+          {existing && (
+            <AnalisisIACoaching
+              sesionId={existing.id}
+              herramientaNombre={h.nombre}
+              herramientaProposito={h.proposito}
+              etapa={h.etapa}
+              datosSesion={datos}
+              analisisActual={(datos as any)?.analisis_ia ?? null}
+              analisisFecha={(datos as any)?.analisis_ia_fecha ?? null}
+              onAnalisisGenerado={(t, f) => setDatos({ ...datos, analisis_ia: t, analisis_ia_fecha: f })}
+            />
+          )}
+          {!existing && (
+            <p className="text-[11px] text-muted-foreground italic border-t pt-2">
+              💡 Guarda primero el registro y vuelve a abrirlo para generar el análisis IA del coach.
+            </p>
+          )}
         </div>
 
         <DialogFooter className="gap-2">
