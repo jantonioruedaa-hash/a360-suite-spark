@@ -169,6 +169,7 @@ function Actividades() {
       })),
       proxima_fecha: a.proxima_fecha, proxima_temas: a.proxima_temas ?? [],
       mensaje_cliente: a.mensaje_cliente,
+      analisis_ia: a.analisis_ia, analisis_ia_fecha: a.analisis_ia_fecha,
     });
     doc.save(`Sesion-${a.numero_sesion ?? ""}-${empresa?.nombre_empresa ?? "cliente"}.pdf`);
   };
