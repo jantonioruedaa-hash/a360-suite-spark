@@ -732,10 +732,10 @@ function Paso6({
   );
 }
 
-function Resumen({ titulo, items }: { titulo: string; items: Array<[string, string | undefined]> }) {
+function Resumen({ titulo, items }: { titulo?: string; items: Array<[string, string | undefined]> }) {
   return (
     <div>
-      <div className="text-xs font-bold text-gold uppercase tracking-wider mb-1">{titulo}</div>
+      {titulo && <div className="text-xs font-bold text-gold uppercase tracking-wider mb-1">{titulo}</div>}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-xs">
         {items.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-2">
@@ -744,6 +744,43 @@ function Resumen({ titulo, items }: { titulo: string; items: Array<[string, stri
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function PerfilSection({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3 pb-4 border-b border-dashed border-border last:border-0">
+      <div className="text-sm font-bold text-navy">{titulo}</div>
+      {children}
+    </div>
+  );
+}
+
+function Narrative({ title, text }: { title: string; text: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-0.5">{title}</div>
+      <p className="text-sm text-foreground leading-snug whitespace-pre-wrap">{text}</p>
+    </div>
+  );
+}
+
+function FodaBox({ titulo, color, items }: { titulo: string; color: "emerald" | "rose" | "blue" | "amber"; items: string[] }) {
+  const colors: Record<string, string> = {
+    emerald: "border-emerald-300 bg-emerald-50 text-emerald-900",
+    rose: "border-rose-300 bg-rose-50 text-rose-900",
+    blue: "border-blue-300 bg-blue-50 text-blue-900",
+    amber: "border-amber-300 bg-amber-50 text-amber-900",
+  };
+  return (
+    <div className={`border rounded p-2.5 ${colors[color]}`}>
+      <div className="text-[10px] uppercase tracking-wider font-bold mb-1">{titulo}</div>
+      {items.length === 0 ? (
+        <p className="text-xs italic opacity-60">—</p>
+      ) : (
+        <ul className="text-xs list-disc list-inside space-y-0.5">{items.map((it, i) => <li key={i}>{it}</li>)}</ul>
+      )}
     </div>
   );
 }
