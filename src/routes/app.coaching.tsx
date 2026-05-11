@@ -12,7 +12,7 @@ async function listarClientes(): Promise<Cliente[]> {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Users2, Sparkles } from "lucide-react";
+import { ArrowRight, Users2, Sparkles, BookOpen, TrendingUp, Quote } from "lucide-react";
 
 export const Route = createFileRoute("/app/coaching")({
   component: CoachingHome,
@@ -46,12 +46,41 @@ function CoachingHome() {
 
   return (
     <div className="max-w-6xl space-y-6">
-      <div>
-        <h1 className="font-display text-3xl text-navy">Coaching Platform</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Metodología A360 — 4 etapas, 12 herramientas
-        </p>
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="font-display text-3xl text-navy">Coaching A360</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Plataforma de consultoría en coaching ejecutivo · 4 etapas, 12 herramientas, 90 días post-programa
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/app/coaching/metodologia">
+              <BookOpen className="w-3 h-3 mr-1" /> Metodología
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/app/coaching/resultados">
+              <TrendingUp className="w-3 h-3 mr-1" /> Resultados
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      {/* Manifiesto */}
+      <Card className="bg-gradient-to-br from-navy to-navy/90 text-white border-navy">
+        <CardContent className="p-5 flex items-start gap-3">
+          <Quote className="w-5 h-5 text-gold shrink-0 mt-1" />
+          <div>
+            <p className="font-display text-base leading-relaxed">
+              "El cambio profundo en un líder no se mide por lo que aprende, sino por lo que decide distinto bajo presión."
+            </p>
+            <p className="text-xs text-white/60 mt-1">— Principio rector A360 ·{" "}
+              <Link to="/app/coaching/metodologia" className="underline hover:text-gold">Ver metodología completa</Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Mapa metodológico */}
       <Card>

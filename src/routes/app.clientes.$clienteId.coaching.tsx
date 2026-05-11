@@ -298,7 +298,54 @@ function DialogoSesion({
         </DialogHeader>
 
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">{h.descripcion}</p>
+          {/* Contexto profesional de la herramienta */}
+          <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs border border-muted">
+            <div>
+              <div className="font-semibold text-navy uppercase tracking-wider text-[10px]">Propósito</div>
+              <p className="text-muted-foreground mt-0.5">{h.proposito}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div>
+                <div className="font-semibold text-navy uppercase tracking-wider text-[10px]">Cuándo usar</div>
+                <p className="text-muted-foreground mt-0.5">{h.cuandoUsar}</p>
+              </div>
+              <div>
+                <div className="font-semibold text-navy uppercase tracking-wider text-[10px]">Resultado esperado</div>
+                <p className="text-muted-foreground mt-0.5">{h.resultadoEsperado}</p>
+              </div>
+            </div>
+            {h.preguntasGuia.length > 0 && (
+              <details className="text-muted-foreground">
+                <summary className="cursor-pointer font-semibold text-navy uppercase tracking-wider text-[10px]">
+                  Preguntas guía ({h.preguntasGuia.length})
+                </summary>
+                <ul className="mt-1 space-y-0.5 pl-3">
+                  {h.preguntasGuia.map((p, i) => (
+                    <li key={i} className="flex gap-1"><span className="text-gold">›</span><span>{p}</span></li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            <details className="text-muted-foreground">
+              <summary className="cursor-pointer font-semibold text-navy uppercase tracking-wider text-[10px]">
+                Cómo aplicar / Tips coach
+              </summary>
+              <ol className="mt-1 space-y-0.5 pl-5 list-decimal">
+                {h.comoAplicar.map((p, i) => <li key={i}>{p}</li>)}
+              </ol>
+              {h.tipsCoach.length > 0 && (
+                <ul className="mt-1 space-y-0.5 pl-3 italic">
+                  {h.tipsCoach.map((t, i) => <li key={i} className="flex gap-1"><span className="text-gold">•</span><span>{t}</span></li>)}
+                </ul>
+              )}
+            </details>
+            <details className="text-muted-foreground">
+              <summary className="cursor-pointer font-semibold text-navy uppercase tracking-wider text-[10px]">
+                Ejemplo real
+              </summary>
+              <p className="mt-1 italic">"{h.ejemploReal}"</p>
+            </details>
+          </div>
 
           {/* Editor específico por tipo */}
           {h.tipo === "radar" && <RadarEditor datos={datos} setDatos={setDatos} />}
