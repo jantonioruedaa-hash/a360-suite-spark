@@ -15,7 +15,7 @@ import { ETAPAS_PROGRAMA, PROGRAMAS, MODALIDADES_SESION, SEMAFOROS, KPI_LIBRARY,
 import { generarReporteSesionPDF } from "@/lib/sesion-pdf";
 import { obtenerPlantilla } from "@/lib/sesion-templates";
 import { toast } from "sonner";
-import { Plus, Trash2, FileDown, Sparkles, Share2, Wand2 } from "lucide-react";
+import { Plus, Trash2, FileDown, Sparkles, Share2, Wand2, Pencil } from "lucide-react";
 import { ShareDialog } from "@/components/ShareDialog";
 import { InstructivoSesion } from "@/components/sesion/InstructivoSesion";
 import { AnalisisIASesion } from "@/components/sesion/AnalisisIASesion";
