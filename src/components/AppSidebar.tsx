@@ -7,6 +7,7 @@ import { A360Logo } from "@/components/A360Logo";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
   LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon,
+  Compass, TrendingUp, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useAlertas } from "@/lib/alertas-helpers";
@@ -27,10 +28,17 @@ const sections = [
     ],
   },
   {
+    label: "Coaching A360",
+    items: [
+      { title: "Panel Coaching", url: "/app/coaching", icon: Users2 },
+      { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen },
+      { title: "Resultados", url: "/app/coaching/resultados", icon: TrendingUp },
+    ],
+  },
+  {
     label: "Desarrollo",
     items: [
-      { title: "Coaching Platform", url: "/app/coaching", icon: Users2 },
-      { title: "Programa LEE", url: "/app/lee", icon: BookOpen },
+      { title: "Programa LEE", url: "/app/lee", icon: GraduationCap },
     ],
   },
   {
