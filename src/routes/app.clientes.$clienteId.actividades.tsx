@@ -249,6 +249,15 @@ function Actividades() {
                         <FileDown className="w-3 h-3 mr-1" /> PDF de sesión
                       </Button>
                     )}
+                    {a.es_sesion_consultoria && (
+                      <AnalisisIASesion
+                        actividadId={a.id}
+                        contextoCliente={`${empresa?.nombre_empresa ?? ""} · ${empresa?.sector ?? ""}`}
+                        initialAnalisis={a.analisis_ia}
+                        initialFecha={a.analisis_ia_fecha}
+                        onSaved={(an, f) => setList((prev) => prev.map((x) => x.id === a.id ? { ...x, analisis_ia: an, analisis_ia_fecha: f } : x))}
+                      />
+                    )}
                     <Button size="sm" variant="outline" onClick={() => setShareTarget(a)}>
                       <Share2 className="w-3 h-3 mr-1" /> Compartir
                     </Button>
