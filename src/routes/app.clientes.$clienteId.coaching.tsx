@@ -30,6 +30,8 @@ import {
 import { Plus, Check, Trash2, Sparkles, FileText, Clock } from "lucide-react";
 import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
 import { SintesisProgramaIA } from "@/components/coaching/SintesisProgramaIA";
+import { CoachingExportImport } from "@/components/coaching/CoachingExportImport";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
   component: CoachingClienteWorkspace,
