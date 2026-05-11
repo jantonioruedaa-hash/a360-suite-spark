@@ -44,17 +44,21 @@ interface Cotizacion {
   contacto_id: string | null;
   ime_estimado: string | null;
   justificacion_programa: string | null;
+  entregables: EntregableItem[];
+  objetivos_propuesta: string[];
+  diagnostico_resumen: string | null;
 }
 
 interface ClienteData {
   nombre_empresa: string;
   nombre_comercial: string | null;
+  sector: string | null;
   direccion: string | null;
   ciudad: string | null;
   pais: string | null;
 }
 
-interface ContactoLite { id: string; nombre: string; apellido: string; email: string | null }
+interface ContactoLite { id: string; nombre: string; apellido: string; email: string | null; telefono_oficina?: string | null; celular?: string | null }
 
 const EMPTY: Partial<Cotizacion> = {
   titulo: "", descripcion: "", plan: "diagnostico", servicios: [],
@@ -63,6 +67,7 @@ const EMPTY: Partial<Cotizacion> = {
   fecha_emision: new Date().toISOString().slice(0, 10),
   notas: "", condiciones: "El presente documento tiene validez de 30 días desde su emisión.",
   contacto_id: null, ime_estimado: null, justificacion_programa: null,
+  entregables: [], objetivos_propuesta: [], diagnostico_resumen: null,
 };
 
 function Cotizaciones() {
