@@ -481,6 +481,30 @@ function Paso4({ v, set }: { v: OnboardingPaso4; set: (v: OnboardingPaso4) => vo
   );
 }
 
+function CheckList({ options, selected, onChange }: { options: string[]; selected: string[]; onChange: (v: string[]) => void }) {
+  const toggle = (opt: string) => {
+    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt]);
+  };
+  return (
+    <ul className="space-y-1.5">
+      {options.map((opt) => {
+        const sel = selected.includes(opt);
+        return (
+          <li key={opt}>
+            <button type="button" onClick={() => toggle(opt)}
+              className={`w-full text-left flex items-start gap-2 rounded px-2.5 py-1.5 text-sm border transition ${sel ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-border text-foreground hover:border-gold"}`}>
+              <span className={`mt-0.5 inline-flex items-center justify-center w-4 h-4 rounded border ${sel ? "bg-emerald-600 border-emerald-600 text-white" : "border-muted-foreground/40"}`}>
+                {sel ? "✓" : ""}
+              </span>
+              <span className="flex-1">{opt}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function Paso5({ v, set }: { v: OnboardingPaso5; set: (v: OnboardingPaso5) => void }) {
   return (
     <>
