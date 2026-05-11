@@ -35,8 +35,8 @@ function OnboardingPage() {
   const [p1, setP1] = useState<OnboardingPaso1>({});
   const [p2, setP2] = useState<OnboardingPaso2>({});
   const [p3, setP3] = useState<OnboardingPaso3>({ fortalezas: [], debilidades: [], oportunidades: [], amenazas: [], dimensiones_urgentes: [] });
-  const [p4, setP4] = useState<OnboardingPaso4>({ objetivos: [], prioridades: {} });
-  const [p5, setP5] = useState<OnboardingPaso5>({ compromisos_cliente: [], compromisos_consultor: [] });
+  const [p4, setP4] = useState<OnboardingPaso4>({ objetivos: [], prioridades: {}, expectativas: {} });
+  const [p5, setP5] = useState<OnboardingPaso5>({ compromisos_cliente: [], compromisos_consultor: [], condiciones_aceptadas: [] });
   const [analisisIa, setAnalisisIa] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [generando, setGenerando] = useState(false);
