@@ -3,6 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
+type AnalisisSesionResult = {
+  analisis: string | null;
+  fecha: string | null;
+  error: string | null;
+};
+
 async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY no configurada");
@@ -52,14 +58,16 @@ export const analizarReporteSesion = createServerFn({ method: "POST" })
     z.object({
       actividadId: z.string().uuid(),
       contextoCliente: z.string().max(2000).optional(),
-      accessToken: z.string().min(10),
+      accessToken: z.string().min(10).optional(),
     }).parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<AnalisisSesionResult> => {
     try {
+      if (!data.accessToken) return { analisis: null, fecha: null, error: "Sesión expirada. Vuelve a iniciar sesión." };
+
       const SUPABASE_URL = process.env.SUPABASE_URL;
       const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
-      if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) throw new Error("Supabase env no configurado");
+      if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return { analisis: null, fecha: null, error: "Backend no configurado" };
 
       const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
         global: { headers: { Authorization: `Bearer ${data.accessToken}` } },
@@ -67,7 +75,7 @@ export const analizarReporteSesion = createServerFn({ method: "POST" })
       });
 
       const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
-      if (authErr || !claims?.claims?.sub) throw new Error("Sesión inválida o expirada");
+      if (authErr || !claims?.claims?.sub) return { analisis: null, fecha: null, error: "Sesión inválida o expirada" };
 
       const { data: act, error } = await supabase
         .from("cliente_actividades")
@@ -75,8 +83,8 @@ export const analizarReporteSesion = createServerFn({ method: "POST" })
         .eq("id", data.actividadId)
         .maybeSingle();
       if (error) throw new Error(`DB: ${error.message}`);
-      if (!act) throw new Error("Sesión no encontrada");
-      if (!act.es_sesion_consultoria) throw new Error("Solo aplicable a sesiones de consultoría");
+      if (!act) return { analisis: null, fecha: null, error: "Sesión no encontrada" };
+      if (!act.es_sesion_consultoria) return { analisis: null, fecha: null, error: "Solo aplicable a sesiones de consultoría" };
 
       const [kpisRes, compsRes] = await Promise.all([
         supabase.from("cliente_kpis").select("*").eq("actividad_id", data.actividadId),
@@ -117,10 +125,10 @@ Genera el análisis siguiendo estrictamente el formato definido.`;
         .eq("id", data.actividadId);
       if (upErr) throw new Error(`No se pudo guardar el análisis: ${upErr.message}`);
 
-      return { analisis, fecha };
+      return { analisis, fecha, error: null };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[analizarReporteSesion] error:", msg);
-      throw new Error(msg);
+      return { analisis: null, fecha: null, error: msg };
     }
   });
