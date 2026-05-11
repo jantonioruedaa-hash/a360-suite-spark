@@ -64,6 +64,7 @@ function Actividades() {
   const [kpis, setKpis] = useState<KpiInput[]>([]);
   const [compromisos, setCompromisos] = useState<CompromisoInput[]>([]);
   const [shareTarget, setShareTarget] = useState<Actividad | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const reload = async () => {
     const [{ data: a }, { data: c }, { data: e }] = await Promise.all([
