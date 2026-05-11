@@ -2,7 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ETAPAS_A360, HERRAMIENTAS_A360 } from "@/lib/coaching-catalogo";
 import { listarSesionesGlobal, type SesionCoaching } from "@/lib/coaching-helpers";
-import { listarClientes, type Cliente } from "@/lib/clientes-helpers";
+import { supabase } from "@/integrations/supabase/client";
+
+type Cliente = { id: string; nombre_empresa: string };
+async function listarClientes(): Promise<Cliente[]> {
+  const { data } = await supabase.from("clientes").select("id,nombre_empresa").order("nombre_empresa");
+  return (data ?? []) as Cliente[];
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
