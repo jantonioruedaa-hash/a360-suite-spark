@@ -218,7 +218,8 @@ function Cotizaciones() {
                     <td className="px-4 py-3">{est && <Badge variant="outline" className={est.color}>{est.label}</Badge>}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{c.fecha_vencimiento ? new Date(c.fecha_vencimiento).toLocaleDateString() : "—"}</td>
                     <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="ghost" onClick={() => exportar(c)} title="Exportar PDF"><Download className="w-3.5 h-3.5" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => exportarPropuesta(c)} title="Generar Propuesta Comercial PDF"><FileBadge className="w-3.5 h-3.5 text-gold" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => exportar(c)} title="Exportar Cotización PDF"><Download className="w-3.5 h-3.5" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title="Editar"><Pencil className="w-3.5 h-3.5" /></Button>
                     </td>
                   </tr>
