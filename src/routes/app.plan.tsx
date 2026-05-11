@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { SECCIONES_PLAN, completitudPlan, type NivelPlan } from "@/lib/plan-helpers";
+import { MarcoSeccionCard } from "@/components/plan/MarcoSeccionCard";
 import { Target, ArrowRight, Briefcase } from "lucide-react";
 
 export const Route = createFileRoute("/app/plan")({ component: PlanPanel });
