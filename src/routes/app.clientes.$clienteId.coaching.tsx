@@ -30,6 +30,8 @@ import {
 import { Plus, Check, Trash2, Sparkles, FileText, Clock } from "lucide-react";
 import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
 import { SintesisProgramaIA } from "@/components/coaching/SintesisProgramaIA";
+import { CoachingExportImport } from "@/components/coaching/CoachingExportImport";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
   component: CoachingClienteWorkspace,
@@ -41,6 +43,7 @@ function CoachingClienteWorkspace() {
   const [loading, setLoading] = useState(true);
   const [openNueva, setOpenNueva] = useState<{ herramientaId: string } | null>(null);
   const [editing, setEditing] = useState<SesionCoaching | null>(null);
+  const [clienteNombre, setClienteNombre] = useState<string>("Cliente");
 
   const cargar = async () => {
     setLoading(true);
@@ -50,7 +53,11 @@ function CoachingClienteWorkspace() {
       setLoading(false);
     }
   };
-  useEffect(() => { cargar(); }, [clienteId]);
+  useEffect(() => {
+    cargar();
+    supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).maybeSingle()
+      .then(({ data }) => { if (data?.nombre_empresa) setClienteNombre(data.nombre_empresa); });
+  }, [clienteId]);
 
   const progreso = useMemo(() => progresoPorEtapa(sesiones), [sesiones]);
   const etapa = useMemo(() => etapaActual(sesiones), [sesiones]);
@@ -63,7 +70,7 @@ function CoachingClienteWorkspace() {
         <div>
           <h2 className="font-display text-2xl text-navy">Coaching A360 — Workspace</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Etapa actual: <Badge className="bg-navy text-white ml-1">{etapa}</Badge>
+            {clienteNombre} · Etapa actual: <Badge className="bg-navy text-white ml-1">{etapa}</Badge>
           </p>
         </div>
         <div className="text-right">
@@ -72,6 +79,13 @@ function CoachingClienteWorkspace() {
           <div className="text-xs">{totalCompletadas} / {HERRAMIENTAS_A360.length} herramientas</div>
         </div>
       </div>
+
+      <CoachingExportImport
+        clienteId={clienteId}
+        clienteNombre={clienteNombre}
+        sesiones={sesiones}
+        onImported={cargar}
+      />
 
       {/* Progreso por etapa */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
