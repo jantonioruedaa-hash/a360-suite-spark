@@ -11,12 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ESTADOS_COTIZACION } from "@/lib/clientes-helpers";
 import { generarCotizacionPDF, PLANES_PRESET } from "@/lib/cotizacion-pdf";
+import { generarPropuestaComercialPDF } from "@/lib/propuesta-pdf";
+import { ENTREGABLES_PLAN, OBJETIVOS_PLAN, type EntregableItem } from "@/lib/cotizacion-entregables";
 import {
   PAISES_LATAM, getPais, ajustarPrecioPorPais,
   RANGOS_FACTURACION, calcularIME, justificacionPorPlan,
 } from "@/lib/cotizacion-helpers";
 import { toast } from "sonner";
-import { Plus, Download, Pencil, FileText, Sparkles } from "lucide-react";
+import { Plus, Download, Pencil, FileText, Sparkles, FileBadge, Trash2, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/cotizaciones")({ component: Cotizaciones });
 
@@ -42,17 +44,21 @@ interface Cotizacion {
   contacto_id: string | null;
   ime_estimado: string | null;
   justificacion_programa: string | null;
+  entregables: EntregableItem[];
+  objetivos_propuesta: string[];
+  diagnostico_resumen: string | null;
 }
 
 interface ClienteData {
   nombre_empresa: string;
   nombre_comercial: string | null;
+  sector: string | null;
   direccion: string | null;
   ciudad: string | null;
   pais: string | null;
 }
 
-interface ContactoLite { id: string; nombre: string; apellido: string; email: string | null }
+interface ContactoLite { id: string; nombre: string; apellido: string; email: string | null; telefono_oficina?: string | null; celular?: string | null }
 
 const EMPTY: Partial<Cotizacion> = {
   titulo: "", descripcion: "", plan: "diagnostico", servicios: [],
@@ -61,6 +67,7 @@ const EMPTY: Partial<Cotizacion> = {
   fecha_emision: new Date().toISOString().slice(0, 10),
   notas: "", condiciones: "El presente documento tiene validez de 30 días desde su emisión.",
   contacto_id: null, ime_estimado: null, justificacion_programa: null,
+  entregables: [], objetivos_propuesta: [], diagnostico_resumen: null,
 };
 
 function Cotizaciones() {
@@ -74,8 +81,8 @@ function Cotizaciones() {
   const reload = async () => {
     const [{ data: cs }, { data: cli }, { data: cts }] = await Promise.all([
       supabase.from("cliente_cotizaciones").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false }),
-      supabase.from("clientes").select("nombre_empresa,nombre_comercial,direccion,ciudad,pais").eq("id", clienteId).maybeSingle(),
-      supabase.from("cliente_contactos").select("id,nombre,apellido,email").eq("cliente_id", clienteId).eq("activo", true),
+      supabase.from("clientes").select("nombre_empresa,nombre_comercial,sector,direccion,ciudad,pais").eq("id", clienteId).maybeSingle(),
+      supabase.from("cliente_contactos").select("id,nombre,apellido,email,telefono_oficina,celular").eq("cliente_id", clienteId).eq("activo", true),
     ]);
     setList((cs ?? []) as unknown as Cotizacion[]);
     setCliente(cli as ClienteData | null);
@@ -130,6 +137,41 @@ function Cotizaciones() {
     doc.save(`${c.numero_cotizacion}.pdf`);
   };
 
+  const exportarPropuesta = async (c: Cotizacion) => {
+    if (!cliente) return;
+    const ct = contactos.find((x) => x.id === c.contacto_id);
+    const [{ data: ob }, { data: sd }] = await Promise.all([
+      supabase.from("cliente_onboarding").select("paso3_contexto,paso4_expectativas").eq("cliente_id", clienteId).maybeSingle(),
+      supabase.from("side_sesiones").select("idf_score,cof_score,ivee_score,ime_score").eq("cliente_id", clienteId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    const ctx = (ob?.paso3_contexto ?? {}) as { situacion_actual?: string; debilidades?: string[]; amenazas?: string[] };
+    const retos = [...(ctx.debilidades ?? []), ...(ctx.amenazas ?? [])].slice(0, 6);
+    const diag = c.diagnostico_resumen || ctx.situacion_actual || null;
+    const doc = generarPropuestaComercialPDF({
+      numero: c.numero_cotizacion, titulo: c.titulo,
+      fechaEmision: c.fecha_emision, fechaVencimiento: c.fecha_vencimiento, validezDias: c.validez_dias, moneda: c.moneda,
+      plan: c.plan, planLabel: c.plan ? PLANES_PRESET[c.plan]?.label ?? c.plan : null,
+      cliente: {
+        empresa: cliente.nombre_empresa, nombreComercial: cliente.nombre_comercial, sector: cliente.sector,
+        contacto: ct ? `${ct.nombre} ${ct.apellido}` : null, email: ct?.email ?? null,
+        telefono: ct?.telefono_oficina ?? ct?.celular ?? null,
+        direccion: cliente.direccion, ciudad: cliente.ciudad, pais: cliente.pais,
+      },
+      diagnosticoResumen: diag,
+      scoresSide: sd ? { idf: sd.idf_score, cof: sd.cof_score, ivee: sd.ivee_score, ime: sd.ime_score } : null,
+      retosClave: retos,
+      objetivos: c.objetivos_propuesta?.length ? c.objetivos_propuesta : OBJETIVOS_PLAN[c.plan ?? ""] ?? [],
+      entregables: c.entregables?.length ? c.entregables : ENTREGABLES_PLAN[c.plan ?? ""] ?? [],
+      justificacion: c.justificacion_programa,
+      servicios: c.servicios, subtotal: c.subtotal,
+      descuentoPorcentaje: c.descuento_porcentaje, descuentoValor: c.descuento_valor, total: c.total,
+      imeEstimado: c.ime_estimado, condiciones: c.condiciones, notas: c.notas,
+      consultor: { nombre: profile?.name, email: profile?.email },
+    });
+    doc.save(`Propuesta-${c.numero_cotizacion}.pdf`);
+    toast.success("Propuesta generada");
+  };
+
   return (
     <div className="space-y-4 max-w-6xl">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -176,7 +218,8 @@ function Cotizaciones() {
                     <td className="px-4 py-3">{est && <Badge variant="outline" className={est.color}>{est.label}</Badge>}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{c.fecha_vencimiento ? new Date(c.fecha_vencimiento).toLocaleDateString() : "—"}</td>
                     <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="ghost" onClick={() => exportar(c)} title="Exportar PDF"><Download className="w-3.5 h-3.5" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => exportarPropuesta(c)} title="Generar Propuesta Comercial PDF"><FileBadge className="w-3.5 h-3.5 text-gold" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => exportar(c)} title="Exportar Cotización PDF"><Download className="w-3.5 h-3.5" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title="Editar"><Pencil className="w-3.5 h-3.5" /></Button>
                     </td>
                   </tr>
@@ -248,8 +291,52 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       moneda: pais.moneda,
       ime_estimado: ime?.texto ?? form.ime_estimado ?? null,
       justificacion_programa: form.justificacion_programa || justificacionPorPlan(plan),
+      entregables: (form.entregables && form.entregables.length) ? form.entregables : (ENTREGABLES_PLAN[plan] ?? []),
+      objetivos_propuesta: (form.objetivos_propuesta && form.objetivos_propuesta.length) ? form.objetivos_propuesta : (OBJETIVOS_PLAN[plan] ?? []),
     });
   };
+
+  const importarDiagnostico = async () => {
+    const { data: ob } = await supabase
+      .from("cliente_onboarding")
+      .select("paso3_contexto")
+      .eq("cliente_id", clienteId)
+      .maybeSingle();
+    const ctx = (ob?.paso3_contexto ?? {}) as { situacion_actual?: string; debilidades?: string[]; amenazas?: string[]; contexto_sector?: string };
+    const partes: string[] = [];
+    if (ctx.situacion_actual) partes.push(ctx.situacion_actual);
+    if (ctx.contexto_sector) partes.push(`Contexto del sector: ${ctx.contexto_sector}`);
+    if (!partes.length) { toast.error("No hay diagnóstico en el Onboarding aún."); return; }
+    setForm({ ...form, diagnostico_resumen: partes.join("\n\n") });
+    toast.success("Diagnóstico importado del Onboarding");
+  };
+
+  const recargarEntregables = () => {
+    if (!form.plan) { toast.error("Selecciona un plan primero"); return; }
+    setForm({
+      ...form,
+      entregables: ENTREGABLES_PLAN[form.plan] ?? [],
+      objetivos_propuesta: OBJETIVOS_PLAN[form.plan] ?? [],
+    });
+    toast.success("Entregables y objetivos recargados del catálogo");
+  };
+
+  const updateEntregable = (i: number, field: keyof EntregableItem, val: string) => {
+    const arr = [...(form.entregables ?? [])];
+    arr[i] = { ...arr[i], [field]: val };
+    setForm({ ...form, entregables: arr });
+  };
+  const addEntregable = () => setForm({ ...form, entregables: [...(form.entregables ?? []), { titulo: "", descripcion: "" }] });
+  const removeEntregable = (i: number) => setForm({ ...form, entregables: (form.entregables ?? []).filter((_, idx) => idx !== i) });
+
+  const updateObjetivo = (i: number, val: string) => {
+    const arr = [...(form.objetivos_propuesta ?? [])];
+    arr[i] = val;
+    setForm({ ...form, objetivos_propuesta: arr });
+  };
+  const addObjetivo = () => setForm({ ...form, objetivos_propuesta: [...(form.objetivos_propuesta ?? []), ""] });
+  const removeObjetivo = (i: number) => setForm({ ...form, objetivos_propuesta: (form.objetivos_propuesta ?? []).filter((_, idx) => idx !== i) });
+
 
   const aplicarPais = (code: string) => {
     setPaisCode(code);
@@ -318,6 +405,9 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       condiciones: form.condiciones || null,
       ime_estimado: form.ime_estimado || null,
       justificacion_programa: form.justificacion_programa || null,
+      entregables: form.entregables ?? [],
+      objetivos_propuesta: form.objetivos_propuesta ?? [],
+      diagnostico_resumen: form.diagnostico_resumen || null,
     };
     const { error } = form.id
       ? await supabase.from("cliente_cotizaciones").update(payload as never).eq("id", form.id)
@@ -441,6 +531,63 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
               onChange={(e) => setForm({ ...form, justificacion_programa: e.target.value })}
               placeholder="Por qué este programa es la mejor opción para el cliente"
             />
+          </div>
+
+          {/* Diagnóstico para Propuesta Comercial */}
+          <div className="border-2 border-navy/20 bg-navy/5 rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Diagnóstico (para Propuesta Comercial)</Label>
+              <Button size="sm" variant="outline" onClick={importarDiagnostico}>
+                <RefreshCw className="w-3 h-3 mr-1" /> Importar del Onboarding
+              </Button>
+            </div>
+            <Textarea
+              rows={3}
+              placeholder="Resumen del diagnóstico actual del cliente (situación, retos, contexto)…"
+              value={form.diagnostico_resumen ?? ""}
+              onChange={(e) => setForm({ ...form, diagnostico_resumen: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">El SIDE más reciente y los retos del Onboarding se anexan automáticamente al PDF.</p>
+          </div>
+
+          {/* Objetivos del programa */}
+          <div className="border rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Objetivos del programa</Label>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={recargarEntregables} title="Recargar del catálogo según plan"><Sparkles className="w-3 h-3 mr-1" /> Catálogo</Button>
+                <Button size="sm" variant="outline" onClick={addObjetivo}><Plus className="w-3 h-3" /></Button>
+              </div>
+            </div>
+            <div className="space-y-1">
+              {(form.objetivos_propuesta ?? []).map((o, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <Input value={o} onChange={(e) => updateObjetivo(i, e.target.value)} placeholder="Objetivo concreto y medible" />
+                  <Button size="sm" variant="ghost" className="text-red-600" onClick={() => removeObjetivo(i)}><Trash2 className="w-3 h-3" /></Button>
+                </div>
+              ))}
+              {(form.objetivos_propuesta ?? []).length === 0 && (
+                <div className="text-xs text-muted-foreground">Selecciona un plan o agrega objetivos.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Entregables */}
+          <div className="border rounded p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-navy font-semibold">Entregables del programa</Label>
+              <Button size="sm" variant="outline" onClick={addEntregable}><Plus className="w-3 h-3 mr-1" /> Agregar</Button>
+            </div>
+            <div className="space-y-2">
+              {(form.entregables ?? []).map((e, i) => (
+                <div key={i} className="grid grid-cols-12 gap-2 items-start">
+                  <Input className="col-span-4" placeholder="Entregable" value={e.titulo} onChange={(ev) => updateEntregable(i, "titulo", ev.target.value)} />
+                  <Input className="col-span-7" placeholder="Descripción" value={e.descripcion} onChange={(ev) => updateEntregable(i, "descripcion", ev.target.value)} />
+                  <Button size="sm" variant="ghost" className="col-span-1 text-red-600" onClick={() => removeEntregable(i)}><Trash2 className="w-3 h-3" /></Button>
+                </div>
+              ))}
+              {(form.entregables ?? []).length === 0 && <div className="text-xs text-muted-foreground">Selecciona un plan para precargar.</div>}
+            </div>
           </div>
 
           <div><Label>Condiciones</Label><Textarea rows={2} value={form.condiciones ?? ""} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} /></div>
