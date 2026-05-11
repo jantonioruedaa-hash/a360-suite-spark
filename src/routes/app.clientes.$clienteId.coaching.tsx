@@ -216,6 +216,11 @@ function CoachingClienteWorkspace() {
         </CardContent>
       </Card>
 
+      {/* Síntesis IA del programa completo */}
+      {sesiones.length > 0 && (
+        <SintesisProgramaIA clienteId={clienteId} />
+      )}
+
       {/* Diálogo nueva sesión */}
       {openNueva && (
         <DialogoSesion
