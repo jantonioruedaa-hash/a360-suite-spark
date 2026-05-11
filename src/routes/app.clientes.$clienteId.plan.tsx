@@ -213,6 +213,9 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
         </h2>
         <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
       </div>
+      <div className="mb-4">
+        <MarcoSeccionBanner seccion={seccion} clienteId={clienteId} />
+      </div>
       {renderSeccion()}
       {seccion.numero <= 18 && (
         <AnalisisIABox
