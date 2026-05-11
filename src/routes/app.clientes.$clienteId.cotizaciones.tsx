@@ -291,8 +291,52 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       moneda: pais.moneda,
       ime_estimado: ime?.texto ?? form.ime_estimado ?? null,
       justificacion_programa: form.justificacion_programa || justificacionPorPlan(plan),
+      entregables: (form.entregables && form.entregables.length) ? form.entregables : (ENTREGABLES_PLAN[plan] ?? []),
+      objetivos_propuesta: (form.objetivos_propuesta && form.objetivos_propuesta.length) ? form.objetivos_propuesta : (OBJETIVOS_PLAN[plan] ?? []),
     });
   };
+
+  const importarDiagnostico = async () => {
+    const { data: ob } = await supabase
+      .from("cliente_onboarding")
+      .select("paso3_contexto")
+      .eq("cliente_id", clienteId)
+      .maybeSingle();
+    const ctx = (ob?.paso3_contexto ?? {}) as { situacion_actual?: string; debilidades?: string[]; amenazas?: string[]; contexto_sector?: string };
+    const partes: string[] = [];
+    if (ctx.situacion_actual) partes.push(ctx.situacion_actual);
+    if (ctx.contexto_sector) partes.push(`Contexto del sector: ${ctx.contexto_sector}`);
+    if (!partes.length) { toast.error("No hay diagnóstico en el Onboarding aún."); return; }
+    setForm({ ...form, diagnostico_resumen: partes.join("\n\n") });
+    toast.success("Diagnóstico importado del Onboarding");
+  };
+
+  const recargarEntregables = () => {
+    if (!form.plan) { toast.error("Selecciona un plan primero"); return; }
+    setForm({
+      ...form,
+      entregables: ENTREGABLES_PLAN[form.plan] ?? [],
+      objetivos_propuesta: OBJETIVOS_PLAN[form.plan] ?? [],
+    });
+    toast.success("Entregables y objetivos recargados del catálogo");
+  };
+
+  const updateEntregable = (i: number, field: keyof EntregableItem, val: string) => {
+    const arr = [...(form.entregables ?? [])];
+    arr[i] = { ...arr[i], [field]: val };
+    setForm({ ...form, entregables: arr });
+  };
+  const addEntregable = () => setForm({ ...form, entregables: [...(form.entregables ?? []), { titulo: "", descripcion: "" }] });
+  const removeEntregable = (i: number) => setForm({ ...form, entregables: (form.entregables ?? []).filter((_, idx) => idx !== i) });
+
+  const updateObjetivo = (i: number, val: string) => {
+    const arr = [...(form.objetivos_propuesta ?? [])];
+    arr[i] = val;
+    setForm({ ...form, objetivos_propuesta: arr });
+  };
+  const addObjetivo = () => setForm({ ...form, objetivos_propuesta: [...(form.objetivos_propuesta ?? []), ""] });
+  const removeObjetivo = (i: number) => setForm({ ...form, objetivos_propuesta: (form.objetivos_propuesta ?? []).filter((_, idx) => idx !== i) });
+
 
   const aplicarPais = (code: string) => {
     setPaisCode(code);
