@@ -350,6 +350,8 @@ export type Database = {
           descripcion: string | null
           descuento_porcentaje: number
           descuento_valor: number
+          diagnostico_resumen: string | null
+          entregables: Json
           estado: string
           fecha_emision: string | null
           fecha_vencimiento: string | null
@@ -359,6 +361,7 @@ export type Database = {
           moneda: string
           notas: string | null
           numero_cotizacion: string | null
+          objetivos_propuesta: Json
           plan: string | null
           servicios: Json
           subtotal: number
@@ -376,6 +379,8 @@ export type Database = {
           descripcion?: string | null
           descuento_porcentaje?: number
           descuento_valor?: number
+          diagnostico_resumen?: string | null
+          entregables?: Json
           estado?: string
           fecha_emision?: string | null
           fecha_vencimiento?: string | null
@@ -385,6 +390,7 @@ export type Database = {
           moneda?: string
           notas?: string | null
           numero_cotizacion?: string | null
+          objetivos_propuesta?: Json
           plan?: string | null
           servicios?: Json
           subtotal?: number
@@ -402,6 +408,8 @@ export type Database = {
           descripcion?: string | null
           descuento_porcentaje?: number
           descuento_valor?: number
+          diagnostico_resumen?: string | null
+          entregables?: Json
           estado?: string
           fecha_emision?: string | null
           fecha_vencimiento?: string | null
@@ -411,6 +419,7 @@ export type Database = {
           moneda?: string
           notas?: string | null
           numero_cotizacion?: string | null
+          objetivos_propuesta?: Json
           plan?: string | null
           servicios?: Json
           subtotal?: number
