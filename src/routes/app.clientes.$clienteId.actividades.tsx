@@ -31,6 +31,7 @@ interface Actividad {
   participantes: string[]; temas: string[]; logros: string[]; herramientas: string[];
   semaforo: string | null; justificacion_semaforo: string | null;
   proxima_fecha: string | null; proxima_temas: string[]; mensaje_cliente: string | null;
+  analisis_ia: string | null; analisis_ia_fecha: string | null;
 }
 
 interface ContactoLite { id: string; nombre: string; apellido: string }
@@ -179,6 +180,8 @@ function Actividades() {
 
   return (
     <div className="space-y-4 max-w-5xl">
+      <InstructivoSesion />
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="font-display text-2xl text-navy">Actividades y seguimiento</h2>
         <div className="flex gap-2">
