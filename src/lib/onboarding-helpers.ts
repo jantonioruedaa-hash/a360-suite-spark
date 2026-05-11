@@ -118,12 +118,28 @@ export interface OnboardingPaso3 {
 
 export interface OnboardingPaso4 {
   objetivos: string[];
-  prioridades: Record<string, number>; // dim key -> 1-5
+  prioridades: Record<string, number>; // dim key -> 1-5 (SIDE)
+  expectativas: Record<string, number>; // EXPECTATIVAS_PROGRAMA id -> 1-5
   resultado_3m?: string;
   resultado_final?: string;
   indicador_exito?: string;
   programa_recomendado?: string;
   justificacion?: string;
+}
+
+export interface OnboardingPaso5 {
+  fecha_inicio?: string;
+  fecha_cierre?: string;
+  frecuencia?: string;
+  modalidad?: string;
+  consultor_responsable?: string;
+  inversion?: string;
+  forma_pago?: string;
+  compromisos_cliente: string[];
+  compromisos_consultor: string[];
+  condiciones_aceptadas?: string[]; // condiciones DEFAULT marcadas
+  condiciones?: string;
+  notas?: string;
 }
 
 export interface OnboardingPaso5 {
