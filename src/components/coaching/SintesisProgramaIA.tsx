@@ -64,9 +64,7 @@ export function SintesisProgramaIA({
       {edit ? (
         <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={20} className="font-mono text-xs" />
       ) : texto ? (
-        <div className="prose prose-sm max-w-none text-foreground">
-          <ReactMarkdown>{texto}</ReactMarkdown>
-        </div>
+        <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">{texto}</div>
       ) : (
         <p className="text-sm text-muted-foreground">
           Genera la síntesis ejecutiva del programa: línea base, hilos de transformación, brechas, delta del Radar, recomendaciones y mensaje al sponsor.

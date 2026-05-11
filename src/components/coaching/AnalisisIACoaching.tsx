@@ -93,9 +93,7 @@ export function AnalisisIACoaching({
       {edit ? (
         <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={14} className="font-mono text-xs" />
       ) : texto ? (
-        <div className="prose prose-sm max-w-none text-foreground">
-          <ReactMarkdown>{texto}</ReactMarkdown>
-        </div>
+        <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">{texto}</div>
       ) : (
         <p className="text-xs text-muted-foreground">
           Completa el registro y pulsa <span className="font-semibold">Analizar con IA</span> para obtener
