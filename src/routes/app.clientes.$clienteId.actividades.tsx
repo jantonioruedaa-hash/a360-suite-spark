@@ -13,10 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { TIPOS_ACTIVIDAD } from "@/lib/clientes-helpers";
 import { ETAPAS_PROGRAMA, PROGRAMAS, MODALIDADES_SESION, SEMAFOROS, KPI_LIBRARY, CATEGORIAS_KPI, type KpiInput, type CompromisoInput } from "@/lib/sesion-helpers";
 import { generarReporteSesionPDF } from "@/lib/sesion-pdf";
+import { obtenerPlantilla } from "@/lib/sesion-templates";
 import { toast } from "sonner";
-import { Plus, Trash2, FileDown, Sparkles, Share2 } from "lucide-react";
+import { Plus, Trash2, FileDown, Sparkles, Share2, Wand2 } from "lucide-react";
 import { ShareDialog } from "@/components/ShareDialog";
-import { generarReporteSesionPDF as _genPdf } from "@/lib/sesion-pdf";
+import { InstructivoSesion } from "@/components/sesion/InstructivoSesion";
+import { AnalisisIASesion } from "@/components/sesion/AnalisisIASesion";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/actividades")({ component: Actividades });
 
