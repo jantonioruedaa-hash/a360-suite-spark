@@ -52,6 +52,8 @@ export interface OnboardingPaso1 {
   tipo_empresa?: string;
   mercado_objetivo?: string;
   cobertura?: string;
+  num_empleados?: string;
+  facturacion_anual?: string;
   historia?: string;
   productos?: string;
   propuesta_valor?: string;
@@ -59,6 +61,40 @@ export interface OnboardingPaso1 {
   procesos?: string;
   herramientas_digitales?: string;
 }
+
+/* Expectativas pre-cargadas (App7) — separadas de las prioridades SIDE */
+export const EXPECTATIVAS_PROGRAMA = [
+  { id: "estrategia", label: "Claridad estratégica y visión de futuro" },
+  { id: "ventas", label: "Crecimiento en ventas e ingresos" },
+  { id: "procesos", label: "Mejora de procesos y eficiencia operativa" },
+  { id: "finanzas", label: "Rentabilidad y control financiero" },
+  { id: "equipo", label: "Desarrollo del equipo y talento humano" },
+  { id: "digital", label: "Transformación digital y herramientas tecnológicas" },
+  { id: "escalar", label: "Escalabilidad y reducción de dependencia del dueño" },
+] as const;
+
+/* Compromisos y condiciones estándar A360SP (App7) */
+export const COMPROMISOS_CLIENTE_DEFAULT = [
+  "Asistir puntualmente a todas las sesiones programadas",
+  "Dedicar el tiempo necesario entre sesiones para implementar los acuerdos",
+  "Compartir información real y transparente sobre la empresa",
+  "Involucrar al equipo clave en las sesiones que lo requieran",
+  "Respetar la confidencialidad de las metodologías y herramientas",
+  "Realizar el pago acordado según las condiciones pactadas",
+];
+export const COMPROMISOS_CONSULTOR_DEFAULT = [
+  "Preparar cada sesión con información y herramientas actualizadas",
+  "Entregar el reporte de sesión dentro de las 24 horas siguientes",
+  "Mantener total confidencialidad de la información del cliente",
+  "Estar disponible para consultas puntuales entre sesiones",
+  "Adaptar la metodología a las necesidades específicas del cliente",
+];
+export const CONDICIONES_DEFAULT = [
+  "Las sesiones canceladas con menos de 24 horas se cobrarán como realizadas",
+  "El incumplimiento reiterado de compromisos puede ser causal de terminación del programa",
+  "Los materiales y herramientas entregados son de uso exclusivo del cliente",
+  "Este acuerdo tiene carácter de documento de buena fe entre las partes",
+];
 
 export interface OnboardingPaso2 {
   nombre?: string; cargo?: string; email?: string;
@@ -82,12 +118,28 @@ export interface OnboardingPaso3 {
 
 export interface OnboardingPaso4 {
   objetivos: string[];
-  prioridades: Record<string, number>; // dim key -> 1-5
+  prioridades: Record<string, number>; // dim key -> 1-5 (SIDE)
+  expectativas: Record<string, number>; // EXPECTATIVAS_PROGRAMA id -> 1-5
   resultado_3m?: string;
   resultado_final?: string;
   indicador_exito?: string;
   programa_recomendado?: string;
   justificacion?: string;
+}
+
+export interface OnboardingPaso5 {
+  fecha_inicio?: string;
+  fecha_cierre?: string;
+  frecuencia?: string;
+  modalidad?: string;
+  consultor_responsable?: string;
+  inversion?: string;
+  forma_pago?: string;
+  compromisos_cliente: string[];
+  compromisos_consultor: string[];
+  condiciones_aceptadas?: string[]; // condiciones DEFAULT marcadas
+  condiciones?: string;
+  notas?: string;
 }
 
 export interface OnboardingPaso5 {

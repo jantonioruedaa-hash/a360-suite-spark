@@ -13,12 +13,13 @@ import {
   TIPOS_EMPRESA, MERCADOS_OBJETIVO, COBERTURAS, ORG_OPCIONES, PROC_OPCIONES, HERR_OPCIONES,
   ESTILOS_LIDERAZGO, ROLES_LIDER, DISPONIBILIDAD, EXPERIENCIA_CONSULTORES, ACTITUD_CAMBIO,
   DIMENSIONES_SIDE_12, PROGRAMAS_RECOMENDADOS, FRECUENCIAS, MODALIDADES, PASOS_ONBOARDING,
+  EXPECTATIVAS_PROGRAMA, COMPROMISOS_CLIENTE_DEFAULT, COMPROMISOS_CONSULTOR_DEFAULT, CONDICIONES_DEFAULT,
   type OnboardingPaso1, type OnboardingPaso2, type OnboardingPaso3, type OnboardingPaso4, type OnboardingPaso5,
 } from "@/lib/onboarding-helpers";
 import { generarPerfilClientePDF } from "@/lib/onboarding-pdf";
 import { generarAnalisisOnboarding } from "@/server/onboarding-ia.functions";
 import {
-  Plus, Trash2, ArrowLeft, ArrowRight, Save, FileDown, Sparkles, CheckCircle2, Loader2,
+  Plus, Trash2, ArrowLeft, ArrowRight, Save, FileDown, Sparkles, CheckCircle2, Loader2, ClipboardList, Users, Target, Handshake, FileText,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/onboarding")({ component: OnboardingPage });
@@ -35,8 +36,8 @@ function OnboardingPage() {
   const [p1, setP1] = useState<OnboardingPaso1>({});
   const [p2, setP2] = useState<OnboardingPaso2>({});
   const [p3, setP3] = useState<OnboardingPaso3>({ fortalezas: [], debilidades: [], oportunidades: [], amenazas: [], dimensiones_urgentes: [] });
-  const [p4, setP4] = useState<OnboardingPaso4>({ objetivos: [], prioridades: {} });
-  const [p5, setP5] = useState<OnboardingPaso5>({ compromisos_cliente: [], compromisos_consultor: [] });
+  const [p4, setP4] = useState<OnboardingPaso4>({ objetivos: [], prioridades: {}, expectativas: {} });
+  const [p5, setP5] = useState<OnboardingPaso5>({ compromisos_cliente: [], compromisos_consultor: [], condiciones_aceptadas: [] });
   const [analisisIa, setAnalisisIa] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [generando, setGenerando] = useState(false);
@@ -56,9 +57,9 @@ function OnboardingPage() {
         const p3raw = (o.paso3_contexto as Partial<OnboardingPaso3>) ?? {};
         setP3({ fortalezas: [], debilidades: [], oportunidades: [], amenazas: [], dimensiones_urgentes: [], ...p3raw });
         const p4raw = (o.paso4_expectativas as Partial<OnboardingPaso4>) ?? {};
-        setP4({ objetivos: [], prioridades: {}, ...p4raw });
+        setP4({ objetivos: [], prioridades: {}, expectativas: {}, ...p4raw });
         const p5raw = (o.paso5_acuerdo as Partial<OnboardingPaso5>) ?? {};
-        setP5({ compromisos_cliente: [], compromisos_consultor: [], ...p5raw });
+        setP5({ compromisos_cliente: [], compromisos_consultor: [], condiciones_aceptadas: [], ...p5raw });
         setAnalisisIa(o.analisis_ia ?? null);
         setCompletado(o.completado ?? false);
         setPaso(Math.min(Math.max(o.paso_actual ?? 1, 1), 6));
@@ -265,20 +266,69 @@ function ListaEditable({ items, onChange, placeholder, label }: { items: string[
 function Paso1({ v, set }: { v: OnboardingPaso1; set: (v: OnboardingPaso1) => void }) {
   const u = (k: keyof OnboardingPaso1, val: string) => set({ ...v, [k]: val });
   return (
-    <Card title="1. Perfil de la empresa">
-      <Grid>
-        <F label="Año de fundación"><Input value={v.anio_fundacion ?? ""} onChange={(e) => u("anio_fundacion", e.target.value)} /></F>
-        <F label="Tipo de empresa"><Sel value={v.tipo_empresa} onChange={(x) => u("tipo_empresa", x)} options={TIPOS_EMPRESA} /></F>
-        <F label="Mercado objetivo"><Sel value={v.mercado_objetivo} onChange={(x) => u("mercado_objetivo", x)} options={MERCADOS_OBJETIVO} /></F>
-        <F label="Cobertura geográfica"><Sel value={v.cobertura} onChange={(x) => u("cobertura", x)} options={COBERTURAS} /></F>
-        <F label="¿Tiene organigrama definido?"><Sel value={v.organigrama} onChange={(x) => u("organigrama", x)} options={ORG_OPCIONES} /></F>
-        <F label="¿Tiene procesos documentados?"><Sel value={v.procesos} onChange={(x) => u("procesos", x)} options={PROC_OPCIONES} /></F>
-        <F label="¿Usa herramientas digitales de gestión?"><Sel value={v.herramientas_digitales} onChange={(x) => u("herramientas_digitales", x)} options={HERR_OPCIONES} /></F>
-        <F label="Breve historia de la empresa" wide><Textarea rows={3} value={v.historia ?? ""} onChange={(e) => u("historia", e.target.value)} /></F>
-        <F label="Principales productos o servicios" wide><Textarea rows={2} value={v.productos ?? ""} onChange={(e) => u("productos", e.target.value)} /></F>
-        <F label="Propuesta de valor actual" wide><Textarea rows={2} value={v.propuesta_valor ?? ""} onChange={(e) => u("propuesta_valor", e.target.value)} /></F>
-      </Grid>
+    <>
+      <Instructivo />
+      <Card title="1. Perfil de la empresa">
+        <Grid>
+          <F label="Año de fundación"><Input value={v.anio_fundacion ?? ""} onChange={(e) => u("anio_fundacion", e.target.value)} placeholder="Ej. 2010" /></F>
+          <F label="Tipo de empresa"><Sel value={v.tipo_empresa} onChange={(x) => u("tipo_empresa", x)} options={TIPOS_EMPRESA} /></F>
+          <F label="Número de empleados"><Input type="number" value={v.num_empleados ?? ""} onChange={(e) => u("num_empleados", e.target.value)} placeholder="Ej. 25" /></F>
+          <F label="Facturación anual (USD)"><Input value={v.facturacion_anual ?? ""} onChange={(e) => u("facturacion_anual", e.target.value)} placeholder="Ej. $500,000" /></F>
+          <F label="Mercado objetivo"><Sel value={v.mercado_objetivo} onChange={(x) => u("mercado_objetivo", x)} options={MERCADOS_OBJETIVO} /></F>
+          <F label="Cobertura geográfica"><Sel value={v.cobertura} onChange={(x) => u("cobertura", x)} options={COBERTURAS} /></F>
+          <F label="¿Tiene organigrama definido?"><Sel value={v.organigrama} onChange={(x) => u("organigrama", x)} options={ORG_OPCIONES} /></F>
+          <F label="¿Tiene procesos documentados?"><Sel value={v.procesos} onChange={(x) => u("procesos", x)} options={PROC_OPCIONES} /></F>
+          <F label="¿Usa herramientas digitales de gestión?"><Sel value={v.herramientas_digitales} onChange={(x) => u("herramientas_digitales", x)} options={HERR_OPCIONES} /></F>
+          <F label="Breve historia de la empresa" wide><Textarea rows={3} value={v.historia ?? ""} onChange={(e) => u("historia", e.target.value)} placeholder="¿Cómo nació la empresa? ¿Cuáles han sido los hitos más importantes?" /></F>
+          <F label="Principales productos o servicios" wide><Textarea rows={2} value={v.productos ?? ""} onChange={(e) => u("productos", e.target.value)} placeholder="¿Qué vende? ¿Cuáles son sus líneas más importantes?" /></F>
+          <F label="Propuesta de valor actual" wide><Textarea rows={2} value={v.propuesta_valor ?? ""} onChange={(e) => u("propuesta_valor", e.target.value)} placeholder="¿Por qué los clientes eligen esta empresa y no a la competencia?" /></F>
+        </Grid>
+      </Card>
+    </>
+  );
+}
+
+function Instructivo() {
+  const pasos = [
+    { n: 1, t: "Empresa", d: "Historia, estructura y modelo de negocio", i: ClipboardList, c: "border-l-gold bg-amber-50" },
+    { n: 2, t: "Líder", d: "Perfil del empresario, estilo y motivación", i: Users, c: "border-l-violet-500 bg-violet-50" },
+    { n: 3, t: "Contexto", d: "Situación actual, retos y oportunidades", i: Target, c: "border-l-blue-500 bg-blue-50" },
+    { n: 4, t: "Expectativas", d: "Objetivos, prioridades y resultados esperados", i: Sparkles, c: "border-l-emerald-500 bg-emerald-50" },
+    { n: 5, t: "Acuerdo", d: "Compromisos mutuos y condiciones de trabajo", i: Handshake, c: "border-l-orange-500 bg-orange-50" },
+  ];
+  return (
+    <Card title="Onboarding · Cómo se construye el Perfil del Cliente">
+      <p className="text-xs text-muted-foreground">
+        Esta herramienta se completa en la <b>primera sesión</b> con el cliente. Levanta el perfil completo de la empresa y el líder, establece el acuerdo de trabajo y genera el <b>Perfil del Cliente</b> que alimenta directamente el diagnóstico SIDE y las apps del Plan Estratégico.
+      </p>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {pasos.map((p) => {
+          const Icon = p.i;
+          return (
+            <div key={p.n} className={`border-l-4 rounded p-2.5 ${p.c}`}>
+              <div className="flex items-center gap-1.5 text-navy font-bold text-xs"><Icon className="w-3.5 h-3.5" /> {p.n}. {p.t}</div>
+              <div className="text-[10px] text-muted-foreground mt-1 leading-tight">{p.d}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] mt-2">
+        <Eco color="bg-navy text-white" t="Onboarding" s="Perfil del cliente" icon="📋" />
+        <Eco color="bg-emerald-50 text-emerald-800 border border-emerald-200" t="SIDE" s="Diagnóstico" icon="🔍" />
+        <Eco color="bg-blue-50 text-blue-800 border border-blue-200" t="Plan Estratégico" s="18 secciones" icon="📈" />
+        <Eco color="bg-amber-50 text-amber-800 border border-amber-200" t="KPIs / BSC" s="Seguimiento" icon="📊" />
+      </div>
     </Card>
+  );
+}
+
+function Eco({ color, t, s, icon }: { color: string; t: string; s: string; icon: string }) {
+  return (
+    <div className={`rounded p-2 text-center ${color}`}>
+      <div className="text-base">{icon}</div>
+      <div className="font-bold mt-0.5">{t}</div>
+      <div className="opacity-70">{s}</div>
+    </div>
   );
 }
 
@@ -392,6 +442,28 @@ function Paso4({ v, set }: { v: OnboardingPaso4; set: (v: OnboardingPaso4) => vo
           ))}
         </div>
       </Card>
+      <Card title="4B-bis. Importancia de cada expectativa del programa (1-5)">
+        <p className="text-xs text-muted-foreground">El cliente evalúa qué tan importante es cada uno de estos resultados típicos del programa.</p>
+        <div className="space-y-2">
+          {EXPECTATIVAS_PROGRAMA.map((e) => {
+            const cur = v.expectativas?.[e.id] ?? 0;
+            return (
+              <div key={e.id} className="flex items-center justify-between gap-3 bg-muted/30 rounded px-3 py-2">
+                <span className="text-sm flex-1">{e.label}</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} type="button"
+                      onClick={() => set({ ...v, expectativas: { ...v.expectativas, [e.id]: n } })}
+                      className={`w-7 h-7 text-xs rounded border ${cur === n ? "bg-gold text-navy border-gold font-bold" : "bg-white text-muted-foreground border-border hover:border-gold"}`}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
       <Card title="4C. Resultados esperados">
         <Grid>
           <F label="¿Qué resultado concreto espera en 3 meses?" wide><Textarea rows={2} value={v.resultado_3m ?? ""} onChange={(e) => set({ ...v, resultado_3m: e.target.value })} /></F>
@@ -406,6 +478,30 @@ function Paso4({ v, set }: { v: OnboardingPaso4; set: (v: OnboardingPaso4) => vo
         </Grid>
       </Card>
     </>
+  );
+}
+
+function CheckList({ options, selected, onChange }: { options: string[]; selected: string[]; onChange: (v: string[]) => void }) {
+  const toggle = (opt: string) => {
+    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt]);
+  };
+  return (
+    <ul className="space-y-1.5">
+      {options.map((opt) => {
+        const sel = selected.includes(opt);
+        return (
+          <li key={opt}>
+            <button type="button" onClick={() => toggle(opt)}
+              className={`w-full text-left flex items-start gap-2 rounded px-2.5 py-1.5 text-sm border transition ${sel ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-white border-border text-foreground hover:border-gold"}`}>
+              <span className={`mt-0.5 inline-flex items-center justify-center w-4 h-4 rounded border ${sel ? "bg-emerald-600 border-emerald-600 text-white" : "border-muted-foreground/40"}`}>
+                {sel ? "✓" : ""}
+              </span>
+              <span className="flex-1">{opt}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -427,17 +523,47 @@ function Paso5({ v, set }: { v: OnboardingPaso5; set: (v: OnboardingPaso5) => vo
           <F label="Forma de pago"><Input value={v.forma_pago ?? ""} onChange={(e) => set({ ...v, forma_pago: e.target.value })} /></F>
         </Grid>
       </Card>
-      <Card title="5C. Compromisos">
-        <Grid>
-          <F label="Compromisos del cliente"><ListaEditable items={v.compromisos_cliente} onChange={(x) => set({ ...v, compromisos_cliente: x })} placeholder="+ Agregar compromiso del cliente" label="compromisos" /></F>
-          <F label="Compromisos del consultor"><ListaEditable items={v.compromisos_consultor} onChange={(x) => set({ ...v, compromisos_consultor: x })} placeholder="+ Agregar compromiso del consultor" label="compromisos" /></F>
-        </Grid>
+      <Card title="5C. Compromisos del cliente">
+        <p className="text-xs text-muted-foreground">Marca los compromisos estándar A360SP que el cliente acepta y agrega los específicos del programa.</p>
+        <CheckList
+          options={[...COMPROMISOS_CLIENTE_DEFAULT]}
+          selected={v.compromisos_cliente}
+          onChange={(x) => set({ ...v, compromisos_cliente: x })}
+        />
+        <div className="mt-3">
+          <Label className="text-xs">Compromisos adicionales</Label>
+          <ListaEditable
+            items={v.compromisos_cliente.filter((c) => !COMPROMISOS_CLIENTE_DEFAULT.includes(c))}
+            onChange={(extras) => set({ ...v, compromisos_cliente: [...v.compromisos_cliente.filter((c) => COMPROMISOS_CLIENTE_DEFAULT.includes(c)), ...extras] })}
+            placeholder="+ Compromiso específico del cliente" label="compromisos"
+          />
+        </div>
       </Card>
-      <Card title="5D. Condiciones y notas">
-        <Grid>
-          <F label="Condiciones del servicio" wide><Textarea rows={3} value={v.condiciones ?? ""} onChange={(e) => set({ ...v, condiciones: e.target.value })} /></F>
-          <F label="Notas finales del consultor" wide><Textarea rows={2} value={v.notas ?? ""} onChange={(e) => set({ ...v, notas: e.target.value })} /></F>
-        </Grid>
+      <Card title="5D. Compromisos del consultor">
+        <CheckList
+          options={[...COMPROMISOS_CONSULTOR_DEFAULT]}
+          selected={v.compromisos_consultor}
+          onChange={(x) => set({ ...v, compromisos_consultor: x })}
+        />
+        <div className="mt-3">
+          <Label className="text-xs">Compromisos adicionales</Label>
+          <ListaEditable
+            items={v.compromisos_consultor.filter((c) => !COMPROMISOS_CONSULTOR_DEFAULT.includes(c))}
+            onChange={(extras) => set({ ...v, compromisos_consultor: [...v.compromisos_consultor.filter((c) => COMPROMISOS_CONSULTOR_DEFAULT.includes(c)), ...extras] })}
+            placeholder="+ Compromiso específico del consultor" label="compromisos"
+          />
+        </div>
+      </Card>
+      <Card title="5E. Condiciones del servicio">
+        <CheckList
+          options={[...CONDICIONES_DEFAULT]}
+          selected={v.condiciones_aceptadas ?? []}
+          onChange={(x) => set({ ...v, condiciones_aceptadas: x })}
+        />
+        <div className="mt-3">
+          <F label="Condiciones especiales" wide><Textarea rows={2} value={v.condiciones ?? ""} onChange={(e) => set({ ...v, condiciones: e.target.value })} placeholder="Cualquier condición particular fuera del estándar..." /></F>
+          <F label="Notas finales del consultor" wide><Textarea rows={2} value={v.notas ?? ""} onChange={(e) => set({ ...v, notas: e.target.value })} placeholder="Observaciones, condiciones especiales, aspectos a monitorear..." /></F>
+        </div>
       </Card>
     </>
   );
@@ -455,35 +581,117 @@ function Paso6({
   return (
     <>
       <Card title="Vista previa del Perfil del Cliente">
-        <div className="border border-border rounded p-5 space-y-4 bg-white">
-          <div className="border-b border-gold pb-3">
-            <div className="text-xs text-gold uppercase tracking-wider">A360SGP · Perfil del Cliente</div>
-            <h3 className="font-display text-navy text-xl mt-1">{cliente?.nombre_empresa ?? "—"}</h3>
-            <p className="text-sm text-muted-foreground">{[cliente?.sector, cliente?.ciudad, cliente?.pais].filter(Boolean).join(" · ")}</p>
+        <div className="border border-border rounded p-5 space-y-5 bg-white">
+          <div className="border-b-2 border-gold pb-3">
+            <div className="text-[10px] text-gold uppercase tracking-[0.15em] font-bold">A360SP · Documento de entrada</div>
+            <h3 className="font-display text-navy text-2xl mt-1">{cliente?.nombre_empresa ?? "—"}</h3>
+            <p className="text-xs text-muted-foreground">{[cliente?.sector, cliente?.ciudad, cliente?.pais].filter(Boolean).join(" · ")}</p>
           </div>
-          <Resumen titulo="1. Empresa" items={[
-            ["Tipo", p1.tipo_empresa], ["Mercado", p1.mercado_objetivo], ["Cobertura", p1.cobertura],
-            ["Fundación", p1.anio_fundacion], ["Organigrama", p1.organigrama], ["Procesos", p1.procesos],
-          ]} />
-          <Resumen titulo="2. Líder" items={[
-            ["Nombre", p2.nombre], ["Cargo", p2.cargo], ["Estilo", p2.estilo], ["Rol", p2.rol],
-            ["Disponibilidad", p2.disponibilidad], ["Actitud al cambio", p2.actitud_cambio],
-          ]} />
-          <Resumen titulo="3. Contexto" items={[
-            ["Fortalezas", `${p3.fortalezas.length}`], ["Debilidades", `${p3.debilidades.length}`],
-            ["Oportunidades", `${p3.oportunidades.length}`], ["Amenazas", `${p3.amenazas.length}`],
-            ["Dim. urgentes", `${p3.dimensiones_urgentes.length}`],
-          ]} />
-          <Resumen titulo="4. Expectativas" items={[
-            ["Objetivos", `${p4.objetivos.length}`],
-            ["Programa", p4.programa_recomendado],
-            ["Resultado 3m", p4.resultado_3m ? "Definido" : "—"],
-          ]} />
-          <Resumen titulo="5. Acuerdo" items={[
-            ["Inicio", p5.fecha_inicio], ["Cierre", p5.fecha_cierre],
-            ["Frecuencia", p5.frecuencia], ["Modalidad", p5.modalidad],
-            ["Inversión", p5.inversion],
-          ]} />
+
+          <PerfilSection titulo="1. Identidad y modelo de negocio">
+            <Resumen items={[
+              ["Tipo de empresa", p1.tipo_empresa], ["Año fundación", p1.anio_fundacion],
+              ["Empleados", p1.num_empleados], ["Facturación", p1.facturacion_anual],
+              ["Mercado", p1.mercado_objetivo], ["Cobertura", p1.cobertura],
+              ["Organigrama", p1.organigrama], ["Procesos doc.", p1.procesos], ["Digitalización", p1.herramientas_digitales],
+            ]} />
+            {p1.historia && <Narrative title="Historia" text={p1.historia} />}
+            {p1.productos && <Narrative title="Productos / Servicios" text={p1.productos} />}
+            {p1.propuesta_valor && <Narrative title="Propuesta de valor actual" text={p1.propuesta_valor} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="2. Líder">
+            <Resumen items={[
+              ["Nombre", p2.nombre], ["Cargo", p2.cargo], ["Edad", p2.edad], ["Experiencia", p2.experiencia],
+              ["Formación", p2.formacion], ["Estilo", p2.estilo], ["Rol principal", p2.rol],
+              ["Disponibilidad", p2.disponibilidad], ["Actitud al cambio", p2.actitud_cambio],
+            ]} />
+            {p2.fortaleza && <Narrative title="Fortaleza principal" text={p2.fortaleza} />}
+            {p2.area_desarrollo && <Narrative title="Área de desarrollo prioritaria" text={p2.area_desarrollo} />}
+            {p2.vision_5_anios && <Narrative title="Visión a 5 años" text={p2.vision_5_anios} />}
+            {p2.motivacion && <Narrative title="Motivación para buscar consultoría" text={p2.motivacion} />}
+            {p2.temor && <Narrative title="Temores / resistencias" text={p2.temor} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="3. Contexto estratégico (FODA preliminar)">
+            {p3.situacion_actual && <Narrative title="Situación actual descrita por el líder" text={p3.situacion_actual} />}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <FodaBox titulo="Fortalezas" color="emerald" items={p3.fortalezas} />
+              <FodaBox titulo="Debilidades" color="rose" items={p3.debilidades} />
+              <FodaBox titulo="Oportunidades" color="blue" items={p3.oportunidades} />
+              <FodaBox titulo="Amenazas" color="amber" items={p3.amenazas} />
+            </div>
+            {p3.dimensiones_urgentes.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Dimensiones SIDE urgentes</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {p3.dimensiones_urgentes.map((k) => {
+                    const d = DIMENSIONES_SIDE_12.find((x) => x.key === k);
+                    return <span key={k} className="text-[11px] px-2 py-0.5 rounded-full bg-navy text-white">{d?.nombre ?? k}</span>;
+                  })}
+                </div>
+              </div>
+            )}
+            {p3.contexto_sector && <Narrative title="Contexto del sector" text={p3.contexto_sector} />}
+            {p3.competencia && <Narrative title="Competencia principal" text={p3.competencia} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="4. Expectativas y programa recomendado">
+            {p4.objetivos.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Objetivos del cliente</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{p4.objetivos.map((o, i) => <li key={i}>{o}</li>)}</ul>
+              </div>
+            )}
+            {Object.keys(p4.expectativas ?? {}).length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Importancia (1-5)</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
+                  {EXPECTATIVAS_PROGRAMA.filter((e) => p4.expectativas?.[e.id]).map((e) => (
+                    <div key={e.id} className="flex justify-between gap-2 bg-muted/40 rounded px-2 py-0.5">
+                      <span>{e.label}</span><span className="font-bold text-navy">{p4.expectativas[e.id]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <Resumen items={[
+              ["Programa recomendado", p4.programa_recomendado],
+              ["Indicador de éxito", p4.indicador_exito],
+            ]} />
+            {p4.resultado_3m && <Narrative title="Resultado esperado a 3 meses" text={p4.resultado_3m} />}
+            {p4.resultado_final && <Narrative title="Resultado esperado al cierre" text={p4.resultado_final} />}
+            {p4.justificacion && <Narrative title="Justificación del programa" text={p4.justificacion} />}
+          </PerfilSection>
+
+          <PerfilSection titulo="5. Acuerdo de trabajo">
+            <Resumen items={[
+              ["Inicio", p5.fecha_inicio], ["Cierre", p5.fecha_cierre],
+              ["Frecuencia", p5.frecuencia], ["Modalidad", p5.modalidad],
+              ["Consultor", p5.consultor_responsable],
+              ["Inversión", p5.inversion], ["Forma de pago", p5.forma_pago],
+            ]} />
+            {p5.compromisos_cliente.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Compromisos del cliente</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{p5.compromisos_cliente.map((c, i) => <li key={i}>{c}</li>)}</ul>
+              </div>
+            )}
+            {p5.compromisos_consultor.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Compromisos del consultor</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{p5.compromisos_consultor.map((c, i) => <li key={i}>{c}</li>)}</ul>
+              </div>
+            )}
+            {(p5.condiciones_aceptadas ?? []).length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-1">Condiciones aceptadas</div>
+                <ul className="text-sm list-disc list-inside space-y-0.5">{(p5.condiciones_aceptadas ?? []).map((c, i) => <li key={i}>{c}</li>)}</ul>
+              </div>
+            )}
+            {p5.condiciones && <Narrative title="Condiciones especiales" text={p5.condiciones} />}
+            {p5.notas && <Narrative title="Notas finales" text={p5.notas} />}
+          </PerfilSection>
         </div>
       </Card>
 
@@ -524,10 +732,10 @@ function Paso6({
   );
 }
 
-function Resumen({ titulo, items }: { titulo: string; items: Array<[string, string | undefined]> }) {
+function Resumen({ titulo, items }: { titulo?: string; items: Array<[string, string | undefined]> }) {
   return (
     <div>
-      <div className="text-xs font-bold text-gold uppercase tracking-wider mb-1">{titulo}</div>
+      {titulo && <div className="text-xs font-bold text-gold uppercase tracking-wider mb-1">{titulo}</div>}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-xs">
         {items.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-2">
@@ -536,6 +744,43 @@ function Resumen({ titulo, items }: { titulo: string; items: Array<[string, stri
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function PerfilSection({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3 pb-4 border-b border-dashed border-border last:border-0">
+      <div className="text-sm font-bold text-navy">{titulo}</div>
+      {children}
+    </div>
+  );
+}
+
+function Narrative({ title, text }: { title: string; text: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-gold font-bold mb-0.5">{title}</div>
+      <p className="text-sm text-foreground leading-snug whitespace-pre-wrap">{text}</p>
+    </div>
+  );
+}
+
+function FodaBox({ titulo, color, items }: { titulo: string; color: "emerald" | "rose" | "blue" | "amber"; items: string[] }) {
+  const colors: Record<string, string> = {
+    emerald: "border-emerald-300 bg-emerald-50 text-emerald-900",
+    rose: "border-rose-300 bg-rose-50 text-rose-900",
+    blue: "border-blue-300 bg-blue-50 text-blue-900",
+    amber: "border-amber-300 bg-amber-50 text-amber-900",
+  };
+  return (
+    <div className={`border rounded p-2.5 ${colors[color]}`}>
+      <div className="text-[10px] uppercase tracking-wider font-bold mb-1">{titulo}</div>
+      {items.length === 0 ? (
+        <p className="text-xs italic opacity-60">—</p>
+      ) : (
+        <ul className="text-xs list-disc list-inside space-y-0.5">{items.map((it, i) => <li key={i}>{it}</li>)}</ul>
+      )}
     </div>
   );
 }
