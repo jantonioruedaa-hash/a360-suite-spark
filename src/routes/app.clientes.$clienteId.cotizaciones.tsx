@@ -137,6 +137,41 @@ function Cotizaciones() {
     doc.save(`${c.numero_cotizacion}.pdf`);
   };
 
+  const exportarPropuesta = async (c: Cotizacion) => {
+    if (!cliente) return;
+    const ct = contactos.find((x) => x.id === c.contacto_id);
+    const [{ data: ob }, { data: sd }] = await Promise.all([
+      supabase.from("cliente_onboarding").select("paso3_contexto,paso4_expectativas").eq("cliente_id", clienteId).maybeSingle(),
+      supabase.from("side_sesiones").select("idf_score,cof_score,ivee_score,ime_score").eq("cliente_id", clienteId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    const ctx = (ob?.paso3_contexto ?? {}) as { situacion_actual?: string; debilidades?: string[]; amenazas?: string[] };
+    const retos = [...(ctx.debilidades ?? []), ...(ctx.amenazas ?? [])].slice(0, 6);
+    const diag = c.diagnostico_resumen || ctx.situacion_actual || null;
+    const doc = generarPropuestaComercialPDF({
+      numero: c.numero_cotizacion, titulo: c.titulo,
+      fechaEmision: c.fecha_emision, fechaVencimiento: c.fecha_vencimiento, validezDias: c.validez_dias, moneda: c.moneda,
+      plan: c.plan, planLabel: c.plan ? PLANES_PRESET[c.plan]?.label ?? c.plan : null,
+      cliente: {
+        empresa: cliente.nombre_empresa, nombreComercial: cliente.nombre_comercial, sector: cliente.sector,
+        contacto: ct ? `${ct.nombre} ${ct.apellido}` : null, email: ct?.email ?? null,
+        telefono: ct?.telefono_oficina ?? ct?.celular ?? null,
+        direccion: cliente.direccion, ciudad: cliente.ciudad, pais: cliente.pais,
+      },
+      diagnosticoResumen: diag,
+      scoresSide: sd ? { idf: sd.idf_score, cof: sd.cof_score, ivee: sd.ivee_score, ime: sd.ime_score } : null,
+      retosClave: retos,
+      objetivos: c.objetivos_propuesta?.length ? c.objetivos_propuesta : OBJETIVOS_PLAN[c.plan ?? ""] ?? [],
+      entregables: c.entregables?.length ? c.entregables : ENTREGABLES_PLAN[c.plan ?? ""] ?? [],
+      justificacion: c.justificacion_programa,
+      servicios: c.servicios, subtotal: c.subtotal,
+      descuentoPorcentaje: c.descuento_porcentaje, descuentoValor: c.descuento_valor, total: c.total,
+      imeEstimado: c.ime_estimado, condiciones: c.condiciones, notas: c.notas,
+      consultor: { nombre: profile?.name, email: profile?.email },
+    });
+    doc.save(`Propuesta-${c.numero_cotizacion}.pdf`);
+    toast.success("Propuesta generada");
+  };
+
   return (
     <div className="space-y-4 max-w-6xl">
       <div className="flex items-center justify-between flex-wrap gap-3">
