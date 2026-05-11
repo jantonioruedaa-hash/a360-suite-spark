@@ -56,58 +56,66 @@ export const analizarReporteSesion = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context as { supabase: any };
-    const { data: act, error } = await supabase
-      .from("cliente_actividades")
-      .select("*")
-      .eq("id", data.actividadId)
-      .maybeSingle();
-    if (error || !act) throw new Error("Sesión no encontrada");
-    if (!act.es_sesion_consultoria) throw new Error("Solo aplicable a sesiones de consultoría");
+    try {
+      const { supabase } = context as { supabase: any };
+      const { data: act, error } = await supabase
+        .from("cliente_actividades")
+        .select("*")
+        .eq("id", data.actividadId)
+        .maybeSingle();
+      if (error) throw new Error(`DB: ${error.message}`);
+      if (!act) throw new Error("Sesión no encontrada");
+      if (!act.es_sesion_consultoria) throw new Error("Solo aplicable a sesiones de consultoría");
 
-    const [{ data: kpis }, { data: comps }] = await Promise.all([
-      supabase.from("cliente_kpis").select("*").eq("actividad_id", data.actividadId),
-      supabase.from("cliente_compromisos").select("*").eq("actividad_id", data.actividadId),
-    ]);
+      const [kpisRes, compsRes] = await Promise.all([
+        supabase.from("cliente_kpis").select("*").eq("actividad_id", data.actividadId),
+        supabase.from("cliente_compromisos").select("*").eq("actividad_id", data.actividadId),
+      ]);
+      const kpis = kpisRes.data ?? [];
+      const comps = compsRes.data ?? [];
 
-    const userPrompt = `CLIENTE / CONTEXTO:
+      const userPrompt = `CLIENTE / CONTEXTO:
 ${data.contextoCliente || "(sin contexto adicional)"}
 
 REPORTE DE SESIÓN (JSON):
 ${JSON.stringify({
-  numero_sesion: act.numero_sesion,
-  programa: act.programa,
-  etapa: act.etapa_programa,
-  fecha: act.fecha,
-  duracion_minutos: act.duracion_minutos,
-  modalidad: act.modalidad,
-  participantes: act.participantes,
-  objetivo: act.objetivo,
-  temas: act.temas,
-  logros: act.logros,
-  herramientas: act.herramientas,
-  semaforo: act.semaforo,
-  justificacion_semaforo: act.justificacion_semaforo,
-  proxima_fecha: act.proxima_fecha,
-  proxima_temas: act.proxima_temas,
+  numero_sesion: act.numero_sesion, programa: act.programa, etapa: act.etapa_programa,
+  fecha: act.fecha, duracion_minutos: act.duracion_minutos, modalidad: act.modalidad,
+  participantes: act.participantes, objetivo: act.objetivo,
+  temas: act.temas, logros: act.logros, herramientas: act.herramientas,
+  semaforo: act.semaforo, justificacion_semaforo: act.justificacion_semaforo,
+  proxima_fecha: act.proxima_fecha, proxima_temas: act.proxima_temas,
   mensaje_cliente: act.mensaje_cliente,
 }, null, 2)}
 
 KPIs MEDIDOS:
-${JSON.stringify(kpis ?? [], null, 2)}
+${JSON.stringify(kpis, null, 2)}
 
 COMPROMISOS:
-${JSON.stringify(comps ?? [], null, 2)}
+${JSON.stringify(comps, null, 2)}
 
 Genera el análisis siguiendo estrictamente el formato definido.`;
 
-    const analisis = await callAI(SYSTEM, userPrompt);
-    const fecha = new Date().toISOString();
+      const analisis = await callAI(SYSTEM, userPrompt);
+      if (!analisis || !analisis.trim()) throw new Error("La IA no devolvió contenido");
+      const fecha = new Date().toISOString();
 
-    await supabase
-      .from("cliente_actividades")
-      .update({ analisis_ia: analisis, analisis_ia_fecha: fecha })
-      .eq("id", data.actividadId);
+      const { error: upErr } = await supabase
+        .from("cliente_actividades")
+        .update({ analisis_ia: analisis, analisis_ia_fecha: fecha })
+        .eq("id", data.actividadId);
+      if (upErr) throw new Error(`No se pudo guardar el análisis: ${upErr.message}`);
 
-    return { analisis, fecha };
+      return { analisis, fecha };
+    } catch (err) {
+      // Convertir cualquier Response u objeto no-Error en Error legible
+      if (err instanceof Response) {
+        const txt = await err.text().catch(() => err.statusText);
+        console.error("[analizarReporteSesion] Response error:", err.status, txt);
+        throw new Error(`Error ${err.status}: ${txt || err.statusText}`);
+      }
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[analizarReporteSesion] error:", msg);
+      throw new Error(msg);
+    }
   });
