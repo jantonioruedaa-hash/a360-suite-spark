@@ -1,6 +1,6 @@
 // IA para Reportes de Sesión: análisis ejecutivo de UNA sesión registrada.
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -48,16 +48,27 @@ en Markdown con esta estructura exacta:
 Tono: consultivo, basado en EVIDENCIA del reporte. Si faltan datos, dilo explícitamente.`;
 
 export const analizarReporteSesion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       actividadId: z.string().uuid(),
       contextoCliente: z.string().max(2000).optional(),
+      accessToken: z.string().min(10),
     }).parse(d),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     try {
-      const { supabase } = context as { supabase: any };
+      const SUPABASE_URL = process.env.SUPABASE_URL;
+      const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+      if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) throw new Error("Supabase env no configurado");
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        global: { headers: { Authorization: `Bearer ${data.accessToken}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
+      if (authErr || !claims?.claims?.sub) throw new Error("Sesión inválida o expirada");
+
       const { data: act, error } = await supabase
         .from("cliente_actividades")
         .select("*")
@@ -108,12 +119,6 @@ Genera el análisis siguiendo estrictamente el formato definido.`;
 
       return { analisis, fecha };
     } catch (err) {
-      // Convertir cualquier Response u objeto no-Error en Error legible
-      if (err instanceof Response) {
-        const txt = await err.text().catch(() => err.statusText);
-        console.error("[analizarReporteSesion] Response error:", err.status, txt);
-        throw new Error(`Error ${err.status}: ${txt || err.statusText}`);
-      }
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[analizarReporteSesion] error:", msg);
       throw new Error(msg);
