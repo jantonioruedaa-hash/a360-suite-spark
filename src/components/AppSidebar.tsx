@@ -6,15 +6,18 @@ import {
 import { A360Logo } from "@/components/A360Logo";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
-  LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon,
-  Compass, TrendingUp, Sparkles,
+  LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon, TrendingUp,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useAlertas } from "@/lib/alertas-helpers";
 
-const sections = [
+type Item = { title: string; url: string; icon: typeof Activity };
+type Section = { label: string; items: Item[]; consultorOnly?: boolean };
+
+const sections: Section[] = [
   {
     label: "Diagnóstico",
+    consultorOnly: true,
     items: [
       { title: "SIDE", url: "/app/side", icon: Activity },
       { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon },
@@ -22,6 +25,7 @@ const sections = [
   },
   {
     label: "Estrategia",
+    consultorOnly: true,
     items: [
       { title: "Plan Estratégico", url: "/app/plan", icon: Target },
       { title: "Seguimiento KPIs", url: "/app/kpis", icon: LineChart },
@@ -29,6 +33,7 @@ const sections = [
   },
   {
     label: "Coaching A360",
+    consultorOnly: true,
     items: [
       { title: "Panel Coaching", url: "/app/coaching", icon: Users2 },
       { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen },
@@ -37,12 +42,14 @@ const sections = [
   },
   {
     label: "Desarrollo",
+    consultorOnly: true,
     items: [
       { title: "Programa LEE", url: "/app/lee", icon: GraduationCap },
     ],
   },
   {
     label: "Gestión",
+    consultorOnly: true,
     items: [
       { title: "Mis clientes", url: "/app/clientes", icon: Briefcase },
       { title: "Dashboard", url: "/app/dashboard", icon: LayoutDashboard },
@@ -54,10 +61,12 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const { signOut } = useAuth();
+  const { signOut, role } = useAuth();
   const { alertas } = useAlertas();
 
-  // Rutas con sub-rutas: solo activas en match exacto para no "encender" el padre desde un hijo
+  const isConsultorOrAdmin = role === "admin" || role === "consultor";
+  const visibleSections = sections.filter((s) => !s.consultorOnly || isConsultorOrAdmin);
+
   const exactOnly = new Set(["/app/coaching", "/app/side"]);
   const isActive = (url: string) =>
     exactOnly.has(url) ? path === url : path === url || path.startsWith(url + "/");
@@ -75,7 +84,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="bg-sidebar gap-2">
-        {sections.map((s) => (
+        {visibleSections.map((s) => (
           <SidebarGroup key={s.label}>
             {!collapsed && (
               <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em] text-gold/80 font-semibold px-3">
@@ -107,6 +116,12 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+
+        {!isConsultorOrAdmin && !collapsed && (
+          <div className="px-4 mt-2 text-[11px] text-sidebar-foreground/60 leading-relaxed">
+            Estás viendo tu portal como cliente. Tu consultor gestiona el resto del workspace.
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="bg-sidebar border-t border-sidebar-border/60">
