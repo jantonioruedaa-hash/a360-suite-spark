@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useAlertas } from "@/lib/alertas-helpers";
+import { useAppSettings } from "@/lib/app-settings";
 
 type Item = { title: string; url: string; icon: typeof Activity };
 type Section = { label: string; items: Item[]; consultorOnly?: boolean };
@@ -63,6 +64,7 @@ export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, role } = useAuth();
   const { alertas } = useAlertas();
+  const { getText } = useAppSettings();
 
   const isConsultorOrAdmin = role === "admin" || role === "consultor";
   const visibleSections = sections.filter((s) => !s.consultorOnly || isConsultorOrAdmin);
@@ -119,7 +121,7 @@ export function AppSidebar() {
 
         {!isConsultorOrAdmin && !collapsed && (
           <div className="px-4 mt-2 text-[11px] text-sidebar-foreground/60 leading-relaxed">
-            Estás viendo tu portal como cliente. Tu consultor gestiona el resto del workspace.
+            {getText("sidebar.cliente_hint", "Estás viendo tu portal como cliente. Tu consultor gestiona el resto del workspace.")}
           </div>
         )}
       </SidebarContent>
