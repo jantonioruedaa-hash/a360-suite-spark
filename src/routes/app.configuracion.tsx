@@ -153,7 +153,7 @@ function UsuariosAdmin() {
       if (!cur || priority.indexOf(next) < priority.indexOf(cur)) rolesByUser.set(r.user_id, next);
     });
     const banByUser = new Map<string, boolean>();
-    (extras ?? []).forEach((e) => {
+    extrasArr.forEach((e) => {
       const b = e.banned_until && new Date(e.banned_until).getTime() > Date.now();
       banByUser.set(e.id, !!b);
     });
