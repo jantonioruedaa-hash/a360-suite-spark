@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const RoleEnum = z.enum(["admin", "consultor", "cliente", "participante"]);
+const AccessTokenSchema = z.string().min(10, "Sesión expirada. Vuelve a iniciar sesión.");
 
 async function ensureAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
@@ -16,7 +16,14 @@ async function ensureAdmin(userId: string) {
   if (!data) throw new Error("Solo administradores pueden ejecutar esta acción");
 }
 
-// Translate common Supabase auth errors to Spanish
+async function ensureAdminFromToken(accessToken?: string | null) {
+  if (!accessToken) throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
+  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+  if (error || !data.user) throw new Error("Sesión inválida o expirada. Vuelve a iniciar sesión.");
+  await ensureAdmin(data.user.id);
+  return data.user.id;
+}
+
 function tr(msg: string): string {
   const m = (msg ?? "").toLowerCase();
   if (m.includes("user already registered") || m.includes("already been registered") || m.includes("already exists")) return "Ya existe un usuario con ese correo";
@@ -34,17 +41,17 @@ function thrown(e: unknown): never {
   throw new Error(tr(m));
 }
 
-export const adminListUsersExtra = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+export const adminListUsersExtra = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ accessToken: z.string().optional() }).parse(d ?? {}))
+  .handler(async ({ data }) => {
     try {
-      await ensureAdmin(context.userId);
-      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      await ensureAdminFromToken(data.accessToken);
+      const { data: usersData, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
       if (error) {
         console.error("adminListUsersExtra listUsers error:", error);
         return [] as Array<{ id: string; banned_until: string | null; last_sign_in_at: string | null }>;
       }
-      return data.users.map((u) => ({
+      return usersData.users.map((u) => ({
         id: u.id,
         banned_until: (u as { banned_until?: string | null }).banned_until ?? null,
         last_sign_in_at: u.last_sign_in_at ?? null,
@@ -56,9 +63,9 @@ export const adminListUsersExtra = createServerFn({ method: "GET" })
   });
 
 export const adminCreateUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({
+      accessToken: AccessTokenSchema,
       email: z.string().email("Correo electrónico inválido"),
       password: z.string().min(6, "Mínimo 6 caracteres"),
       name: z.string().optional(),
@@ -68,8 +75,8 @@ export const adminCreateUser = createServerFn({ method: "POST" })
       clienteId: z.string().uuid().optional(),
     }).parse(d),
   )
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
+  .handler(async ({ data }) => {
+    await ensureAdminFromToken(data.accessToken);
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
@@ -91,9 +98,9 @@ export const adminCreateUser = createServerFn({ method: "POST" })
   });
 
 export const adminInviteUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({
+      accessToken: AccessTokenSchema,
       email: z.string().email("Correo electrónico inválido"),
       name: z.string().optional(),
       company: z.string().optional(),
@@ -103,8 +110,8 @@ export const adminInviteUser = createServerFn({ method: "POST" })
       redirectTo: z.string().url().optional(),
     }).parse(d),
   )
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
+  .handler(async ({ data }) => {
+    await ensureAdminFromToken(data.accessToken);
     const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
       redirectTo: data.redirectTo,
       data: { name: data.name ?? null },
@@ -124,9 +131,9 @@ export const adminInviteUser = createServerFn({ method: "POST" })
   });
 
 export const adminUpdateProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({
+      accessToken: AccessTokenSchema,
       userId: z.string().uuid(),
       name: z.string().nullable().optional(),
       company: z.string().nullable().optional(),
@@ -136,8 +143,8 @@ export const adminUpdateProfile = createServerFn({ method: "POST" })
       clienteId: z.string().uuid().nullable().optional(),
     }).parse(d),
   )
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
+  .handler(async ({ data }) => {
+    await ensureAdminFromToken(data.accessToken);
     const { error: pErr } = await supabaseAdmin.from("profiles").update({
       name: data.name ?? null,
       company: data.company ?? null,
@@ -155,7 +162,6 @@ export const adminUpdateProfile = createServerFn({ method: "POST" })
       if (error) thrown(error);
     }
     if (data.clienteId !== undefined) {
-      // Determine current role to know which column to update
       const { data: roleRow } = await supabaseAdmin
         .from("user_roles").select("role").eq("user_id", data.userId).maybeSingle();
       const r = (data.role ?? roleRow?.role) as z.infer<typeof RoleEnum> | undefined;
@@ -165,9 +171,9 @@ export const adminUpdateProfile = createServerFn({ method: "POST" })
   });
 
 export const adminResetPassword = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({
+      accessToken: AccessTokenSchema,
       userId: z.string().uuid(),
       newPassword: z.string().min(6, "Mínimo 6 caracteres").optional(),
       sendEmail: z.boolean().optional(),
@@ -175,8 +181,8 @@ export const adminResetPassword = createServerFn({ method: "POST" })
       redirectTo: z.string().url().optional(),
     }).parse(d),
   )
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
+  .handler(async ({ data }) => {
+    await ensureAdminFromToken(data.accessToken);
     if (data.newPassword) {
       const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.newPassword });
       if (error) thrown(error);
@@ -193,16 +199,15 @@ export const adminResetPassword = createServerFn({ method: "POST" })
   });
 
 export const adminToggleBan = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
+    accessToken: AccessTokenSchema,
     userId: z.string().uuid(),
     block: z.boolean(),
   }).parse(d))
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
-    if (data.block && data.userId === context.userId) throw new Error("No puedes bloquear tu propio usuario");
+  .handler(async ({ data }) => {
+    const adminUserId = await ensureAdminFromToken(data.accessToken);
+    if (data.block && data.userId === adminUserId) throw new Error("No puedes bloquear tu propio usuario");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
-      // 100 years effectively = permanent block; 'none' clears it
       ban_duration: data.block ? "876000h" : "none",
     } as { ban_duration: string });
     if (error) thrown(error);
@@ -210,11 +215,10 @@ export const adminToggleBan = createServerFn({ method: "POST" })
   });
 
 export const adminDeleteUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
-    if (data.userId === context.userId) throw new Error("No puedes eliminar tu propio usuario");
+  .inputValidator((d) => z.object({ accessToken: AccessTokenSchema, userId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const adminUserId = await ensureAdminFromToken(data.accessToken);
+    if (data.userId === adminUserId) throw new Error("No puedes eliminar tu propio usuario");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) thrown(error);
     return { ok: true };
@@ -222,7 +226,6 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
 
 async function linkUserToCliente(userId: string, role: z.infer<typeof RoleEnum>, clienteId: string | null) {
   if (role === "cliente" || role === "participante") {
-    // Clear any prior link, then set the new one
     await supabaseAdmin.from("clientes").update({ cliente_user_id: null }).eq("cliente_user_id", userId);
     if (clienteId) {
       const { error } = await supabaseAdmin.from("clientes").update({ cliente_user_id: userId }).eq("id", clienteId);
