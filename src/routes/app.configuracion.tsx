@@ -142,8 +142,9 @@ function UsuariosAdmin() {
       supabase.from("profiles").select("id,email,name,company").order("email"),
       supabase.from("user_roles").select("user_id,role"),
       supabase.from("clientes").select("id,nombre_empresa,cliente_user_id,consultor_id").order("nombre_empresa"),
-      listExtrasFn().catch(() => [] as Awaited<ReturnType<typeof listExtrasFn>>),
+      listExtrasFn().catch((err) => { console.error("adminListUsersExtra failed:", err); return []; }),
     ]);
+    const extrasArr = Array.isArray(extras) ? extras : [];
     const priority: AppRole[] = ["admin", "consultor", "cliente", "participante"];
     const rolesByUser = new Map<string, AppRole>();
     (roles ?? []).forEach((r) => {
@@ -152,7 +153,7 @@ function UsuariosAdmin() {
       if (!cur || priority.indexOf(next) < priority.indexOf(cur)) rolesByUser.set(r.user_id, next);
     });
     const banByUser = new Map<string, boolean>();
-    (extras ?? []).forEach((e) => {
+    extrasArr.forEach((e) => {
       const b = e.banned_until && new Date(e.banned_until).getTime() > Date.now();
       banByUser.set(e.id, !!b);
     });
