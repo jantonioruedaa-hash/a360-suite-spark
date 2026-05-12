@@ -1,6 +1,7 @@
 import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth-context";
+import { AppSettingsProvider } from "@/lib/app-settings";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createRootRoute({
@@ -17,8 +18,10 @@ export const Route = createRootRoute({
   shellComponent: RootShell,
   component: () => (
     <AuthProvider>
-      <Outlet />
-      <Toaster richColors position="top-right" />
+      <AppSettingsProvider>
+        <Outlet />
+        <Toaster richColors position="top-right" />
+      </AppSettingsProvider>
     </AuthProvider>
   ),
   notFoundComponent: () => (
