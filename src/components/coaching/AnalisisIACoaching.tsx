@@ -3,7 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Loader2, Edit3, Save, RotateCw, Brain } from "lucide-react";
-import { analizarSesionCoaching } from "@/server/coaching-ia.functions";
+import { analizarSesionCoaching } from "@/lib/coaching-ia.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 
@@ -32,6 +33,8 @@ export function AnalisisIACoaching({
   const generar = async () => {
     setLoading(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
       const r = await fn({
         data: {
           sesionId,
@@ -40,8 +43,10 @@ export function AnalisisIACoaching({
           etapa,
           datosSesion,
           contextoCliente,
+          accessToken: session.access_token,
         },
       });
+      if (r.error || !r.analisis || !r.fecha) throw new Error(r.error ?? "Error al generar análisis");
       setTexto(r.analisis);
       setFecha(r.fecha);
       onAnalisisGenerado?.(r.analisis, r.fecha);
