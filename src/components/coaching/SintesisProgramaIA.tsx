@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Brain, Loader2, Edit3, Save, RotateCw, Sparkles } from "lucide-react";
 import { sintetizarProgramaCoaching } from "@/server/coaching-ia.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 
@@ -25,7 +26,10 @@ export function SintesisProgramaIA({
   const generar = async () => {
     setLoading(true);
     try {
-      const r = await fn({ data: { clienteId, contextoCliente } });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
+      const r = await fn({ data: { clienteId, contextoCliente, accessToken: session.access_token } });
+      if (r.error || !r.sintesis || !r.fecha) throw new Error(r.error ?? "Error al generar síntesis");
       setTexto(r.sintesis);
       setFecha(r.fecha);
       onGuardar?.(r.sintesis, r.fecha);
