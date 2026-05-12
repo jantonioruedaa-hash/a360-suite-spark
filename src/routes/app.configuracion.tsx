@@ -117,7 +117,7 @@ function evaluarPassword(pwd: string): { score: 0 | 1 | 2 | 3 | 4; label: string
 }
 
 function UsuariosAdmin() {
-  const { user: me } = useAuth();
+  const { user: me, session } = useAuth();
   const [rows, setRows] = useState<UsuarioRow[]>([]);
   const [clientes, setClientes] = useState<ClienteOpt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,13 +136,22 @@ function UsuariosAdmin() {
   const listExtrasFn = useServerFn(adminListUsersExtra);
   const banFn = useServerFn(adminToggleBan);
 
+  const getAccessToken = () => {
+    const accessToken = session?.access_token;
+    if (!accessToken) toast.error("Sesión expirada. Vuelve a iniciar sesión.");
+    return accessToken;
+  };
+
   const load = async () => {
     setLoading(true);
+    const accessToken = session?.access_token;
     const [{ data: profiles }, { data: roles }, { data: cs }, extras] = await Promise.all([
       supabase.from("profiles").select("id,email,name,company").order("email"),
       supabase.from("user_roles").select("user_id,role"),
       supabase.from("clientes").select("id,nombre_empresa,cliente_user_id,consultor_id").order("nombre_empresa"),
-      listExtrasFn().catch((err) => { console.error("adminListUsersExtra failed:", err); return []; }),
+      accessToken
+        ? listExtrasFn({ data: { accessToken } }).catch((err) => { console.error("adminListUsersExtra failed:", err); return []; })
+        : Promise.resolve([]),
     ]);
     const extrasArr = Array.isArray(extras) ? extras : [];
     const priority: AppRole[] = ["admin", "consultor", "cliente", "participante"];
@@ -175,11 +184,13 @@ function UsuariosAdmin() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [session?.access_token]);
 
   const cambiarRol = async (userId: string, nuevo: AppRole) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) return;
     try {
-      await updateFn({ data: { userId, role: nuevo } });
+      await updateFn({ data: { accessToken, userId, role: nuevo } });
       toast.success("Rol actualizado");
       setRows((r) => r.map((x) => x.id === userId ? { ...x, role: nuevo } : x));
     } catch (e) { toast.error(e instanceof Error ? e.message : "Error"); }
@@ -259,7 +270,9 @@ function UsuariosAdmin() {
                         disabled={u.id === me?.id}
                         onClick={async () => {
                           try {
-                            await banFn({ data: { userId: u.id, block: !u.banned } });
+                            const accessToken = getAccessToken();
+                            if (!accessToken) return;
+                            await banFn({ data: { accessToken, userId: u.id, block: !u.banned } });
                             toast.success(u.banned ? "Usuario reactivado" : "Usuario bloqueado");
                             setRows((r) => r.map((x) => x.id === u.id ? { ...x, banned: !u.banned } : x));
                           } catch (e) { toast.error(e instanceof Error ? e.message : "Error"); }
@@ -293,10 +306,14 @@ function UsuariosAdmin() {
         onSubmit={async (input) => {
           try {
             if (createMode === "invite") {
-              await inviteFn({ data: { ...input, redirectTo: `${window.location.origin}/login` } });
+              const accessToken = getAccessToken();
+              if (!accessToken) return;
+              await inviteFn({ data: { ...input, accessToken, redirectTo: `${window.location.origin}/login` } });
               toast.success("Invitación enviada");
             } else {
-              await createFn({ data: { ...input, password: input.password ?? "" } });
+              const accessToken = getAccessToken();
+              if (!accessToken) return;
+              await createFn({ data: { ...input, accessToken, password: input.password ?? "" } });
               toast.success("Usuario creado");
             }
             setCreateOpen(false);
@@ -311,7 +328,9 @@ function UsuariosAdmin() {
         onClose={() => setEditing(null)}
         onSave={async (input) => {
           try {
-            await updateFn({ data: input });
+            const accessToken = getAccessToken();
+            if (!accessToken) return;
+            await updateFn({ data: { ...input, accessToken } });
             toast.success("Usuario actualizado");
             setEditing(null);
             await load();
@@ -324,7 +343,9 @@ function UsuariosAdmin() {
         onClose={() => setResetting(null)}
         onSubmit={async (input) => {
           try {
-            const res = await resetFn({ data: input });
+            const accessToken = getAccessToken();
+            if (!accessToken) return;
+            const res = await resetFn({ data: { ...input, accessToken } });
             toast.success(res.mode === "email" ? "Correo enviado" : "Contraseña actualizada");
             setResetting(null);
           } catch (e) { toast.error(e instanceof Error ? e.message : "Error"); }
@@ -346,7 +367,9 @@ function UsuariosAdmin() {
               onClick={async () => {
                 if (!deleting) return;
                 try {
-                  await deleteFn({ data: { userId: deleting.id } });
+                  const accessToken = getAccessToken();
+                  if (!accessToken) return;
+                  await deleteFn({ data: { accessToken, userId: deleting.id } });
                   toast.success("Usuario eliminado");
                   setDeleting(null);
                   await load();
