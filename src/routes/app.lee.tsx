@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { LEE_CAPITULOS, LEE_OVERVIEW } from "@/lib/lee-catalogo";
-import { GraduationCap, ArrowRight, BookOpen, Award } from "lucide-react";
+import { GraduationCap, ArrowRight, BookOpen, Award, Info } from "lucide-react";
 
 export const Route = createFileRoute("/app/lee")({ component: LeePanel });
 
@@ -16,7 +16,6 @@ interface Fila {
   capitulos_desbloqueados: number[];
   workbooks: number;
   workbooksCompletos: number;
-  ultima: string | null;
 }
 
 function LeePanel() {
@@ -28,18 +27,16 @@ function LeePanel() {
       const [{ data: clientes }, { data: programas }, { data: workbooks }] = await Promise.all([
         supabase.from("clientes").select("id,nombre_empresa").eq("activo", true).order("nombre_empresa"),
         supabase.from("lee_programas").select("*"),
-        supabase.from("lee_workbooks").select("programa_id,completado,updated_at"),
+        supabase.from("lee_workbooks").select("programa_id,completado"),
       ]);
       const progByCliente = new Map<string, Record<string, unknown>>();
       (programas ?? []).forEach((p: Record<string, unknown>) => progByCliente.set(p.cliente_id as string, p));
-      const wbByPrograma = new Map<string, { total: number; completos: number; ultima: string | null }>();
+      const wbByPrograma = new Map<string, { total: number; completos: number }>();
       (workbooks ?? []).forEach((w: Record<string, unknown>) => {
         const k = w.programa_id as string;
-        const r = wbByPrograma.get(k) ?? { total: 0, completos: 0, ultima: null };
+        const r = wbByPrograma.get(k) ?? { total: 0, completos: 0 };
         r.total++;
         if (w.completado) r.completos++;
-        const u = w.updated_at as string | null;
-        if (u && (!r.ultima || u > r.ultima)) r.ultima = u;
         wbByPrograma.set(k, r);
       });
 
@@ -53,7 +50,6 @@ function LeePanel() {
           capitulos_desbloqueados: (p?.capitulos_desbloqueados as number[]) ?? [],
           workbooks: wb?.total ?? 0,
           workbooksCompletos: wb?.completos ?? 0,
-          ultima: wb?.ultima ?? null,
         };
       });
       setFilas(out.sort((a, b) => (b.programa_id ? 1 : 0) - (a.programa_id ? 1 : 0)));
@@ -66,7 +62,7 @@ function LeePanel() {
   return (
     <div className="max-w-6xl space-y-6">
       <div>
-        <h1 className="font-display text-3xl text-navy">Programa LEE — Líder Estratégico Efectivo</h1>
+        <h1 className="font-display text-3xl text-navy">Programa LEE — Panel de seguimiento</h1>
         <p className="text-sm text-muted-foreground mt-1">{LEE_OVERVIEW.proposito}</p>
         <div className="flex flex-wrap gap-3 mt-3 text-xs">
           <Badge variant="outline"><BookOpen className="w-3 h-3 mr-1" /> {LEE_CAPITULOS.length} capítulos</Badge>
@@ -74,6 +70,16 @@ function LeePanel() {
           <Badge variant="outline"><Award className="w-3 h-3 mr-1" /> {LEE_OVERVIEW.certificacion}</Badge>
         </div>
       </div>
+
+      <Card className="bg-amber-50 border-amber-200">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="text-xs text-amber-900">
+            <strong>LEE migrará a una app independiente.</strong> Aquí mantendremos el panel de seguimiento del consultor (avance, capítulos desbloqueados, workbooks completos). El contenido completo del programa, workbooks por capítulo y certificación vivirán en{" "}
+            <span className="font-mono">lee.a360.com</span>, conectado al mismo backend.
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Clientes activos" value={filas.length} />
@@ -119,27 +125,6 @@ function LeePanel() {
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Estructura del programa</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            {LEE_CAPITULOS.map((c) => (
-              <div key={c.numero} className="p-2 rounded border bg-muted/20">
-                <div className="flex items-start gap-2">
-                  <span className="text-[10px] font-mono text-gold font-bold">CAP {String(c.numero).padStart(2, "0")}</span>
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{c.titulo}</div>
-                    <div className="text-muted-foreground text-[11px] mt-0.5">{c.proposito}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </CardContent>
       </Card>
     </div>
