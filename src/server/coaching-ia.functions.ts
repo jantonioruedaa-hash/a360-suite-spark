@@ -1,8 +1,27 @@
 // IA centralizada para el módulo Coaching A360.
 // Analiza una sesión específica + sintetiza el programa completo de un líder.
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+
+type CoachingAIResult = {
+  analisis?: string | null;
+  sintesis?: string | null;
+  fecha: string | null;
+  error: string | null;
+};
+
+function getAuthenticatedClient(accessToken?: string | null) {
+  if (!accessToken) throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Backend no configurado");
+
+  return createClient(url, key, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
 
 async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const apiKey = process.env.LOVABLE_API_KEY;
@@ -85,7 +104,6 @@ Tono: senior, basado en datos reales del cliente. Si faltan datos, dilo explíci
 //  SERVER FN: analizar UNA sesión
 // ════════════════════════════════════════════════════════
 export const analizarSesionCoaching = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       sesionId: z.string().uuid(),
@@ -94,12 +112,16 @@ export const analizarSesionCoaching = createServerFn({ method: "POST" })
       etapa: z.string().min(2).max(40),
       datosSesion: z.record(z.string(), z.any()),
       contextoCliente: z.string().max(2000).optional(),
+      accessToken: z.string().min(10).optional(),
     }).parse(d),
   )
-  .handler(async ({ data, context }) => {
-    const { supabase } = context as any;
+  .handler(async ({ data }): Promise<CoachingAIResult> => {
+    try {
+      const supabase = getAuthenticatedClient(data.accessToken);
+      const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
+      if (authErr || !claims?.claims?.sub) return { analisis: null, fecha: null, error: "Sesión inválida o expirada" };
 
-    const userPrompt = `CLIENTE / CONTEXTO:
+      const userPrompt = `CLIENTE / CONTEXTO:
 ${data.contextoCliente || "(sin datos de contexto del líder)"}
 
 ETAPA: ${data.etapa}
@@ -111,51 +133,64 @@ ${JSON.stringify(data.datosSesion, null, 2)}
 
 Analiza estrictamente con el formato definido.`;
 
-    const analisis = await callAI(SYSTEM_HERRAMIENTA, userPrompt);
-    const fecha = new Date().toISOString();
+      const analisis = await callAI(SYSTEM_HERRAMIENTA, userPrompt);
+      if (!analisis.trim()) throw new Error("La IA no devolvió contenido");
+      const fecha = new Date().toISOString();
 
-    // Recupera sesión, fusiona analisis dentro del jsonb datos
-    const { data: ses } = await supabase
-      .from("coaching_sesiones")
-      .select("datos")
-      .eq("id", data.sesionId)
-      .maybeSingle();
-    const datosPrev = (ses?.datos ?? {}) as Record<string, unknown>;
-    const nuevoDatos = { ...datosPrev, analisis_ia: analisis, analisis_ia_fecha: fecha };
+      // Recupera sesión, fusiona analisis dentro del jsonb datos
+      const { data: ses, error: sesErr } = await supabase
+        .from("coaching_sesiones")
+        .select("datos")
+        .eq("id", data.sesionId)
+        .maybeSingle();
+      if (sesErr) throw new Error(`No se pudo leer la sesión: ${sesErr.message}`);
+      if (!ses) return { analisis: null, fecha: null, error: "Sesión no encontrada o sin acceso" };
+      const datosPrev = (ses.datos ?? {}) as Record<string, unknown>;
+      const nuevoDatos = { ...datosPrev, analisis_ia: analisis, analisis_ia_fecha: fecha };
 
-    await supabase
-      .from("coaching_sesiones")
-      .update({ datos: nuevoDatos })
-      .eq("id", data.sesionId);
+      const { error: upErr } = await supabase
+        .from("coaching_sesiones")
+        .update({ datos: nuevoDatos })
+        .eq("id", data.sesionId);
+      if (upErr) throw new Error(`No se pudo guardar el análisis: ${upErr.message}`);
 
-    return { analisis, fecha };
+      return { analisis, fecha, error: null };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[COACHING-IA] analizarSesionCoaching", msg);
+      return { analisis: null, fecha: null, error: msg };
+    }
   });
 
 // ════════════════════════════════════════════════════════
 //  SERVER FN: síntesis del PROGRAMA completo del líder
 // ════════════════════════════════════════════════════════
 export const sintetizarProgramaCoaching = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       clienteId: z.string().uuid(),
       contextoCliente: z.string().max(3000).optional(),
+      accessToken: z.string().min(10).optional(),
     }).parse(d),
   )
-  .handler(async ({ data, context }) => {
-    const { supabase } = context as any;
+  .handler(async ({ data }): Promise<CoachingAIResult> => {
+    try {
+      const supabase = getAuthenticatedClient(data.accessToken);
+      const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
+      if (authErr || !claims?.claims?.sub) return { sintesis: null, fecha: null, error: "Sesión inválida o expirada" };
 
-    const { data: sesiones } = await supabase
-      .from("coaching_sesiones")
-      .select("herramienta_id, etapa, datos, completada, created_at")
-      .eq("cliente_id", data.clienteId)
-      .order("created_at", { ascending: true });
+      const { data: sesiones, error: sesErr } = await supabase
+        .from("coaching_sesiones")
+        .select("herramienta_id, etapa, datos, completada, created_at")
+        .eq("cliente_id", data.clienteId)
+        .order("created_at", { ascending: true });
+      if (sesErr) throw new Error(`No se pudieron leer las sesiones: ${sesErr.message}`);
 
-    if (!sesiones || sesiones.length === 0) {
-      throw new Error("Aún no hay sesiones registradas para este cliente.");
-    }
+      if (!sesiones || sesiones.length === 0) {
+        return { sintesis: null, fecha: null, error: "Aún no hay sesiones registradas para este cliente." };
+      }
 
-    const userPrompt = `CLIENTE / CONTEXTO:
+      const userPrompt = `CLIENTE / CONTEXTO:
 ${data.contextoCliente || "(sin datos de contexto del líder)"}
 
 TOTAL SESIONES REGISTRADAS: ${sesiones.length}
@@ -165,7 +200,13 @@ ${JSON.stringify(sesiones, null, 2)}
 
 Genera la síntesis ejecutiva siguiendo estrictamente el formato definido.`;
 
-    const sintesis = await callAI(SYSTEM_PROGRAMA, userPrompt);
-    const fecha = new Date().toISOString();
-    return { sintesis, fecha };
+      const sintesis = await callAI(SYSTEM_PROGRAMA, userPrompt);
+      if (!sintesis.trim()) throw new Error("La IA no devolvió contenido");
+      const fecha = new Date().toISOString();
+      return { sintesis, fecha, error: null };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[COACHING-IA] sintetizarProgramaCoaching", msg);
+      return { sintesis: null, fecha: null, error: msg };
+    }
   });
