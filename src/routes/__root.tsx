@@ -10,6 +10,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "A360SGP Suite — Aceleradora 360 SGP" },
       { name: "description", content: "Sistema Integral de Transformación Empresarial — A360SGP Suite" },
+      { name: "google", content: "notranslate" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -33,7 +34,7 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" translate="no" className="notranslate">
       <head><HeadContent /></head>
       <body>{children}<Scripts /></body>
     </html>
