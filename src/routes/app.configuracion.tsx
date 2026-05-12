@@ -12,11 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Save, Users, UserCog, UserPlus, Pencil, KeyRound, Trash2, Mail, Send, Lock, Unlock } from "lucide-react";
+import { Save, Users, UserCog, UserPlus, Pencil, KeyRound, Trash2, Mail, Send, Lock, Unlock, Palette, FileText, Upload } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   adminCreateUser, adminUpdateProfile, adminResetPassword, adminDeleteUser,
   adminListUsersExtra, adminInviteUser, adminToggleBan,
 } from "@/lib/admin-users.functions";
+import { useAppSettings, EDITABLE_TEXTS } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/app/configuracion")({ component: Config });
 
@@ -25,6 +27,7 @@ const ROLES: AppRole[] = ["admin", "consultor", "cliente", "participante"];
 function Config() {
   const { role } = useAuth();
   const isAdmin = role === "admin";
+  const canBranding = role === "admin" || role === "consultor";
   return (
     <div className="max-w-5xl space-y-6">
       <h1 className="font-display text-3xl text-navy">Configuración</h1>
@@ -32,10 +35,179 @@ function Config() {
         <TabsList>
           <TabsTrigger value="perfil"><UserCog className="w-4 h-4 mr-2" />Mi perfil</TabsTrigger>
           {isAdmin && <TabsTrigger value="usuarios"><Users className="w-4 h-4 mr-2" />Usuarios</TabsTrigger>}
+          {canBranding && <TabsTrigger value="branding"><Palette className="w-4 h-4 mr-2" />Branding</TabsTrigger>}
+          {canBranding && <TabsTrigger value="contenido"><FileText className="w-4 h-4 mr-2" />Contenido</TabsTrigger>}
         </TabsList>
         <TabsContent value="perfil" className="mt-6"><PerfilForm /></TabsContent>
         {isAdmin && <TabsContent value="usuarios" className="mt-6"><UsuariosAdmin /></TabsContent>}
+        {canBranding && <TabsContent value="branding" className="mt-6"><BrandingForm /></TabsContent>}
+        {canBranding && <TabsContent value="contenido" className="mt-6"><ContenidoEditor /></TabsContent>}
       </Tabs>
+    </div>
+  );
+}
+
+function BrandingForm() {
+  const { settings, update, refresh } = useAppSettings();
+  const [form, setForm] = useState(settings);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => { setForm(settings); }, [settings]);
+
+  const handleLogoUpload = async (file: File) => {
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "png";
+    const path = `logo-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("branding").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { toast.error(upErr.message); setUploading(false); return; }
+    const { data } = supabase.storage.from("branding").getPublicUrl(path);
+    setForm({ ...form, logo_url: data.publicUrl });
+    setUploading(false);
+    toast.success("Logo subido. No olvides guardar.");
+  };
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await update({
+      company_name: form.company_name,
+      app_name: form.app_name,
+      logo_url: form.logo_url,
+      primary_color: form.primary_color,
+      accent_color: form.accent_color,
+      font_family: form.font_family,
+    });
+    if (error) toast.error(error); else { toast.success("Branding actualizado"); await refresh(); }
+    setSaving(false);
+  };
+
+  const FONTS = ["DM Sans", "Inter", "Roboto", "Poppins", "Montserrat", "Open Sans", "Lato", "Work Sans", "Nunito", "Source Sans 3"];
+
+  return (
+    <div className="a360-card a360-card-lg p-6 space-y-5">
+      <div>
+        <h2 className="font-display text-xl text-navy">Identidad visual</h2>
+        <p className="text-sm text-muted-foreground">Estos cambios se aplican a todos los usuarios de la plataforma.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label className="text-xs">Nombre de la empresa</Label>
+          <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
+        </div>
+        <div>
+          <Label className="text-xs">Nombre de la aplicación</Label>
+          <Input value={form.app_name} onChange={(e) => setForm({ ...form, app_name: e.target.value })} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="md:col-span-2">
+          <Label className="text-xs">Logotipo</Label>
+          <div className="flex items-center gap-3 mt-1">
+            <input
+              id="logo-file"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleLogoUpload(f); }}
+            />
+            <Button variant="outline" disabled={uploading} onClick={() => document.getElementById("logo-file")?.click()}>
+              <Upload className="w-4 h-4 mr-1" />{uploading ? "Subiendo…" : "Subir logo"}
+            </Button>
+            <Input
+              placeholder="o pega una URL pública"
+              value={form.logo_url ?? ""}
+              onChange={(e) => setForm({ ...form, logo_url: e.target.value || null })}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4 min-h-[88px]">
+          {form.logo_url
+            ? <img src={form.logo_url} alt="preview" className="max-h-16 object-contain" />
+            : <span className="text-xs text-muted-foreground">Sin logo</span>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <Label className="text-xs">Color primario</Label>
+          <div className="flex gap-2 mt-1">
+            <input type="color" value={form.primary_color} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} className="h-10 w-14 rounded border border-input cursor-pointer" />
+            <Input value={form.primary_color} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} />
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">Color de acento</Label>
+          <div className="flex gap-2 mt-1">
+            <input type="color" value={form.accent_color} onChange={(e) => setForm({ ...form, accent_color: e.target.value })} className="h-10 w-14 rounded border border-input cursor-pointer" />
+            <Input value={form.accent_color} onChange={(e) => setForm({ ...form, accent_color: e.target.value })} />
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">Tipografía</Label>
+          <Select value={form.font_family} onValueChange={(v) => setForm({ ...form, font_family: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{FONTS.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={save} disabled={saving} className="bg-gold hover:bg-gold/90 text-navy">
+          <Save className="w-4 h-4 mr-1" />{saving ? "Guardando…" : "Guardar branding"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ContenidoEditor() {
+  const { settings, update, refresh } = useAppSettings();
+  const [draft, setDraft] = useState<Record<string, string>>(settings.content_strings ?? {});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setDraft(settings.content_strings ?? {}); }, [settings]);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await update({ content_strings: draft });
+    if (error) toast.error(error); else { toast.success("Contenido actualizado"); await refresh(); }
+    setSaving(false);
+  };
+
+  return (
+    <div className="a360-card a360-card-lg p-6 space-y-5">
+      <div>
+        <h2 className="font-display text-xl text-navy">Textos editables</h2>
+        <p className="text-sm text-muted-foreground">Modifica los textos clave que aparecen en la plataforma. Si dejas un campo vacío se usa el texto por defecto.</p>
+      </div>
+      <div className="space-y-4">
+        {EDITABLE_TEXTS.map((t) => (
+          <div key={t.key}>
+            <Label className="text-xs">{t.label} <span className="text-muted-foreground">· {t.key}</span></Label>
+            {t.multiline ? (
+              <Textarea
+                rows={3}
+                value={draft[t.key] ?? ""}
+                onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })}
+                placeholder={t.defaultValue}
+              />
+            ) : (
+              <Input
+                value={draft[t.key] ?? ""}
+                onChange={(e) => setDraft({ ...draft, [t.key]: e.target.value })}
+                placeholder={t.defaultValue}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={save} disabled={saving} className="bg-gold hover:bg-gold/90 text-navy">
+          <Save className="w-4 h-4 mr-1" />{saving ? "Guardando…" : "Guardar contenido"}
+        </Button>
+      </div>
     </div>
   );
 }
