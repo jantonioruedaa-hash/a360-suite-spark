@@ -37,15 +37,22 @@ function thrown(e: unknown): never {
 export const adminListUsersExtra = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await ensureAdmin(context.userId);
-    // Returns ban status per user. listUsers paginates; pull up to 1000.
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (error) thrown(error);
-    return data.users.map((u) => ({
-      id: u.id,
-      banned_until: (u as { banned_until?: string | null }).banned_until ?? null,
-      last_sign_in_at: u.last_sign_in_at ?? null,
-    }));
+    try {
+      await ensureAdmin(context.userId);
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      if (error) {
+        console.error("adminListUsersExtra listUsers error:", error);
+        return [] as Array<{ id: string; banned_until: string | null; last_sign_in_at: string | null }>;
+      }
+      return data.users.map((u) => ({
+        id: u.id,
+        banned_until: (u as { banned_until?: string | null }).banned_until ?? null,
+        last_sign_in_at: u.last_sign_in_at ?? null,
+      }));
+    } catch (e) {
+      console.error("adminListUsersExtra failed:", e);
+      return [] as Array<{ id: string; banned_until: string | null; last_sign_in_at: string | null }>;
+    }
   });
 
 export const adminCreateUser = createServerFn({ method: "POST" })
