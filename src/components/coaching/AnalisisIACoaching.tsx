@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Loader2, Edit3, Save, RotateCw, Brain } from "lucide-react";
-import { analizarSesionCoaching } from "@/server/coaching-ia.functions";
+import { analizarSesionCoaching } from "@/lib/coaching-ia.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
