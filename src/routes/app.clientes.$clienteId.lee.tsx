@@ -360,6 +360,26 @@ function ContenidoCapitulo({ cap, workbooksDelCap, onAbrirWorkbook }: {
   );
 }
 
+function WorkbookDialog({
+  programaId, capitulo, workbookDefId, workbook, onClose, onSaved,
+}: {
+  programaId: string;
+  capitulo: number;
+  workbookDefId: string;
+  workbook: Workbook | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const cap = getCapitulo(capitulo);
+  const wbDef = cap?.workbook.find((x) => x.id === workbookDefId) ?? cap?.workbook[0];
+  const [respuestas, setRespuestas] = useState<Record<string, string>>(
+    (workbook?.respuestas as Record<string, string>) ?? {},
+  );
+  const [completado, setCompletado] = useState(workbook?.completado ?? false);
+  const [saving, setSaving] = useState(false);
+
+  if (!cap || !wbDef) return null;
+
   const guardar = async () => {
     setSaving(true);
     try {
