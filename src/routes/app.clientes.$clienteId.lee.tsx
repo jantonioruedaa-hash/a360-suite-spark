@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { LEE_CAPITULOS, LEE_OVERVIEW, getCapitulo } from "@/lib/lee-catalogo";
-import { Lock, Unlock, Check, BookOpen, Award, Sparkles, Play } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LEE_CAPITULOS, LEE_OVERVIEW, getCapitulo, type CapituloLEE } from "@/lib/lee-catalogo";
+import { Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Briefcase, Target, ListChecks, Mic, Library } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/lee")({
