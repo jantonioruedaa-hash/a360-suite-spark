@@ -36,7 +36,7 @@ function LeeWorkspace() {
   const [programa, setPrograma] = useState<Programa | null>(null);
   const [workbooks, setWorkbooks] = useState<Workbook[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<{ capitulo: number; workbook: Workbook | null } | null>(null);
+  const [editing, setEditing] = useState<{ capitulo: number; workbookDefId: string; workbook: Workbook | null } | null>(null);
 
   const cargar = async () => {
     setLoading(true);
