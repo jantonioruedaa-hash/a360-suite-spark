@@ -177,6 +177,7 @@ function LeeWorkspace() {
         <WorkbookDialog
           programaId={programa.id}
           capitulo={editing.capitulo}
+          workbookDefId={editing.workbookDefId}
           workbook={editing.workbook}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); cargar(); }}
@@ -190,25 +191,174 @@ function GraduationIcon() {
   return <BookOpen className="w-12 h-12 text-gold mx-auto" />;
 }
 
-function WorkbookDialog({
-  programaId, capitulo, workbook, onClose, onSaved,
-}: {
-  programaId: string;
-  capitulo: number;
-  workbook: Workbook | null;
-  onClose: () => void;
-  onSaved: () => void;
+function ContenidoCapitulo({ cap, workbooksDelCap, onAbrirWorkbook }: {
+  cap: CapituloLEE;
+  workbooksDelCap: Workbook[];
+  onAbrirWorkbook: (wbId: string) => void;
 }) {
-  const cap = getCapitulo(capitulo);
-  // determinar workbook def: si existe, por __id; si no, abre el primero pendiente
-  const wbDef = cap?.workbook.find((x) => x.id === (workbook?.respuestas?.__id as string)) ?? cap?.workbook[0];
-  const [respuestas, setRespuestas] = useState<Record<string, string>>(
-    (workbook?.respuestas as Record<string, string>) ?? {},
-  );
-  const [completado, setCompletado] = useState(workbook?.completado ?? false);
-  const [saving, setSaving] = useState(false);
+  return (
+    <Tabs defaultValue="marco" className="pt-2 border-t">
+      <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
+        <TabsTrigger value="marco" className="text-[11px] gap-1"><Brain className="w-3 h-3" />Marco</TabsTrigger>
+        <TabsTrigger value="caso" className="text-[11px] gap-1"><Briefcase className="w-3 h-3" />Caso</TabsTrigger>
+        <TabsTrigger value="workbook" className="text-[11px] gap-1"><BookOpen className="w-3 h-3" />Workbook</TabsTrigger>
+        <TabsTrigger value="reto" className="text-[11px] gap-1"><Target className="w-3 h-3" />Reto</TabsTrigger>
+        <TabsTrigger value="rubrica" className="text-[11px] gap-1"><ListChecks className="w-3 h-3" />Rúbrica</TabsTrigger>
+        <TabsTrigger value="facilitador" className="text-[11px] gap-1"><Mic className="w-3 h-3" />Facilitador</TabsTrigger>
+        <TabsTrigger value="bibliografia" className="text-[11px] gap-1"><Library className="w-3 h-3" />Lecturas</TabsTrigger>
+      </TabsList>
 
-  if (!cap || !wbDef) return null;
+      <TabsContent value="marco" className="text-xs space-y-3 pt-3">
+        <p className="leading-relaxed whitespace-pre-line">{cap.marcoTeorico.introduccion}</p>
+        <div>
+          <h5 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Conceptos clave</h5>
+          <div className="grid md:grid-cols-2 gap-2">
+            {cap.marcoTeorico.conceptosClave.map((c, i) => (
+              <div key={i} className="bg-muted/30 p-2 rounded border">
+                <div className="font-medium">{c.concepto}</div>
+                <p className="text-muted-foreground mt-0.5">{c.definicion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h5 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Modelos y frameworks</h5>
+          <div className="space-y-2">
+            {cap.marcoTeorico.modelos.map((m, i) => (
+              <div key={i} className="border-l-2 border-gold pl-2">
+                <div className="font-medium">{m.nombre} <span className="text-muted-foreground font-normal">— {m.autor}</span></div>
+                <p className="text-muted-foreground mt-0.5">{m.descripcion}</p>
+                <p className="mt-1"><span className="font-medium text-navy">Cómo aplicarlo:</span> {m.comoAplicarlo}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="caso" className="text-xs space-y-2 pt-3">
+        <h5 className="font-display text-navy text-base">{cap.casoEstudio.titulo}</h5>
+        <p><span className="font-semibold text-navy">Contexto: </span>{cap.casoEstudio.contexto}</p>
+        <p><span className="font-semibold text-navy">Dilema: </span>{cap.casoEstudio.dilema}</p>
+        <div>
+          <h6 className="font-semibold text-navy text-[11px] uppercase tracking-wider mt-2 mb-1">Preguntas para discutir</h6>
+          <ul className="space-y-1 pl-4">
+            {cap.casoEstudio.preguntasReflexion.map((p, i) => (
+              <li key={i} className="flex gap-1"><span className="text-gold">›</span><span>{p}</span></li>
+            ))}
+          </ul>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="workbook" className="pt-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {cap.workbook.map((w) => {
+            const existing = workbooksDelCap.find((x) => (x.respuestas as Record<string, string>)?.__id === w.id) ?? null;
+            const completo = existing?.completado;
+            return (
+              <button
+                key={w.id}
+                onClick={() => onAbrirWorkbook(w.id)}
+                className={`text-left p-3 rounded border ${completo ? "bg-emerald-50 border-emerald-200" : "bg-white hover:bg-muted/30"}`}
+              >
+                <div className="flex items-center gap-2">
+                  {completo && <Check className="w-3 h-3 text-emerald-600" />}
+                  <span className="text-sm font-medium">{w.titulo}</span>
+                  <Badge variant="outline" className="text-[9px] ml-auto">{w.tipo}</Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">{w.descripcion}</p>
+              </button>
+            );
+          })}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="reto" className="text-xs space-y-2 pt-3">
+        <h5 className="font-display text-navy text-base">{cap.retoAplicacion.titulo}</h5>
+        <p>{cap.retoAplicacion.descripcion}</p>
+        <div>
+          <h6 className="font-semibold text-navy text-[11px] uppercase tracking-wider mt-2 mb-1">Pasos</h6>
+          <ol className="list-decimal pl-5 space-y-0.5">
+            {cap.retoAplicacion.pasos.map((p, i) => <li key={i}>{p}</li>)}
+          </ol>
+        </div>
+        <p className="bg-gold/10 p-2 rounded border border-gold/30"><span className="font-semibold text-navy">Evidencia esperada: </span>{cap.retoAplicacion.evidenciaEsperada}</p>
+      </TabsContent>
+
+      <TabsContent value="rubrica" className="pt-3">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[11px] border">
+            <thead className="bg-navy/5">
+              <tr>
+                <th className="text-left p-2 border-b">Criterio</th>
+                <th className="text-left p-2 border-b">Inicial</th>
+                <th className="text-left p-2 border-b">En desarrollo</th>
+                <th className="text-left p-2 border-b">Dominado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cap.rubrica.map((r, i) => (
+                <tr key={i} className="border-b">
+                  <td className="p-2 font-medium align-top">{r.criterio}</td>
+                  <td className="p-2 text-muted-foreground align-top">{r.nivel1}</td>
+                  <td className="p-2 align-top">{r.nivel2}</td>
+                  <td className="p-2 text-emerald-700 align-top">{r.nivel3}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="facilitador" className="text-xs space-y-3 pt-3">
+        <div>
+          <h6 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Objetivos de la sesión</h6>
+          <ul className="pl-4 space-y-0.5">
+            {cap.guionFacilitador.objetivosSesion.map((o, i) => <li key={i} className="flex gap-1"><span className="text-gold">›</span><span>{o}</span></li>)}
+          </ul>
+        </div>
+        <div>
+          <h6 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Agenda</h6>
+          <table className="w-full">
+            <tbody>
+              {cap.guionFacilitador.agenda.map((a, i) => (
+                <tr key={i} className="border-b">
+                  <td className="py-1 pr-2 font-mono text-gold w-12">{a.minutos}'</td>
+                  <td className="py-1 pr-2 font-medium w-32">{a.bloque}</td>
+                  <td className="py-1 text-muted-foreground">{a.actividad}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h6 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Preguntas poderosas</h6>
+          <ul className="pl-4 space-y-0.5">
+            {cap.guionFacilitador.preguntasPoderosas.map((p, i) => <li key={i} className="flex gap-1"><Sparkles className="w-3 h-3 text-gold shrink-0 mt-0.5" /><span>{p}</span></li>)}
+          </ul>
+        </div>
+        <div>
+          <h6 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Tips de facilitación</h6>
+          <ul className="pl-4 space-y-0.5">
+            {cap.guionFacilitador.tipsFacilitacion.map((t, i) => <li key={i} className="flex gap-1"><span className="text-gold">›</span><span>{t}</span></li>)}
+          </ul>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="bibliografia" className="text-xs space-y-2 pt-3">
+        {cap.bibliografia.map((b, i) => (
+          <div key={i} className="border rounded p-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-[9px] capitalize">{b.tipo}</Badge>
+              <span className="font-medium">{b.titulo}</span>
+              <span className="text-muted-foreground">— {b.autor}{b.anio ? ` (${b.anio})` : ""}</span>
+            </div>
+            <p className="text-muted-foreground mt-1">{b.porQueLeerlo}</p>
+          </div>
+        ))}
+      </TabsContent>
+    </Tabs>
+  );
+}
 
   const guardar = async () => {
     setSaving(true);
