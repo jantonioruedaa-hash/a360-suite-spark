@@ -71,16 +71,6 @@ function LeePanel() {
         </div>
       </div>
 
-      <Card className="bg-amber-50 border-amber-200">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900">
-            <strong>LEE migrará a una app independiente.</strong> Aquí mantendremos el panel de seguimiento del consultor (avance, capítulos desbloqueados, workbooks completos). El contenido completo del programa, workbooks por capítulo y certificación vivirán en{" "}
-            <span className="font-mono">lee.a360.com</span>, conectado al mismo backend.
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Clientes activos" value={filas.length} />
         <Stat label="Con LEE iniciado" value={conPrograma} />
