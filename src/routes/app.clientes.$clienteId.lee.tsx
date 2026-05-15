@@ -163,38 +163,10 @@ function LeeWorkspace() {
                     <Badge key={c} variant="outline" className="text-[10px] bg-navy/5">{c}</Badge>
                   ))}
                 </div>
-                {open && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer font-semibold text-navy uppercase tracking-wider text-[10px]">
-                      Resultados esperados ({cap.resultados.length})
-                    </summary>
-                    <ul className="mt-1 pl-4 space-y-0.5 text-muted-foreground">
-                      {cap.resultados.map((r, i) => <li key={i} className="flex gap-1"><span className="text-gold">›</span><span>{r}</span></li>)}
-                    </ul>
-                  </details>
-                )}
-                {open && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t">
-                    {cap.workbook.map((w) => {
-                      const existing = wbs.find((x) => x.respuestas?.__id === w.id) ?? null;
-                      const completo = existing?.completado;
-                      return (
-                        <button
-                          key={w.id}
-                          onClick={() => setEditing({ capitulo: cap.numero, workbook: existing })}
-                          className={`text-left p-3 rounded border ${completo ? "bg-emerald-50 border-emerald-200" : "bg-white hover:bg-muted/30"}`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {completo && <Check className="w-3 h-3 text-emerald-600" />}
-                            <span className="text-sm font-medium">{w.titulo}</span>
-                            <Badge variant="outline" className="text-[9px] ml-auto">{w.tipo}</Badge>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-1">{w.descripcion}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                {open && <ContenidoCapitulo cap={cap} workbooksDelCap={wbs} onAbrirWorkbook={(wbId) => {
+                  const existing = wbs.find((x) => (x.respuestas as Record<string, string>)?.__id === wbId) ?? null;
+                  setEditing({ capitulo: cap.numero, workbookDefId: wbId, workbook: existing });
+                }} />}
               </CardContent>
             </Card>
           );
