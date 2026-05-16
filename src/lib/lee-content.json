@@ -78,45 +78,71 @@
       "descripcion": "El autoconocimiento es estéril sin validación externa. Este reto te saca de tu cabeza y te pone en una conversación real para contrastar tu autopercepción con la realidad. Se trata de una 'auditoría de tu huella de liderazgo' en una dosis pequeña y manejable."
     },
     "marcoTeorico": {
-      "modelos": [
-        {
-          "descripcion": "El modelo de Inteligencia Emocional de Goleman postula que el éxito de un líder depende más de su capacidad para gestionar sus propias emociones y las de los demás que de su coeficiente intelectual o habilidades técnicas. La autoconciencia es el primer y más crucial de sus cinco componentes, siendo la base para la autogestión, la motivación, la empatía y las habilidades sociales.",
-          "autor": "Daniel Goleman (1995)",
-          "comoAplicarlo": "1. Practica la auto-observación: Durante una semana, haz una pausa de 2 minutos tres veces al día para nombrar la emoción que sientes en ese momento y qué la provocó. 2. Pide feedback específico: Pregunta a un colega de confianza: '¿En qué situación reciente viste mi mejor versión como líder y qué estaba haciendo yo?'. 3. Realiza una autoevaluación honesta: Al final de cada semana, anota un éxito y un fracaso. ¿Qué rol jugaron tus fortalezas y debilidades en cada uno?",
-          "nombre": "Inteligencia Emocional: El Dominio de la Autoconciencia"
-        },
-        {
-          "comoAplicarlo": "1. Para reducir tu 'Área Ciega', pide feedback activamente usando el modelo SBI (Situación-Comportamiento-Impacto). 2. Para aumentar tu 'Área Abierta', practica la auto-revelación apropiada, compartiendo tus intenciones, razonamientos y expectativas con tu equipo. 3. Reflexiona sobre tu 'Área Oculta': ¿Qué miedos o inseguridades no estás compartiendo que podrían estar afectando tus decisiones o tu forma de relacionarte?",
-          "nombre": "La Ventana de Johari",
-          "descripcion": "La Ventana de Johari es un modelo simple pero profundo para entender y mejorar la autoconciencia y las relaciones interpersonales. Divide el conocimiento sobre una persona en cuatro cuadrantes: Abierto (conocido por uno mismo y por los demás), Ciego (desconocido por uno mismo, pero conocido por los demás), Oculto (conocido por uno mismo, pero no por los demás) y Desconocido. El objetivo es aumentar el 'Área Abierta'.",
-          "autor": "Joseph Luft y Harry Ingham (1955)"
-        },
-        {
-          "descripcion": "El Círculo Dorado es un modelo que explica cómo los líderes y organizaciones inspiradoras piensan, actúan y se comunican. Sinek argumenta que la mayoría se enfoca en el 'Qué' hacen, algunos en 'Cómo' lo hacen, pero pocos articulan 'Por qué' hacen lo que hacen. El 'Porqué' es el propósito, la causa o la creencia que los impulsa.",
-          "autor": "Simon Sinek (2009)",
-          "nombre": "El Círculo Dorado (Start with Why)",
-          "comoAplicarlo": "1. Identifica tu 'PORQUÉ': ¿Cuál es tu contribución? ¿Cuál es el impacto que quieres crear? Combínalo en una frase: 'Mi propósito es [CONTRIBUCIÓN] para que [IMPACTO]'. 2. Define tu 'CÓMO': Estos son tus valores o los principios que te guían. ¿Cómo actúas cuando estás en tu mejor versión? Ej: 'conectar con empatía', 'simplificar lo complejo'. 3. Comunica desde el 'PORQUÉ': Al iniciar un nuevo proyecto o comunicar una decisión, empieza explicando el propósito (el porqué) antes de detallar el cómo y el qué."
-        }
-      ],
+      "introduccion": "En un entorno empresarial caracterizado por la volatilidad, la incertidumbre, la complejidad y la ambigüedad (entornos VUCA, hoy reformulados como BANI: Brittle, Anxious, Non-linear, Incomprehensible), las viejas recetas de liderazgo basadas únicamente en la autoridad jerárquica y la gestión de tareas han quedado obsoletas. El liderazgo que genera impacto sostenible y moviliza verdaderamente el potencial humano nace de un lugar diferente: el interior del propio líder. Este es el dominio del Liderazgo Consciente.\n\nAntes de poder liderar a otros de manera efectiva, es imperativo aprender a liderarse a uno mismo. Esto comienza con un acto radical de introspección y honestidad: comprender quién eres, qué representas y qué impacto estás generando realmente a tu alrededor. Este capítulo es el punto de partida de esa travesía. No se trata de aprender una nueva técnica, sino de conectar con la fuente de tu liderazgo: tu identidad, tus valores y tu propósito. Ignorar este fundamento es como construir un edificio imponente sobre cimientos de arena; tarde o temprano, la estructura cederá ante la presión.\n\nLa investigación contemporánea en neurociencia, psicología organizacional y desarrollo de líderes converge en un hallazgo: los líderes que transforman organizaciones no son necesariamente los más brillantes técnicamente, sino aquellos con mayor claridad sobre quiénes son y qué impacto quieren dejar. Bill George (Harvard Business School) lo llama \"True North\" — la brújula interna que mantiene al líder firme bajo presión. Daniel Goleman demuestra que el 90% del desempeño superior en roles de liderazgo se explica por la inteligencia emocional, cuyo cimiento es la autoconciencia.",
+      "porQueImportaHoy": "Tres fuerzas hacen del autoconocimiento una competencia crítica —no opcional— para los líderes de hoy:\n\n1. **Crisis de confianza**: Según el Edelman Trust Barometer, los CEO son uno de los actores con menor credibilidad pública. La coherencia personal del líder es hoy el principal generador de confianza interna.\n\n2. **Talento que elige propósito sobre salario**: Las generaciones que dominan la fuerza laboral (millennials y Gen Z) priorizan trabajar con líderes auténticos y propósitos claros. El liderazgo sin \"porqué\" pierde talento crítico.\n\n3. **Velocidad de cambio que exige decisiones desde valores**: Cuando los manuales no alcanzan, el líder decide desde quién es. Sin claridad interior, las decisiones se vuelven reactivas y erráticas.",
       "conceptosClave": [
         {
-          "definicion": "La capacidad de reconocer y comprender las propias emociones, fortalezas, debilidades, valores y motivaciones. Es el pilar de la inteligencia emocional y el requisito previo para entender y gestionar el impacto en los demás.",
-          "concepto": "Autoconciencia (Self-Awareness)"
+          "concepto": "Autoconciencia (Self-Awareness)",
+          "definicion": "La capacidad de reconocer y comprender las propias emociones, fortalezas, debilidades, valores y motivaciones, así como su impacto en otros. Es el pilar de la inteligencia emocional y el requisito previo para liderar a otros. Investigaciones de Tasha Eurich distinguen entre autoconciencia interna (qué tan claro me veo) y externa (qué tan bien comprendo cómo me ven)."
         },
         {
           "concepto": "Propósito de Liderazgo",
-          "definicion": "Es el 'porqué' fundamental que impulsa a un líder. Es una declaración clara de la contribución única que desea hacer y el impacto que busca generar en su entorno. Trasciende el 'qué' (tareas) y el 'cómo' (habilidades)."
+          "definicion": "El 'porqué' fundamental que impulsa a un líder. Una declaración clara de la contribución única que desea hacer y el impacto que busca generar en su entorno. Trasciende el 'qué' (tareas) y el 'cómo' (habilidades), y funciona como una brújula que orienta decisiones bajo presión."
         },
         {
           "concepto": "Huella de Liderazgo",
-          "definicion": "Es el impacto real y la percepción que un líder genera en su equipo y organización, tanto de forma intencionada como no intencionada. A menudo existe una brecha entre la huella que el líder cree que deja y la que su equipo realmente experimenta."
+          "definicion": "El impacto real y la percepción que un líder genera en su equipo y organización, tanto de forma intencionada como no intencionada. A menudo existe una brecha entre la huella que el líder cree que deja y la que su equipo realmente experimenta — cerrar esa brecha es uno de los objetivos centrales del programa."
         },
         {
-          "definicion": "Es la alineación consistente entre los valores declarados, el propósito definido y los comportamientos observables de un líder. La coherencia genera confianza, mientras que la incoherencia la destruye.",
-          "concepto": "Coherencia (Integridad)"
+          "concepto": "Coherencia (Integridad)",
+          "definicion": "La alineación consistente entre los valores declarados, el propósito definido y los comportamientos observables de un líder. La coherencia genera confianza; la incoherencia la destruye más rápido de lo que cualquier discurso puede repararla. Coherencia ≠ perfección: significa nombrar las brechas y trabajarlas con honestidad."
+        },
+        {
+          "concepto": "Autenticidad",
+          "definicion": "Capacidad de actuar en alineación con los valores y creencias propias, sin máscaras ni performance. Bill George la define como liderar 'desde quien realmente eres', integrando tu historia personal —incluidos los fracasos— como fuente de credibilidad y conexión."
+        },
+        {
+          "concepto": "Presencia Ejecutiva",
+          "definicion": "La cualidad observable de un líder que combina serenidad bajo presión, claridad al comunicar y conexión genuina con las personas. No es carisma innato: es el resultado visible de un trabajo profundo de autoconocimiento y regulación emocional."
         }
       ],
-      "introduccion": "En un entorno empresarial caracterizado por la volatilidad y la complejidad, las viejas recetas de liderazgo basadas únicamente en la autoridad y la gestión de tareas han quedado obsoletas. El liderazgo que genera un impacto sostenible y moviliza verdaderamente el potencial humano nace de un lugar diferente: el interior del propio líder. Este es el dominio del Liderazgo Consciente.\n\nAntes de poder liderar a otros de manera efectiva, es imperativo aprender a liderarse a uno mismo. Esto comienza con un acto radical de introspección y honestidad: comprender quién eres, qué representas y qué impacto estás generando realmente a tu alrededor. Este capítulo es el punto de partida de esa travesía. No se trata de aprender una nueva técnica, sino de conectar con la fuente de tu liderazgo: tu identidad, tus valores y tu propósito. Ignorar este fundamento es como construir un edificio imponente sobre cimientos de arena; tarde o temprano, la estructura cederá ante la presión."
+      "modelos": [
+        {
+          "nombre": "Inteligencia Emocional: El Dominio de la Autoconciencia",
+          "autor": "Daniel Goleman (1995)",
+          "descripcion": "El modelo de Inteligencia Emocional de Goleman postula que el éxito de un líder depende más de su capacidad para gestionar sus propias emociones y las de los demás que de su coeficiente intelectual o habilidades técnicas. La autoconciencia es el primer y más crucial de sus cinco componentes (autoconciencia, autogestión, motivación, empatía, habilidades sociales), siendo la base sobre la que descansan los otros cuatro.",
+          "comoAplicarlo": "1. Practica la auto-observación: durante una semana, haz una pausa de 2 minutos tres veces al día para nombrar la emoción que sientes y qué la provocó. 2. Pide feedback específico: pregunta a un colega de confianza '¿En qué situación reciente viste mi mejor versión como líder y qué estaba haciendo yo?'. 3. Realiza una autoevaluación honesta semanal: anota un éxito y un fracaso. ¿Qué rol jugaron tus fortalezas y debilidades en cada uno?",
+          "ejemploAplicado": "Una directora financiera notó que cada vez que su CEO cuestionaba sus números en comité, ella se cerraba y respondía a la defensiva. Tras dos semanas de auto-observación identificó el patrón: interpretaba la pregunta técnica como un cuestionamiento a su valía. Al nombrar la emoción ('me siento amenazada, no cuestionada'), pudo separar el dato del juicio y empezó a responder con datos en lugar de justificaciones. Su credibilidad en comité creció en 90 días."
+        },
+        {
+          "nombre": "La Ventana de Johari",
+          "autor": "Joseph Luft y Harry Ingham (1955)",
+          "descripcion": "Modelo simple pero profundo para entender y mejorar la autoconciencia y las relaciones interpersonales. Divide el conocimiento sobre una persona en cuatro cuadrantes: Abierto (conocido por uno mismo y por los demás), Ciego (desconocido por uno mismo, conocido por los demás), Oculto (conocido por uno mismo, no por los demás) y Desconocido. El objetivo del trabajo de liderazgo es expandir el 'Área Abierta' a costa de los otros tres.",
+          "comoAplicarlo": "1. Para reducir tu 'Área Ciega', pide feedback usando el modelo SBI (Situación-Comportamiento-Impacto). 2. Para aumentar tu 'Área Abierta', practica la auto-revelación apropiada: comparte intenciones, razonamientos y expectativas con tu equipo. 3. Reflexiona sobre tu 'Área Oculta': ¿qué miedos o inseguridades no estás compartiendo que podrían estar afectando tus decisiones?",
+          "ejemploAplicado": "Un gerente de operaciones pidió a tres reportes directos describir, en una palabra, cómo se sentían en sus reuniones 1:1. Dos respondieron 'evaluado'. Él se veía como un coach; ellos lo experimentaban como un auditor. Esa brecha (área ciega) explicaba por qué no recibía malas noticias a tiempo. Cambió el formato de las 1:1 y en 60 días recuperó el flujo de información honesta."
+        },
+        {
+          "nombre": "El Círculo Dorado (Start with Why)",
+          "autor": "Simon Sinek (2009)",
+          "descripcion": "Modelo que explica cómo los líderes y organizaciones inspiradoras piensan, actúan y se comunican. Sinek argumenta que la mayoría se enfoca en el 'Qué' hacen, algunos en 'Cómo' lo hacen, pero pocos articulan 'Por qué' hacen lo que hacen. El 'Porqué' es el propósito, la causa o la creencia que los impulsa, y es lo que activa la parte límbica del cerebro —donde nacen la lealtad y la inspiración—.",
+          "comoAplicarlo": "1. Identifica tu 'PORQUÉ': ¿Cuál es tu contribución? ¿Qué impacto quieres crear? Combínalo en una frase: 'Mi propósito es [CONTRIBUCIÓN] para que [IMPACTO]'. 2. Define tu 'CÓMO': los valores o principios que te guían cuando estás en tu mejor versión (ej: 'conectar con empatía', 'simplificar lo complejo'). 3. Comunica desde el 'PORQUÉ': al iniciar un proyecto o comunicar una decisión, empieza explicando el propósito antes del cómo y el qué.",
+          "ejemploAplicado": "El líder de un equipo comercial venía presentando metas trimestrales como números ('hay que cerrar 12M'). El equipo cumplía sin entusiasmo. Reformuló el mensaje desde el porqué: 'Cada cliente que cerramos es una pyme que sobrevive un año más en un país difícil'. La meta era idéntica; la energía del equipo cambió. Cerraron el trimestre 18% sobre objetivo."
+        },
+        {
+          "nombre": "Liderazgo Auténtico (True North)",
+          "autor": "Bill George (2007)",
+          "descripcion": "Tras entrevistar a 125 líderes de alto desempeño, Bill George (ex-CEO de Medtronic, profesor en Harvard) concluyó que los líderes auténticos no encajan en un perfil único: lo que comparten es haber recorrido un proceso consciente de autoconocimiento a partir de su 'crucible' (experiencias formativas, muchas veces dolorosas). Su 'True North' —brújula interna— está formado por valores, motivaciones intrínsecas, pasiones y un propósito claro.",
+          "comoAplicarlo": "1. Mapea tus 'crucibles': identifica 3 experiencias que te marcaron como líder (positivas o dolorosas) y extrae la lección de cada una. 2. Distingue motivaciones intrínsecas (lo que te mueve por sí mismo) de extrínsecas (reconocimiento, dinero, estatus). 3. Construye tu equipo personal de apoyo: ¿quiénes son las 3-5 personas que te dicen la verdad y te ayudan a mantenerte en tu True North?",
+          "ejemploAplicado": "Un director general identificó que su 'crucible' fue el cierre de la empresa familiar a sus 22 años. De ahí venía su obsesión por la sostenibilidad financiera y, también, su tendencia a microgestionar el flujo de caja. Al nombrarlo, pudo conservar la fortaleza (rigor financiero) y soltar la sombra (microgestión que asfixiaba a su CFO)."
+        },
+        {
+          "nombre": "Los 5 Niveles de Liderazgo",
+          "autor": "John C. Maxwell (2011)",
+          "descripcion": "Maxwell propone que el liderazgo se desarrolla en 5 niveles ascendentes: (1) Posición —la gente te sigue porque debe—; (2) Permiso —te siguen porque quieren, hay relación—; (3) Producción —te siguen por los resultados que produces—; (4) Desarrollo de personas —te siguen por lo que has hecho por ellos—; (5) Pináculo —te siguen por quién eres y lo que representas—. Cada nivel se construye sobre el anterior y requiere un trabajo distinto.",
+          "comoAplicarlo": "1. Diagnostica tu nivel actual con cada reporte directo (puede variar persona a persona). 2. Identifica el nivel siguiente: si estás en Posición con alguien, invierte en relación; si estás en Producción, empieza a desarrollarlo. 3. No saltes niveles: no se puede desarrollar a alguien (nivel 4) si no hay relación (nivel 2) ni resultados conjuntos (nivel 3).",
+          "ejemploAplicado": "Una líder recién promovida a VP intentó delegar proyectos estratégicos a un equipo que apenas conocía (saltó de nivel 1 a nivel 4). Resultado: resistencia y entregables mediocres. Retrocedió: dedicó 6 semanas a 1:1 individuales (nivel 2) y a co-ejecutar un proyecto visible (nivel 3). Recién entonces la delegación funcionó."
+        }
+      ]
     },
     "guionFacilitador": {
       "preguntasPoderosas": [
