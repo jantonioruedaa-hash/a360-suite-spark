@@ -210,6 +210,12 @@ function ContenidoCapitulo({ cap, workbooksDelCap, onAbrirWorkbook }: {
 
       <TabsContent value="marco" className="text-xs space-y-3 pt-3">
         <p className="leading-relaxed whitespace-pre-line">{cap.marcoTeorico.introduccion}</p>
+        {cap.marcoTeorico.porQueImportaHoy && (
+          <div className="bg-gold/5 border border-gold/30 rounded p-3">
+            <h5 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Por qué importa hoy</h5>
+            <p className="leading-relaxed whitespace-pre-line">{cap.marcoTeorico.porQueImportaHoy}</p>
+          </div>
+        )}
         <div>
           <h5 className="font-semibold text-navy text-[11px] uppercase tracking-wider mb-1">Conceptos clave</h5>
           <div className="grid md:grid-cols-2 gap-2">
@@ -229,6 +235,9 @@ function ContenidoCapitulo({ cap, workbooksDelCap, onAbrirWorkbook }: {
                 <div className="font-medium">{m.nombre} <span className="text-muted-foreground font-normal">— {m.autor}</span></div>
                 <p className="text-muted-foreground mt-0.5">{m.descripcion}</p>
                 <p className="mt-1"><span className="font-medium text-navy">Cómo aplicarlo:</span> {m.comoAplicarlo}</p>
+                {m.ejemploAplicado && (
+                  <p className="mt-1 bg-emerald-50 border border-emerald-200 rounded p-1.5"><span className="font-medium text-emerald-800">Ejemplo aplicado:</span> {m.ejemploAplicado}</p>
+                )}
               </div>
             ))}
           </div>
