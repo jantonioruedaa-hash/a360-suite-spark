@@ -4,9 +4,10 @@
 import contenido from "./lee-content.json";
 
 export interface ConceptoClave { concepto: string; definicion: string; }
-export interface ModeloFramework { nombre: string; autor: string; descripcion: string; comoAplicarlo: string; }
+export interface ModeloFramework { nombre: string; autor: string; descripcion: string; comoAplicarlo: string; ejemploAplicado?: string; }
 export interface MarcoTeorico {
   introduccion: string;
+  porQueImportaHoy?: string;
   conceptosClave: ConceptoClave[];
   modelos: ModeloFramework[];
 }
