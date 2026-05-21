@@ -286,13 +286,16 @@ function ContenidoCapitulo({ cap, workbooksDelCap, onAbrirWorkbook, onAbrirIA }:
                 </div>
 
                 {/* Herramientas del participante */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t">
+                <div className="flex flex-wrap gap-2 pt-2 border-t items-center">
                   <Button size="sm" variant="outline" onClick={() => onAbrirWorkbook(s.numero)}>
                     <FileText className="w-3 h-3 mr-1" /> {wb ? "Abrir workbook" : "Iniciar workbook"}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => onAbrirIA(s.numero)} disabled={!wb}>
                     <Brain className="w-3 h-3 mr-1" /> Análisis IA
                   </Button>
+                  {getWorkbookSchema(cap.numero, s.numero) && (
+                    <Badge className="bg-gold text-navy text-[10px]">Workbook instrumentado ✨</Badge>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>
