@@ -10,8 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   LEE_CAPITULOS, LEE_OVERVIEW, TOTAL_SESIONES, getCapitulo, getSesion, sesionKey,
-  type CapituloLEE, type SesionPlan, type ModuloPlan,
+  type CapituloLEE, type ModuloPlan,
 } from "@/lib/lee-catalogo";
+import { getWorkbookSchema } from "@/lib/lee-workbook-schemas";
+import { WorkbookInstrumentado } from "@/components/lee/WorkbookInstrumentado";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
   Clock, FileText, MessageCircle,
@@ -33,7 +35,7 @@ interface Workbook {
   programa_id: string;
   capitulo_numero: number;
   sesion_numero: number;
-  respuestas: Record<string, string>;
+  respuestas: Record<string, unknown>;
   completado: boolean;
 }
 
@@ -284,13 +286,16 @@ function ContenidoCapitulo({ cap, workbooksDelCap, onAbrirWorkbook, onAbrirIA }:
                 </div>
 
                 {/* Herramientas del participante */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t">
+                <div className="flex flex-wrap gap-2 pt-2 border-t items-center">
                   <Button size="sm" variant="outline" onClick={() => onAbrirWorkbook(s.numero)}>
                     <FileText className="w-3 h-3 mr-1" /> {wb ? "Abrir workbook" : "Iniciar workbook"}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => onAbrirIA(s.numero)} disabled={!wb}>
                     <Brain className="w-3 h-3 mr-1" /> Análisis IA
                   </Button>
+                  {getWorkbookSchema(cap.numero, s.numero) && (
+                    <Badge className="bg-gold text-navy text-[10px]">Workbook instrumentado ✨</Badge>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -379,8 +384,9 @@ function WorkbookDialog({
 }) {
   const cap = getCapitulo(capitulo);
   const ses = getSesion(capitulo, sesion);
-  const [respuestas, setRespuestas] = useState<Record<string, string>>(
-    (workbook?.respuestas as Record<string, string>) ?? {},
+  const schema = getWorkbookSchema(capitulo, sesion);
+  const [respuestas, setRespuestas] = useState<Record<string, unknown>>(
+    (workbook?.respuestas as Record<string, unknown>) ?? {},
   );
   const [completado, setCompletado] = useState(workbook?.completado ?? false);
   const [saving, setSaving] = useState(false);
@@ -417,34 +423,41 @@ function WorkbookDialog({
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             <span className="text-xs text-muted-foreground uppercase tracking-wider block">CAP {capitulo} · Sesión {sesion} · {cap.titulo}</span>
             {ses.titulo}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="bg-muted/30 rounded-lg p-3 text-xs border">
-            <p className="text-muted-foreground">{ses.eyebrow}</p>
-            <p className="mt-1">Captura aquí tus notas, reflexiones y compromisos. Este workbook alimentará el Análisis IA de la sesión.</p>
-          </div>
-          {WORKBOOK_CAMPOS.map((campo) => (
-            <div key={campo.key}>
-              <label className="text-xs font-medium text-navy mb-1 block">{campo.label}</label>
-              <Textarea
-                rows={4}
-                value={respuestas[campo.key] ?? ""}
-                onChange={(e) => setRespuestas({ ...respuestas, [campo.key]: e.target.value })}
-                placeholder={campo.placeholder}
-              />
+
+        {schema ? (
+          <WorkbookInstrumentado schema={schema} respuestas={respuestas} onChange={setRespuestas} />
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-muted/30 rounded-lg p-3 text-xs border">
+              <p className="text-muted-foreground">{ses.eyebrow}</p>
+              <p className="mt-1">Workbook simple. Pronto esta sesión tendrá su workbook instrumentado completo.</p>
             </div>
-          ))}
-          <div className="flex items-center gap-2 pt-2 border-t">
-            <input type="checkbox" id="wbcompletada" checked={completado} onChange={(e) => setCompletado(e.target.checked)} className="w-4 h-4" />
-            <label htmlFor="wbcompletada" className="text-sm">Marcar sesión como completada</label>
+            {WORKBOOK_CAMPOS.map((campo) => (
+              <div key={campo.key}>
+                <label className="text-xs font-medium text-navy mb-1 block">{campo.label}</label>
+                <Textarea
+                  rows={4}
+                  value={(respuestas[campo.key] as string) ?? ""}
+                  onChange={(e) => setRespuestas({ ...respuestas, [campo.key]: e.target.value })}
+                  placeholder={campo.placeholder}
+                />
+              </div>
+            ))}
           </div>
+        )}
+
+        <div className="flex items-center gap-2 pt-3 border-t mt-3">
+          <input type="checkbox" id="wbcompletada" checked={completado} onChange={(e) => setCompletado(e.target.checked)} className="w-4 h-4" />
+          <label htmlFor="wbcompletada" className="text-sm">Marcar sesión como completada</label>
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={guardar} disabled={saving} className="bg-navy hover:bg-navy/90">
@@ -497,8 +510,8 @@ function AnalisisIADialog({
                 <div className="font-medium text-navy mb-1">Contenido capturado</div>
                 <div className="bg-white border rounded p-2 max-h-40 overflow-y-auto space-y-1">
                   {WORKBOOK_CAMPOS.map((c) => {
-                    const v = (workbook.respuestas as Record<string, string>)?.[c.key];
-                    if (!v) return null;
+                    const v = (workbook.respuestas as Record<string, unknown>)?.[c.key];
+                    if (typeof v !== "string" || !v) return null;
                     return <div key={c.key}><span className="font-semibold">{c.label}:</span> <span className="text-muted-foreground">{v.slice(0, 120)}{v.length > 120 ? "…" : ""}</span></div>;
                   })}
                 </div>
