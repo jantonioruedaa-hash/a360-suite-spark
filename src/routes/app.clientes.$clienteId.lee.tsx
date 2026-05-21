@@ -507,8 +507,8 @@ function AnalisisIADialog({
                 <div className="font-medium text-navy mb-1">Contenido capturado</div>
                 <div className="bg-white border rounded p-2 max-h-40 overflow-y-auto space-y-1">
                   {WORKBOOK_CAMPOS.map((c) => {
-                    const v = (workbook.respuestas as Record<string, string>)?.[c.key];
-                    if (!v) return null;
+                    const v = (workbook.respuestas as Record<string, unknown>)?.[c.key];
+                    if (typeof v !== "string" || !v) return null;
                     return <div key={c.key}><span className="font-semibold">{c.label}:</span> <span className="text-muted-foreground">{v.slice(0, 120)}{v.length > 120 ? "…" : ""}</span></div>;
                   })}
                 </div>
