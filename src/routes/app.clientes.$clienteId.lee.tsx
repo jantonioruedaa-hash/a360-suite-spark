@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,11 +14,13 @@ import {
 } from "@/lib/lee-catalogo";
 import { getWorkbookSchema } from "@/lib/lee-workbook-schemas";
 import { WorkbookInstrumentado } from "@/components/lee/WorkbookInstrumentado";
+import { exportWorkbookJSON, exportWorkbookHTML, importWorkbookJSON } from "@/lib/lee-workbook-io";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
-  Clock, FileText, MessageCircle,
+  Clock, FileText, MessageCircle, Download, Upload,
 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/app/clientes/$clienteId/lee")({
   component: LeeWorkspace,
@@ -421,6 +423,29 @@ function WorkbookDialog({
     }
   };
 
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleExportJSON = () => {
+    if (!schema) return toast.error("Esta sesión aún no tiene workbook instrumentado.");
+    exportWorkbookJSON(schema, respuestas);
+    toast.success("JSON descargado");
+  };
+  const handleExportHTML = () => {
+    if (!schema) return toast.error("Esta sesión aún no tiene workbook instrumentado.");
+    exportWorkbookHTML(schema, respuestas);
+    toast.success("HTML descargado — ábrelo offline y llénalo");
+  };
+  const handleImport = async (file: File) => {
+    if (!schema) return toast.error("Solo se puede importar en sesiones instrumentadas.");
+    try {
+      const r = await importWorkbookJSON(file, schema);
+      setRespuestas(r);
+      toast.success("Respuestas importadas. Recuerda guardar.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al importar");
+    }
+  };
+
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -431,6 +456,30 @@ function WorkbookDialog({
           </DialogTitle>
         </DialogHeader>
 
+        {schema && (
+          <div className="flex flex-wrap gap-2 pb-2 border-b">
+            <Button size="sm" variant="outline" onClick={handleExportJSON} className="text-xs">
+              <Download className="w-3 h-3 mr-1" /> Exportar JSON
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleExportHTML} className="text-xs">
+              <Download className="w-3 h-3 mr-1" /> Exportar HTML editable
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} className="text-xs">
+              <Upload className="w-3 h-3 mr-1" /> Importar JSON
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImport(f);
+                e.target.value = "";
+              }}
+            />
+          </div>
+        )}
         {schema ? (
           <WorkbookInstrumentado schema={schema} respuestas={respuestas} onChange={setRespuestas} />
         ) : (
