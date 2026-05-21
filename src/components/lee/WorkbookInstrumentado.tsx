@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ListaEditable } from "@/components/plan/ListaEditable";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { MessageCircle, Plus, Trash2, BookOpen } from "lucide-react";
 import type {
   WorkbookSchema, Campo, CampoEscala, CampoTabla, CampoSemaforo, CampoOpcion,
