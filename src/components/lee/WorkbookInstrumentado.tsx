@@ -173,7 +173,9 @@ function OpcionRender({ c, value, onChange }: { c: CampoOpcion; value: string; o
 }
 
 function TablaRender({ c, value, onChange }: { c: CampoTabla; value: Record<string, string>[]; onChange: (v: unknown) => void }) {
-  const filas = value.length === 0 && c.minFilas ? Array.from({ length: c.minFilas }, () => ({})) : value;
+  const filas: Record<string, string>[] = value.length === 0 && c.minFilas
+    ? Array.from({ length: c.minFilas }, () => ({} as Record<string, string>))
+    : value;
 
   const update = (i: number, colId: string, v: string) => {
     const next = [...filas];
