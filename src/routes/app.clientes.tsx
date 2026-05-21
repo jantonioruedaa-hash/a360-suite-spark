@@ -273,16 +273,21 @@ function NuevoClienteWizard({ onClose, onCreated }: { onClose: () => void; onCre
     if (!empresa.nombre_empresa.trim()) { toast.error("Falta el nombre legal de la empresa"); setStep(1); return; }
     setSaving(true);
     try {
-      const clean = <T extends Record<string, unknown>>(obj: T) =>
-        Object.fromEntries(
-          Object.entries(obj).map(([k, v]) => [k, typeof v === "string" && v.trim() === "" ? null : v])
-        );
+      const cleanStr = (v: string) => (v.trim() === "" ? null : v);
       const payload = {
-        ...clean(empresa),
+        nombre_empresa: empresa.nombre_empresa.trim(),
+        nombre_comercial: cleanStr(empresa.nombre_comercial),
+        sector: cleanStr(empresa.sector),
+        subsector: cleanStr(empresa.subsector),
+        tamano: cleanStr(empresa.tamano),
+        pais: cleanStr(empresa.pais),
+        ciudad: cleanStr(empresa.ciudad),
+        web: cleanStr(empresa.web),
+        descripcion: cleanStr(empresa.descripcion),
         num_empleados: empresa.num_empleados ? parseInt(empresa.num_empleados) : null,
-        ...clean(config),
         plan_licencia: config.plan_licencia || "esencial",
         estado: config.estado || "activo",
+        origen: cleanStr(config.origen),
         consultor_id: user.id,
         fecha_inicio_relacion: new Date().toISOString().slice(0, 10),
       };
