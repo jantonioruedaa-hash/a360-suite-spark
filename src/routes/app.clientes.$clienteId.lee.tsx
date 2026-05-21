@@ -14,11 +14,13 @@ import {
 } from "@/lib/lee-catalogo";
 import { getWorkbookSchema } from "@/lib/lee-workbook-schemas";
 import { WorkbookInstrumentado } from "@/components/lee/WorkbookInstrumentado";
+import { exportWorkbookJSON, exportWorkbookHTML, importWorkbookJSON } from "@/lib/lee-workbook-io";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
-  Clock, FileText, MessageCircle,
+  Clock, FileText, MessageCircle, Download, Upload,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/lee")({
   component: LeeWorkspace,
