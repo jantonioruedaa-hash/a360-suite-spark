@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { LEE_CAPITULOS, LEE_OVERVIEW } from "@/lib/lee-catalogo";
+import { LEE_CAPITULOS, LEE_OVERVIEW, TOTAL_SESIONES } from "@/lib/lee-catalogo";
 import { GraduationCap, ArrowRight, BookOpen, Award, Info } from "lucide-react";
 
 export const Route = createFileRoute("/app/lee")({ component: LeePanel });
@@ -92,7 +92,7 @@ function LeePanel() {
           ) : (
             <div className="space-y-1">
               {filas.map((f) => {
-                const pct = Math.round((f.capitulos_desbloqueados.length / LEE_CAPITULOS.length) * 100);
+                const pct = Math.round((f.workbooksCompletos / TOTAL_SESIONES) * 100);
                 return (
                   <Link key={f.cliente_id} to="/app/clientes/$clienteId/lee" params={{ clienteId: f.cliente_id }}
                     className="flex items-center gap-3 p-2.5 rounded hover:bg-muted/50 group">
@@ -102,7 +102,7 @@ function LeePanel() {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{f.nombre_empresa}</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {f.programa_id ? `${f.capitulos_desbloqueados.length}/${LEE_CAPITULOS.length} capítulos · ${f.workbooksCompletos}/${f.workbooks} workbooks` : "Programa no iniciado"}
+                        {f.programa_id ? `${f.capitulos_desbloqueados.length}/${LEE_CAPITULOS.length} capítulos · ${f.workbooksCompletos}/${TOTAL_SESIONES} sesiones` : "Programa no iniciado"}
                       </div>
                     </div>
                     <div className="w-32 hidden md:block">
