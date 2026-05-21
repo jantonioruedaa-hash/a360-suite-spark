@@ -20,7 +20,7 @@ import {
   Clock, FileText, MessageCircle, Download, Upload,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useRef } from "react";
+
 
 export const Route = createFileRoute("/app/clientes/$clienteId/lee")({
   component: LeeWorkspace,
