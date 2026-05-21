@@ -85,7 +85,7 @@ function renderInput(c: Campo, value: unknown, onChange: (v: unknown) => void) {
     case "text":
       return <Input value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} placeholder={c.placeholder} className="h-9 text-sm" />;
     case "textarea":
-      return <Textarea value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} placeholder={c.placeholder} rows={c.rows ?? 4} />;
+      return <RichTextEditor value={(value as string) ?? ""} onChange={(html) => onChange(html)} placeholder={c.placeholder} minHeight={(c.rows ?? 4) * 28} />;
     case "lista":
       return <ListaEditable items={(value as string[]) ?? []} onChange={(items) => onChange(items)} placeholder={c.placeholder ?? "Nuevo ítem"} inputLabel={c.inputLabel ?? "+ Agregar"} />;
     case "escala":
