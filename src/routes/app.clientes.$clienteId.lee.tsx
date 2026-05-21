@@ -480,6 +480,7 @@ function WorkbookDialog({
             />
           </div>
         )}
+        {schema ? (
           <WorkbookInstrumentado schema={schema} respuestas={respuestas} onChange={setRespuestas} />
         ) : (
           <div className="space-y-3">
