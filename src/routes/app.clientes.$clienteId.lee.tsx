@@ -381,8 +381,9 @@ function WorkbookDialog({
 }) {
   const cap = getCapitulo(capitulo);
   const ses = getSesion(capitulo, sesion);
-  const [respuestas, setRespuestas] = useState<Record<string, string>>(
-    (workbook?.respuestas as Record<string, string>) ?? {},
+  const schema = getWorkbookSchema(capitulo, sesion);
+  const [respuestas, setRespuestas] = useState<Record<string, unknown>>(
+    (workbook?.respuestas as Record<string, unknown>) ?? {},
   );
   const [completado, setCompletado] = useState(workbook?.completado ?? false);
   const [saving, setSaving] = useState(false);
@@ -419,34 +420,41 @@ function WorkbookDialog({
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             <span className="text-xs text-muted-foreground uppercase tracking-wider block">CAP {capitulo} · Sesión {sesion} · {cap.titulo}</span>
             {ses.titulo}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="bg-muted/30 rounded-lg p-3 text-xs border">
-            <p className="text-muted-foreground">{ses.eyebrow}</p>
-            <p className="mt-1">Captura aquí tus notas, reflexiones y compromisos. Este workbook alimentará el Análisis IA de la sesión.</p>
-          </div>
-          {WORKBOOK_CAMPOS.map((campo) => (
-            <div key={campo.key}>
-              <label className="text-xs font-medium text-navy mb-1 block">{campo.label}</label>
-              <Textarea
-                rows={4}
-                value={respuestas[campo.key] ?? ""}
-                onChange={(e) => setRespuestas({ ...respuestas, [campo.key]: e.target.value })}
-                placeholder={campo.placeholder}
-              />
+
+        {schema ? (
+          <WorkbookInstrumentado schema={schema} respuestas={respuestas} onChange={setRespuestas} />
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-muted/30 rounded-lg p-3 text-xs border">
+              <p className="text-muted-foreground">{ses.eyebrow}</p>
+              <p className="mt-1">Workbook simple. Pronto esta sesión tendrá su workbook instrumentado completo.</p>
             </div>
-          ))}
-          <div className="flex items-center gap-2 pt-2 border-t">
-            <input type="checkbox" id="wbcompletada" checked={completado} onChange={(e) => setCompletado(e.target.checked)} className="w-4 h-4" />
-            <label htmlFor="wbcompletada" className="text-sm">Marcar sesión como completada</label>
+            {WORKBOOK_CAMPOS.map((campo) => (
+              <div key={campo.key}>
+                <label className="text-xs font-medium text-navy mb-1 block">{campo.label}</label>
+                <Textarea
+                  rows={4}
+                  value={(respuestas[campo.key] as string) ?? ""}
+                  onChange={(e) => setRespuestas({ ...respuestas, [campo.key]: e.target.value })}
+                  placeholder={campo.placeholder}
+                />
+              </div>
+            ))}
           </div>
+        )}
+
+        <div className="flex items-center gap-2 pt-3 border-t mt-3">
+          <input type="checkbox" id="wbcompletada" checked={completado} onChange={(e) => setCompletado(e.target.checked)} className="w-4 h-4" />
+          <label htmlFor="wbcompletada" className="text-sm">Marcar sesión como completada</label>
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={guardar} disabled={saving} className="bg-navy hover:bg-navy/90">
