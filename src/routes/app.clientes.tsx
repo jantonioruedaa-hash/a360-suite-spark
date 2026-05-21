@@ -269,26 +269,62 @@ function NuevoClienteWizard({ onClose, onCreated }: { onClose: () => void; onCre
   };
 
   const submit = async () => {
-    if (!user) return;
+    if (!user) { toast.error("Sesión no detectada. Vuelve a iniciar sesión."); return; }
+    if (!empresa.nombre_empresa.trim()) { toast.error("Falta el nombre legal de la empresa"); setStep(1); return; }
     setSaving(true);
-    const { data: cli, error: e1 } = await supabase.from("clientes").insert({
-      ...empresa,
-      num_empleados: empresa.num_empleados ? parseInt(empresa.num_empleados) : null,
-      ...config,
-      consultor_id: user.id,
-      fecha_inicio_relacion: new Date().toISOString().slice(0, 10),
-    }).select("id").single();
-    if (e1 || !cli) { toast.error("Error: " + e1?.message); setSaving(false); return; }
+    try {
+      const cleanStr = (v: string) => (v.trim() === "" ? null : v);
+      const payload = {
+        nombre_empresa: empresa.nombre_empresa.trim(),
+        nombre_comercial: cleanStr(empresa.nombre_comercial),
+        sector: cleanStr(empresa.sector),
+        subsector: cleanStr(empresa.subsector),
+        tamano: cleanStr(empresa.tamano),
+        pais: cleanStr(empresa.pais),
+        ciudad: cleanStr(empresa.ciudad),
+        web: cleanStr(empresa.web),
+        descripcion: cleanStr(empresa.descripcion),
+        num_empleados: empresa.num_empleados ? parseInt(empresa.num_empleados) : null,
+        plan_licencia: config.plan_licencia || "esencial",
+        estado: config.estado || "activo",
+        origen: cleanStr(config.origen),
+        consultor_id: user.id,
+        fecha_inicio_relacion: new Date().toISOString().slice(0, 10),
+      };
+      console.log("[clientes] insert payload", payload);
+      const { data: cli, error: e1 } = await supabase.from("clientes").insert(payload).select("id").single();
+      if (e1 || !cli) {
+        console.error("[clientes] insert error", e1);
+        toast.error(`No se pudo crear el cliente: ${e1?.message ?? "error desconocido"}`);
+        setSaving(false);
+        return;
+      }
 
-    if (contacto.nombre && contacto.apellido) {
-      await supabase.from("cliente_contactos").insert({
-        cliente_id: cli.id, ...contacto, es_contacto_principal: true,
-      });
+      if (contacto.nombre.trim() && contacto.apellido.trim()) {
+        const { error: e2 } = await supabase.from("cliente_contactos").insert({
+          cliente_id: cli.id,
+          nombre: contacto.nombre.trim(),
+          apellido: contacto.apellido.trim(),
+          cargo: cleanStr(contacto.cargo),
+          area: cleanStr(contacto.area),
+          email: cleanStr(contacto.email),
+          celular: cleanStr(contacto.celular),
+          es_contacto_principal: true,
+        });
+        if (e2) {
+          console.error("[contactos] insert error", e2);
+          toast.warning(`Cliente creado, pero falló el contacto: ${e2.message}`);
+        }
+      }
+      toast.success("Cliente creado");
+      onCreated();
+      onClose();
+    } catch (err) {
+      console.error("[clientes] submit exception", err);
+      toast.error(`Error inesperado: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
     }
-    toast.success("Cliente creado");
-    setSaving(false);
-    onCreated();
-    onClose();
   };
 
   return (
