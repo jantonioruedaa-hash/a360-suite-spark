@@ -35,7 +35,7 @@ interface Workbook {
   programa_id: string;
   capitulo_numero: number;
   sesion_numero: number;
-  respuestas: Record<string, string>;
+  respuestas: Record<string, unknown>;
   completado: boolean;
 }
 
