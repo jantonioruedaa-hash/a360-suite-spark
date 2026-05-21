@@ -10,8 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   LEE_CAPITULOS, LEE_OVERVIEW, TOTAL_SESIONES, getCapitulo, getSesion, sesionKey,
-  type CapituloLEE, type SesionPlan, type ModuloPlan,
+  type CapituloLEE, type ModuloPlan,
 } from "@/lib/lee-catalogo";
+import { getWorkbookSchema } from "@/lib/lee-workbook-schemas";
+import { WorkbookInstrumentado } from "@/components/lee/WorkbookInstrumentado";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
   Clock, FileText, MessageCircle,
