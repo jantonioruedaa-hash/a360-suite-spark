@@ -303,9 +303,12 @@ function NuevoClienteWizard({ onClose, onCreated }: { onClose: () => void; onCre
       if (contacto.nombre.trim() && contacto.apellido.trim()) {
         const { error: e2 } = await supabase.from("cliente_contactos").insert({
           cliente_id: cli.id,
-          ...clean(contacto),
-          nombre: contacto.nombre,
-          apellido: contacto.apellido,
+          nombre: contacto.nombre.trim(),
+          apellido: contacto.apellido.trim(),
+          cargo: cleanStr(contacto.cargo),
+          area: cleanStr(contacto.area),
+          email: cleanStr(contacto.email),
+          celular: cleanStr(contacto.celular),
           es_contacto_principal: true,
         });
         if (e2) {
