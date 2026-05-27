@@ -69,13 +69,14 @@ export const getCreditosIA = createServerFn({ method: "POST" })
 
     const { data: cli, error } = await supabase
       .from("clientes")
-      .select("plan_licencia, creditos_ia_usados, creditos_ia_reset_fecha")
+      .select("plan_licencia, creditos_ia_usados, creditos_ia_reset_fecha, creditos_ia_extra")
       .eq("id", data.clienteId)
       .maybeSingle();
     if (error || !cli) return { ...base, ok: false, error: "Cliente no encontrado" };
 
     const plan = normalizePlan(cli.plan_licencia);
-    const total = AI_CREDITS_BY_PLAN[plan];
+    const extra = cli.creditos_ia_extra ?? 0;
+    const total = AI_CREDITS_BY_PLAN[plan] + extra;
     let usados = cli.creditos_ia_usados ?? 0;
     let resetFecha = (cli.creditos_ia_reset_fecha as string | null) ?? firstOfMonth(new Date());
 
