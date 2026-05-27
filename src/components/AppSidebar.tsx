@@ -119,6 +119,28 @@ export function AppSidebar() {
               <SidebarMenu>
                 {s.items.map((item) => {
                   const badge = badgePorUrl[item.url] ?? 0;
+                  if (item.upcoming) {
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          onClick={() =>
+                            toast.info("Módulo próximamente", {
+                              description: "Este módulo estará disponible próximamente. Te notificaremos cuando esté listo.",
+                            })
+                          }
+                          className="text-sidebar-foreground/40 hover:text-sidebar-foreground/50 cursor-not-allowed"
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span className="flex-1">{item.title}</span>
+                          {!collapsed && (
+                            <span className="ml-auto px-1.5 py-0.5 rounded bg-gold/20 text-gold text-[9px] font-semibold uppercase tracking-wide">
+                              Próximamente
+                            </span>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
                   return (
                     <SidebarMenuItem key={item.url}>
                       <SidebarMenuButton asChild isActive={isActive(item.url)}
