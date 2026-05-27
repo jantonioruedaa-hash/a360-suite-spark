@@ -24,6 +24,13 @@ function LoginPage() {
     if (!authLoading && user) navigate({ to: "/app/dashboard" });
   }, [authLoading, user, navigate]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("reset") === "1") {
+      toast.success("Contraseña actualizada. Inicia sesión con tu nueva contraseña.");
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -41,7 +48,7 @@ function LoginPage() {
         toast.success("Cuenta creada. Revisa tu correo para verificar.");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/login`,
+          redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
         toast.success("Te enviamos un correo para restablecer tu contraseña.");
