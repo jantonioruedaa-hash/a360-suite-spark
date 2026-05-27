@@ -7,6 +7,9 @@ import {
   LayoutDashboard, Building2, Users, Activity, FileText,
   BarChart3, Target, Users2, BookOpen, Sparkles, ArrowLeft, Rocket,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { normalizePlan, planAllowsModule, PLAN_LABELS, type ModuloKey } from "@/lib/plans";
+import { ModuloNoIncluido } from "@/components/ModuloNoIncluido";
 
 export const Route = createFileRoute("/app/clientes/$clienteId")({
   component: ClienteLayout,
@@ -29,17 +32,19 @@ interface ClienteFull {
   fecha_inicio_relacion: string | null;
 }
 
-const SECCIONES = [
+type Seccion = { url: string; label: string; icon: typeof LayoutDashboard; modulo?: ModuloKey };
+
+const SECCIONES: Seccion[] = [
   { url: "onboarding", label: "Onboarding", icon: Rocket },
   { url: "resumen", label: "Resumen ejecutivo", icon: LayoutDashboard },
   { url: "empresa", label: "Información empresa", icon: Building2 },
   { url: "contactos", label: "Contactos", icon: Users },
   { url: "actividades", label: "Actividades", icon: Activity },
   { url: "cotizaciones", label: "Cotizaciones", icon: FileText },
-  { url: "side", label: "Diagnósticos SIDE", icon: BarChart3 },
-  { url: "plan", label: "Plan estratégico", icon: Target },
-  { url: "coaching", label: "Coaching Platform", icon: Users2 },
-  { url: "lee", label: "Programa LEE", icon: BookOpen },
+  { url: "side", label: "Diagnósticos SIDE", icon: BarChart3, modulo: "side" },
+  { url: "plan", label: "Plan estratégico", icon: Target, modulo: "plan" },
+  { url: "coaching", label: "Coaching Platform", icon: Users2, modulo: "coaching" },
+  { url: "lee", label: "Programa LEE", icon: BookOpen, modulo: "lee" },
   { url: "analisis-ia", label: "Análisis IA", icon: Sparkles },
 ];
 
