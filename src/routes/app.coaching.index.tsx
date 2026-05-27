@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Users2, Sparkles, BookOpen, TrendingUp, Quote } from "lucide-react";
 
-export const Route = createFileRoute("/app/coaching")({
+export const Route = createFileRoute("/app/coaching/")({
   component: CoachingHome,
 });
 
