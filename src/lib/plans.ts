@@ -32,6 +32,21 @@ export const AI_CREDITS_BY_PLAN: Record<PlanKey, number> = {
   full: 200,
 };
 
+// null = ilimitado (mostrar "∞")
+export const USER_LIMITS_BY_PLAN: Record<PlanKey, number | null> = {
+  starter: 3,
+  business: 10,
+  enterprise: 25,
+  full: null,
+};
+
+export const PARTICIPANT_LIMITS_BY_PLAN: Record<PlanKey, number | null> = {
+  starter: 5,
+  business: 20,
+  enterprise: 50,
+  full: null,
+};
+
 // Mapeo de los nombres existentes en BD → PlanKey.
 // Cualquier valor desconocido cae a "starter".
 export function normalizePlan(plan_licencia?: string | null): PlanKey {
