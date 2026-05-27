@@ -138,7 +138,7 @@ export const consumirCreditoIA = createServerFn({ method: "POST" })
     if (usados >= total) {
       return {
         ok: false, plan, usados, total, resetFecha, bypass: false,
-        error: "Alcanzaste tu límite de análisis IA este mes. Contacta a tu consultor para ampliar tu plan.",
+        error: "Alcanzaste tu límite de análisis IA este mes. Contacta a tu consultor para adquirir créditos adicionales o ampliar tu plan.",
       };
     }
 
