@@ -51,6 +51,26 @@ const sections: Section[] = [
     ],
   },
   {
+    label: "BizOS",
+    consultorOnly: true,
+    items: [
+      { title: "Procesos", url: "#", icon: Workflow, upcoming: true },
+      { title: "SGC", url: "#", icon: ShieldCheck, upcoming: true },
+      { title: "TalentHR", url: "#", icon: Users, upcoming: true },
+      { title: "Manual de Funciones", url: "#", icon: FileText, upcoming: true },
+    ],
+  },
+  {
+    label: "Comercial & Ops",
+    consultorOnly: true,
+    items: [
+      { title: "CRM Comercial", url: "#", icon: ShoppingCart, upcoming: true },
+      { title: "Marketing Digital", url: "#", icon: Megaphone, upcoming: true },
+      { title: "Suite Financiera", url: "#", icon: Calculator, upcoming: true },
+      { title: "WMS Inventarios", url: "#", icon: Package, upcoming: true },
+    ],
+  },
+  {
     label: "Gestión",
     consultorOnly: true,
     items: [
