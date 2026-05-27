@@ -24,6 +24,13 @@ function LoginPage() {
     if (!authLoading && user) navigate({ to: "/app/dashboard" });
   }, [authLoading, user, navigate]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("reset") === "1") {
+      toast.success("Contraseña actualizada. Inicia sesión con tu nueva contraseña.");
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
