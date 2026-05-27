@@ -11,9 +11,10 @@ export const Route = createFileRoute("/share/$token")({ component: SharePage });
 interface Compartido {
   id: string; cliente_id: string; tipo_contenido: string; contenido_id: string | null;
   titulo: string; mensaje: string | null; pdf_url: string | null;
-  destinatarios: { nombre: string }[]; vistas: number;
+  destinatarios_nombres: { nombre: string }[]; vistas: number;
   expira_en: string | null; estado: string; created_at: string;
   incluir_kpis: boolean; incluir_compromisos: boolean;
+  nombre_empresa: string | null;
 }
 
 function SharePage() {
@@ -26,15 +27,13 @@ function SharePage() {
 
   useEffect(() => {
     (async () => {
-      const { data: row, error: er } = await supabase
-        .from("cliente_compartidos").select("*").eq("share_token", token).maybeSingle();
+      const { data: rows, error: er } = await (supabase as any)
+        .rpc("get_compartido_by_token", { _token: token });
+      const row = Array.isArray(rows) ? rows[0] : rows;
       if (er || !row) { setError("Enlace inválido o expirado."); setLoading(false); return; }
-      if (row.estado === "revocado") { setError("Este enlace fue revocado."); setLoading(false); return; }
-      if (row.expira_en && new Date(row.expira_en) < new Date()) { setError("Este enlace ha expirado."); setLoading(false); return; }
       setData(row as unknown as Compartido);
+      if (row.nombre_empresa) setEmpresa({ nombre_empresa: row.nombre_empresa });
 
-      const { data: emp } = await supabase.from("clientes").select("nombre_empresa").eq("id", row.cliente_id).maybeSingle();
-      setEmpresa(emp as { nombre_empresa: string } | null);
 
       // Cargar extras
       const kpisP: Promise<{ data: any[] | null }> = row.incluir_kpis && row.contenido_id

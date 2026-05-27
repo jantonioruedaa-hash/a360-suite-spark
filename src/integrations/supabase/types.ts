@@ -1023,6 +1023,26 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_compartido_by_token: {
+        Args: { _token: string }
+        Returns: {
+          cliente_id: string
+          contenido_id: string
+          created_at: string
+          destinatarios_nombres: Json
+          estado: string
+          expira_en: string
+          id: string
+          incluir_compromisos: boolean
+          incluir_kpis: boolean
+          mensaje: string
+          nombre_empresa: string
+          pdf_url: string
+          tipo_contenido: string
+          titulo: string
+          vistas: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
