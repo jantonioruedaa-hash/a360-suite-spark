@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { consumirCreditoIAInline } from "@/lib/creditos-ia-helper.server";
 
 type CoachingAIResult = {
   analisis?: string | null;
