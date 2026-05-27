@@ -52,6 +52,7 @@ function ClienteLayout() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId" });
   const [cliente, setCliente] = useState<ClienteFull | null>(null);
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const { role } = useAuth();
 
   useEffect(() => {
     supabase.from("clientes")
@@ -66,6 +67,16 @@ function ClienteLayout() {
 
   const estado = ESTADOS.find((e) => e.value === (cliente.estado ?? "activo"));
   const isActive = (url: string) => path.endsWith(`/${url}`) || path.includes(`/${url}/`);
+
+  const plan = normalizePlan(cliente.plan_licencia);
+  const bypassPlan = role === "admin" || role === "consultor";
+  const moduloVisible = (s: Seccion) => !s.modulo || bypassPlan || planAllowsModule(plan, s.modulo);
+
+  const seccionesVisibles = SECCIONES.filter(moduloVisible);
+
+  // Detectar sección actual para gating del Outlet
+  const seccionActual = SECCIONES.find((s) => isActive(s.url));
+  const bloqueado = !!seccionActual?.modulo && !bypassPlan && !planAllowsModule(plan, seccionActual.modulo);
 
   return (
     <div className="-m-6 lg:-m-8 min-h-[calc(100vh-4rem)] flex flex-col">
@@ -92,14 +103,14 @@ function ClienteLayout() {
         </div>
         <div className="flex items-center gap-2">
           {estado && <Badge variant="outline" className={estado.color}>{estado.label}</Badge>}
-          <Badge variant="outline" className="capitalize">{cliente.plan_licencia}</Badge>
+          <Badge variant="outline">{PLAN_LABELS[plan]}</Badge>
         </div>
       </div>
 
       {/* Tabs horizontales (visible en todos los tamaños) */}
       <div className="bg-white border-b border-border sticky top-[61px] z-10 px-2 overflow-x-auto">
         <nav className="flex gap-1 min-w-max">
-          {SECCIONES.map((s) => (
+          {seccionesVisibles.map((s) => (
             <Link key={s.url}
               to={`/app/clientes/$clienteId/${s.url}` as "/app/clientes/$clienteId/resumen"}
               params={{ clienteId }}
@@ -116,7 +127,14 @@ function ClienteLayout() {
       </div>
 
       <div className="flex-1 p-6 lg:p-8 min-w-0 overflow-x-auto">
-        <Outlet />
+        {bloqueado ? (
+          <ModuloNoIncluido
+            moduloLabel={seccionActual?.label ?? "Este módulo"}
+            planActual={plan}
+          />
+        ) : (
+          <Outlet />
+        )}
       </div>
     </div>
   );
