@@ -81,6 +81,7 @@ function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <HeaderUsoBadge />
               <NotificacionesBell />
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
