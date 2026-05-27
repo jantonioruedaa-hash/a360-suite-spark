@@ -7,12 +7,14 @@ import { A360Logo } from "@/components/A360Logo";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
   LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon, TrendingUp,
+  Lock, ShoppingCart, Megaphone, Calculator, Package, Workflow, ShieldCheck, Users, FileText,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useAlertas } from "@/lib/alertas-helpers";
 import { useAppSettings } from "@/lib/app-settings";
+import { toast } from "sonner";
 
-type Item = { title: string; url: string; icon: typeof Activity };
+type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean };
 type Section = { label: string; items: Item[]; consultorOnly?: boolean };
 
 const sections: Section[] = [
