@@ -121,6 +121,16 @@ export const analizarSesionCoaching = createServerFn({ method: "POST" })
       const supabase = getAuthenticatedClient(data.accessToken);
       const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
       if (authErr || !claims?.claims?.sub) return { analisis: null, fecha: null, error: "Sesión inválida o expirada" };
+      const uid = claims.claims.sub as string;
+
+      // Resolver cliente_id desde la sesión para descontar créditos al cliente correcto
+      const { data: sesCli } = await supabase
+        .from("coaching_sesiones").select("cliente_id").eq("id", data.sesionId).maybeSingle();
+      if (sesCli?.cliente_id) {
+        const consumo = await consumirCreditoIAInline(supabase, sesCli.cliente_id as string, uid);
+        if (!consumo.ok) return { analisis: null, fecha: null, error: consumo.error ?? "Límite IA" };
+      }
+
 
       const userPrompt = `CLIENTE / CONTEXTO:
 ${data.contextoCliente || "(sin datos de contexto del líder)"}
