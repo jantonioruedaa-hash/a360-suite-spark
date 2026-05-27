@@ -189,6 +189,12 @@ export const sintetizarProgramaCoaching = createServerFn({ method: "POST" })
       const supabase = getAuthenticatedClient(data.accessToken);
       const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
       if (authErr || !claims?.claims?.sub) return { sintesis: null, fecha: null, error: "Sesión inválida o expirada" };
+      const uid = claims.claims.sub as string;
+
+      const consumo = await consumirCreditoIAInline(supabase, data.clienteId, uid);
+      if (!consumo.ok) return { sintesis: null, fecha: null, error: consumo.error ?? "Límite IA" };
+
+
 
       const { data: sesiones, error: sesErr } = await supabase
         .from("coaching_sesiones")
