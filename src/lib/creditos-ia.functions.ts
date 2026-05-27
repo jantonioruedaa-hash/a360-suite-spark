@@ -150,3 +150,41 @@ export const consumirCreditoIA = createServerFn({ method: "POST" })
 
     return { ok: true, plan, usados: nuevos, total, resetFecha, bypass: false, error: null };
   });
+
+const asignarExtraSchema = z.object({
+  clienteId: z.string().uuid(),
+  cantidad: z.number().int().min(1).max(1000),
+  accessToken: z.string().min(10).optional(),
+});
+
+// Admin/Consultor: asigna créditos IA extra a un cliente.
+export const asignarCreditosExtra = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => asignarExtraSchema.parse(d))
+  .handler(async ({ data }): Promise<{ ok: boolean; nuevoTotalExtra: number; error?: string }> => {
+    const supabase = getClient(data.accessToken);
+    if (!supabase) return { ok: false, nuevoTotalExtra: 0, error: "Sesión inválida" };
+    const { data: claims } = await supabase.auth.getClaims(data.accessToken);
+    const uid = claims?.claims?.sub as string | undefined;
+    if (!uid) return { ok: false, nuevoTotalExtra: 0, error: "Sesión inválida" };
+
+    const role = await getRole(supabase, uid);
+    if (role !== "admin" && role !== "consultor") {
+      return { ok: false, nuevoTotalExtra: 0, error: "No autorizado" };
+    }
+
+    const { data: cli } = await supabase
+      .from("clientes")
+      .select("creditos_ia_extra")
+      .eq("id", data.clienteId)
+      .maybeSingle();
+    if (!cli) return { ok: false, nuevoTotalExtra: 0, error: "Cliente no encontrado" };
+
+    const actual = (cli.creditos_ia_extra as number | null) ?? 0;
+    const nuevo = actual + data.cantidad;
+    const { error: upErr } = await supabase
+      .from("clientes")
+      .update({ creditos_ia_extra: nuevo })
+      .eq("id", data.clienteId);
+    if (upErr) return { ok: false, nuevoTotalExtra: 0, error: upErr.message };
+    return { ok: true, nuevoTotalExtra: nuevo };
+  });
