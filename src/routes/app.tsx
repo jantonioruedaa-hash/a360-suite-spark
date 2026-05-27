@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { NotificacionesBell } from "@/components/NotificacionesBell";
+import { HeaderUsoBadge } from "@/components/HeaderUsoBadge";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app")({
@@ -80,6 +81,7 @@ function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <HeaderUsoBadge />
               <NotificacionesBell />
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">

@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { consumirCreditoIAInline } from "@/lib/creditos-ia-helper.server";
 
 // ════════════════════════════════════════════════════════
 //  ÚNICO PUNTO DE CAMBIO DE PROVEEDOR
@@ -68,7 +69,11 @@ export const analizarSeccionPlan = createServerFn({ method: "POST" })
     datosSeccion: z.record(z.string(), z.any()),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+
+    // Gating de créditos IA (admin/consultor pasa libre)
+    const consumo = await consumirCreditoIAInline(supabase, data.clienteId, userId);
+    if (!consumo.ok) throw new Error(consumo.error ?? "Límite de IA alcanzado");
 
     const userPrompt = `EMPRESA Y CONTEXTO:
 ${data.contextoEmpresa || "(sin datos de contexto)"}

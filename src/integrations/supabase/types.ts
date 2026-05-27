@@ -597,6 +597,8 @@ export type Database = {
           codigo_postal: string | null
           consultor_id: string | null
           created_at: string
+          creditos_ia_reset_fecha: string
+          creditos_ia_usados: number
           descripcion: string | null
           direccion: string | null
           estado: string | null
@@ -626,6 +628,8 @@ export type Database = {
           codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
+          creditos_ia_reset_fecha?: string
+          creditos_ia_usados?: number
           descripcion?: string | null
           direccion?: string | null
           estado?: string | null
@@ -655,6 +659,8 @@ export type Database = {
           codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
+          creditos_ia_reset_fecha?: string
+          creditos_ia_usados?: number
           descripcion?: string | null
           direccion?: string | null
           estado?: string | null

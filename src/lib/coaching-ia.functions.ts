@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { consumirCreditoIAInline } from "@/lib/creditos-ia-helper.server";
 
 type CoachingAIResult = {
   analisis?: string | null;
@@ -120,6 +121,16 @@ export const analizarSesionCoaching = createServerFn({ method: "POST" })
       const supabase = getAuthenticatedClient(data.accessToken);
       const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
       if (authErr || !claims?.claims?.sub) return { analisis: null, fecha: null, error: "Sesión inválida o expirada" };
+      const uid = claims.claims.sub as string;
+
+      // Resolver cliente_id desde la sesión para descontar créditos al cliente correcto
+      const { data: sesCli } = await supabase
+        .from("coaching_sesiones").select("cliente_id").eq("id", data.sesionId).maybeSingle();
+      if (sesCli?.cliente_id) {
+        const consumo = await consumirCreditoIAInline(supabase, sesCli.cliente_id as string, uid);
+        if (!consumo.ok) return { analisis: null, fecha: null, error: consumo.error ?? "Límite IA" };
+      }
+
 
       const userPrompt = `CLIENTE / CONTEXTO:
 ${data.contextoCliente || "(sin datos de contexto del líder)"}
@@ -178,6 +189,12 @@ export const sintetizarProgramaCoaching = createServerFn({ method: "POST" })
       const supabase = getAuthenticatedClient(data.accessToken);
       const { data: claims, error: authErr } = await supabase.auth.getClaims(data.accessToken);
       if (authErr || !claims?.claims?.sub) return { sintesis: null, fecha: null, error: "Sesión inválida o expirada" };
+      const uid = claims.claims.sub as string;
+
+      const consumo = await consumirCreditoIAInline(supabase, data.clienteId, uid);
+      if (!consumo.ok) return { sintesis: null, fecha: null, error: consumo.error ?? "Límite IA" };
+
+
 
       const { data: sesiones, error: sesErr } = await supabase
         .from("coaching_sesiones")
