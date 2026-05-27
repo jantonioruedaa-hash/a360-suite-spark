@@ -19,8 +19,8 @@ import { Route as AppLeeRouteImport } from './routes/app.lee'
 import { Route as AppKpisRouteImport } from './routes/app.kpis'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
-import { Route as AppCoachingRouteImport } from './routes/app.coaching'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
+import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
 import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
 import { Route as AppCoachingMetodologiaRouteImport } from './routes/app.coaching.metodologia'
@@ -87,14 +87,14 @@ const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
   path: '/configuracion',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCoachingRoute = AppCoachingRouteImport.update({
-  id: '/coaching',
-  path: '/coaching',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppClientesRoute = AppClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCoachingIndexRoute = AppCoachingIndexRouteImport.update({
+  id: '/coaching/',
+  path: '/coaching/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSideHistorialRoute = AppSideHistorialRouteImport.update({
@@ -103,14 +103,14 @@ const AppSideHistorialRoute = AppSideHistorialRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppCoachingResultadosRoute = AppCoachingResultadosRouteImport.update({
-  id: '/resultados',
-  path: '/resultados',
-  getParentRoute: () => AppCoachingRoute,
+  id: '/coaching/resultados',
+  path: '/coaching/resultados',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppCoachingMetodologiaRoute = AppCoachingMetodologiaRouteImport.update({
-  id: '/metodologia',
-  path: '/metodologia',
-  getParentRoute: () => AppCoachingRoute,
+  id: '/coaching/metodologia',
+  path: '/coaching/metodologia',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
   id: '/$clienteId',
@@ -188,7 +188,6 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
-  '/app/coaching': typeof AppCoachingRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/kpis': typeof AppKpisRoute
@@ -200,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/app/coaching/metodologia': typeof AppCoachingMetodologiaRoute
   '/app/coaching/resultados': typeof AppCoachingResultadosRoute
   '/app/side/historial': typeof AppSideHistorialRoute
+  '/app/coaching/': typeof AppCoachingIndexRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
   '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
   '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
@@ -217,7 +217,6 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
-  '/app/coaching': typeof AppCoachingRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/kpis': typeof AppKpisRoute
@@ -229,6 +228,7 @@ export interface FileRoutesByTo {
   '/app/coaching/metodologia': typeof AppCoachingMetodologiaRoute
   '/app/coaching/resultados': typeof AppCoachingResultadosRoute
   '/app/side/historial': typeof AppSideHistorialRoute
+  '/app/coaching': typeof AppCoachingIndexRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
   '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
   '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
@@ -247,7 +247,6 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
-  '/app/coaching': typeof AppCoachingRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/kpis': typeof AppKpisRoute
@@ -259,6 +258,7 @@ export interface FileRoutesById {
   '/app/coaching/metodologia': typeof AppCoachingMetodologiaRoute
   '/app/coaching/resultados': typeof AppCoachingResultadosRoute
   '/app/side_/historial': typeof AppSideHistorialRoute
+  '/app/coaching/': typeof AppCoachingIndexRoute
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
   '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
   '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
@@ -278,7 +278,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/app/clientes'
-    | '/app/coaching'
     | '/app/configuracion'
     | '/app/dashboard'
     | '/app/kpis'
@@ -290,6 +289,7 @@ export interface FileRouteTypes {
     | '/app/coaching/metodologia'
     | '/app/coaching/resultados'
     | '/app/side/historial'
+    | '/app/coaching/'
     | '/app/clientes/$clienteId/actividades'
     | '/app/clientes/$clienteId/analisis-ia'
     | '/app/clientes/$clienteId/coaching'
@@ -307,7 +307,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/app/clientes'
-    | '/app/coaching'
     | '/app/configuracion'
     | '/app/dashboard'
     | '/app/kpis'
@@ -319,6 +318,7 @@ export interface FileRouteTypes {
     | '/app/coaching/metodologia'
     | '/app/coaching/resultados'
     | '/app/side/historial'
+    | '/app/coaching'
     | '/app/clientes/$clienteId/actividades'
     | '/app/clientes/$clienteId/analisis-ia'
     | '/app/clientes/$clienteId/coaching'
@@ -336,7 +336,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/app/clientes'
-    | '/app/coaching'
     | '/app/configuracion'
     | '/app/dashboard'
     | '/app/kpis'
@@ -348,6 +347,7 @@ export interface FileRouteTypes {
     | '/app/coaching/metodologia'
     | '/app/coaching/resultados'
     | '/app/side_/historial'
+    | '/app/coaching/'
     | '/app/clientes/$clienteId/actividades'
     | '/app/clientes/$clienteId/analisis-ia'
     | '/app/clientes/$clienteId/coaching'
@@ -440,18 +440,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConfiguracionRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/coaching': {
-      id: '/app/coaching'
-      path: '/coaching'
-      fullPath: '/app/coaching'
-      preLoaderRoute: typeof AppCoachingRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/clientes': {
       id: '/app/clientes'
       path: '/clientes'
       fullPath: '/app/clientes'
       preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/coaching/': {
+      id: '/app/coaching/'
+      path: '/coaching'
+      fullPath: '/app/coaching/'
+      preLoaderRoute: typeof AppCoachingIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/side_/historial': {
@@ -463,17 +463,17 @@ declare module '@tanstack/react-router' {
     }
     '/app/coaching/resultados': {
       id: '/app/coaching/resultados'
-      path: '/resultados'
+      path: '/coaching/resultados'
       fullPath: '/app/coaching/resultados'
       preLoaderRoute: typeof AppCoachingResultadosRouteImport
-      parentRoute: typeof AppCoachingRoute
+      parentRoute: typeof AppRoute
     }
     '/app/coaching/metodologia': {
       id: '/app/coaching/metodologia'
-      path: '/metodologia'
+      path: '/coaching/metodologia'
       fullPath: '/app/coaching/metodologia'
       preLoaderRoute: typeof AppCoachingMetodologiaRouteImport
-      parentRoute: typeof AppCoachingRoute
+      parentRoute: typeof AppRoute
     }
     '/app/clientes/$clienteId': {
       id: '/app/clientes/$clienteId'
@@ -605,42 +605,32 @@ const AppClientesRouteWithChildren = AppClientesRoute._addFileChildren(
   AppClientesRouteChildren,
 )
 
-interface AppCoachingRouteChildren {
-  AppCoachingMetodologiaRoute: typeof AppCoachingMetodologiaRoute
-  AppCoachingResultadosRoute: typeof AppCoachingResultadosRoute
-}
-
-const AppCoachingRouteChildren: AppCoachingRouteChildren = {
-  AppCoachingMetodologiaRoute: AppCoachingMetodologiaRoute,
-  AppCoachingResultadosRoute: AppCoachingResultadosRoute,
-}
-
-const AppCoachingRouteWithChildren = AppCoachingRoute._addFileChildren(
-  AppCoachingRouteChildren,
-)
-
 interface AppRouteChildren {
   AppClientesRoute: typeof AppClientesRouteWithChildren
-  AppCoachingRoute: typeof AppCoachingRouteWithChildren
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppKpisRoute: typeof AppKpisRoute
   AppLeeRoute: typeof AppLeeRoute
   AppPlanRoute: typeof AppPlanRoute
   AppSideRoute: typeof AppSideRoute
+  AppCoachingMetodologiaRoute: typeof AppCoachingMetodologiaRoute
+  AppCoachingResultadosRoute: typeof AppCoachingResultadosRoute
   AppSideHistorialRoute: typeof AppSideHistorialRoute
+  AppCoachingIndexRoute: typeof AppCoachingIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppClientesRoute: AppClientesRouteWithChildren,
-  AppCoachingRoute: AppCoachingRouteWithChildren,
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppKpisRoute: AppKpisRoute,
   AppLeeRoute: AppLeeRoute,
   AppPlanRoute: AppPlanRoute,
   AppSideRoute: AppSideRoute,
+  AppCoachingMetodologiaRoute: AppCoachingMetodologiaRoute,
+  AppCoachingResultadosRoute: AppCoachingResultadosRoute,
   AppSideHistorialRoute: AppSideHistorialRoute,
+  AppCoachingIndexRoute: AppCoachingIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
