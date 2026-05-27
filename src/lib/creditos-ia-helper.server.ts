@@ -38,7 +38,7 @@ export async function consumirCreditoIAInline(
 
   const { data: cli, error } = await supabase
     .from("clientes")
-    .select("plan_licencia, creditos_ia_usados, creditos_ia_reset_fecha")
+    .select("plan_licencia, creditos_ia_usados, creditos_ia_reset_fecha, creditos_ia_extra")
     .eq("id", clienteId)
     .maybeSingle();
   if (error || !cli) {
@@ -46,7 +46,9 @@ export async function consumirCreditoIAInline(
   }
 
   const plan = normalizePlan(cli.plan_licencia);
-  const total = AI_CREDITS_BY_PLAN[plan];
+  const baseTotal = AI_CREDITS_BY_PLAN[plan];
+  const extra = (cli.creditos_ia_extra as number | null) ?? 0;
+  const total = baseTotal + extra;
   let usados = (cli.creditos_ia_usados as number | null) ?? 0;
   let resetFecha = (cli.creditos_ia_reset_fecha as string | null) ?? firstOfMonth(new Date());
 
@@ -67,7 +69,7 @@ export async function consumirCreditoIAInline(
   if (usados >= total) {
     return {
       ok: false, plan, usados, total, bypass: false,
-      error: "Alcanzaste tu límite de análisis IA este mes. Contacta a tu consultor para ampliar tu plan.",
+      error: "Alcanzaste tu límite de análisis IA este mes. Contacta a tu consultor para adquirir créditos adicionales o ampliar tu plan.",
     };
   }
 
