@@ -38,7 +38,7 @@ export async function consumirCreditoIAInline(
 
   const { data: cli, error } = await supabase
     .from("clientes")
-    .select("plan_licencia, creditos_ia_usados, creditos_ia_reset_fecha")
+    .select("plan_licencia, creditos_ia_usados, creditos_ia_reset_fecha, creditos_ia_extra")
     .eq("id", clienteId)
     .maybeSingle();
   if (error || !cli) {
