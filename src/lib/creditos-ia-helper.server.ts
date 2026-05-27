@@ -46,7 +46,9 @@ export async function consumirCreditoIAInline(
   }
 
   const plan = normalizePlan(cli.plan_licencia);
-  const total = AI_CREDITS_BY_PLAN[plan];
+  const baseTotal = AI_CREDITS_BY_PLAN[plan];
+  const extra = (cli.creditos_ia_extra as number | null) ?? 0;
+  const total = baseTotal + extra;
   let usados = (cli.creditos_ia_usados as number | null) ?? 0;
   let resetFecha = (cli.creditos_ia_reset_fecha as string | null) ?? firstOfMonth(new Date());
 
