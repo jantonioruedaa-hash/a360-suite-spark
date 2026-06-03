@@ -13,7 +13,12 @@ export const Route = createRootRoute({
       { name: "description", content: "Sistema Integral de Transformación Empresarial — A360SGP Suite" },
       { name: "google", content: "notranslate" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" },
+    ],
   }),
   shellComponent: RootShell,
   component: () => (
