@@ -206,7 +206,7 @@ function HistorialPage() {
           <h1 className="font-display text-3xl text-navy flex items-center gap-2"><History className="w-7 h-7 text-gold" />Historial SIDE</h1>
           <p className="text-sm text-muted-foreground mt-1">Administra tus sesiones diagnósticas: renombrar, duplicar, exportar, completar/reabrir y eliminar.</p>
         </div>
-        <Link to="/app/side"><Button variant="outline">Nueva sesión</Button></Link>
+        <Link to="/app/side" search={{ sesion: undefined }}><Button variant="outline">Nueva sesión</Button></Link>
       </div>
 
       <div className="a360-card a360-card-lg p-5 mb-5 flex flex-wrap items-center gap-3">

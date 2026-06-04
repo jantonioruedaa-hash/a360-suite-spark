@@ -7,8 +7,7 @@ import {
   promedio, interpretarIME, ESCALA_LABELS, calcFinanciero,
   type ScoreMap, type Dimension, type DatosFinancieros,
 } from "@/lib/side-data";
-import { generarAnalisisSide } from "@/server/side-analysis.functions";
-import { generarIniciativasSide, type IniciativaIA } from "@/server/side-iniciativas.functions";
+import { generarAnalisisSide, generarIniciativasSide, type IniciativaIA } from "@/lib/server-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,7 +89,7 @@ function SidePage() {
           <p className="text-sm text-muted-foreground mt-1">Sistema Integral de Diagnóstico Empresarial · 12 dimensiones · 4 índices</p>
         </div>
         {step === "cuestionario" && sesion && (
-          <Button variant="outline" onClick={() => { setStep("inicio"); navigate({ to: "/app/side", search: {} }); }}>← Volver</Button>
+          <Button variant="outline" onClick={() => { setStep("inicio"); navigate({ to: "/app/side", search: { sesion: undefined } }); }}>← Volver</Button>
         )}
       </div>
 

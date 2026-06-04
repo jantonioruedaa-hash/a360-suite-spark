@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Loader2, Edit3, Save, RotateCw } from "lucide-react";
-import { analizarSeccionPlan } from "@/server/plan-ia.functions";
+import { analizarSeccionPlan } from "@/lib/server-fns";
 import { toast } from "sonner";
 
 interface Props {

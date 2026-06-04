@@ -1,0 +1,1999 @@
+{
+  "modules": [
+    {
+      "id": "P01",
+      "title": "Oferta que se entiende, se desea y se compra",
+      "problem": "La empresa tiene una oferta que no comunica valor suficiente.",
+      "opportunity": "Convertir productos o servicios en una propuesta concreta, deseable y fácil de comprar. Una buena oferta reduce fricción, aumenta percepción de valor y facilita el cierre comercial.",
+      "analysis": "Muchas empresas creen que necesitan más pauta, más contenido o más seguidores. Pero cuando la oferta no es clara, todo el sistema se encarece. El cliente no compra porque no entiende qué gana, qué evita o por qué actuar ahora. El marketing no arregla una oferta débil: la expone más rápido. La transformación empieza cuando la empresa deja de vender una lista de características y empieza a vender un resultado valioso, creíble y específico.",
+      "decision": "Decidir qué oferta priorizar, qué resultado prometer, qué incluir para aumentar valor percibido y qué eliminar para simplificar la decisión de compra.",
+      "actions": [
+        "Rediseñar la oferta en formato paquete o solución con resultado claro.",
+        "Agregar prueba: casos, demostraciones, garantías o testimonios.",
+        "Eliminar opciones confusas y crear una oferta principal de entrada.",
+        "Revisar precio según valor, margen y urgencia del problema."
+      ],
+      "deliverable": "Ficha de oferta optimizada con promesa, cliente ideal, componentes, prueba, objeciones y CTA comercial.",
+      "fields": [
+        {
+          "key": "offer_name",
+          "label": "Nombre de la oferta",
+          "question": "¿Cómo debería llamarse la oferta para que comunique resultado, especialidad o beneficio desde el primer contacto?",
+          "commercial": "Ejemplo comercial: “Kit de abastecimiento corporativo para campañas promocionales de fin de año” comunica uso, cliente y temporada.",
+          "service": "Ejemplo servicio: “Diagnóstico comercial 360 para pymes que venden por WhatsApp y redes” comunica proceso y aplicación."
+        },
+        {
+          "key": "core_problem",
+          "label": "Problema urgente que resuelve",
+          "question": "¿Qué problema concreto del cliente resuelve esta oferta y qué costo, pérdida o frustración evita?",
+          "commercial": "Un importador puede resolver quiebres de stock y compras dispersas para distribuidores.",
+          "service": "Una consultora puede resolver falta de claridad en ventas, baja conversión o ausencia de seguimiento."
+        },
+        {
+          "key": "desired_result",
+          "label": "Resultado prometido",
+          "question": "¿Qué resultado verificable debería esperar el cliente después de comprar o implementar la oferta?",
+          "commercial": "Reducir tiempos de entrega, aumentar disponibilidad de inventario o mejorar rotación de productos.",
+          "service": "Aumentar la tasa de conversión, ordenar el embudo o tener un plan comercial ejecutable."
+        },
+        {
+          "key": "value_stack",
+          "label": "Componentes de valor",
+          "question": "¿Qué elementos incluidos aumentan la percepción de valor y reducen el miedo a comprar?",
+          "commercial": "Catálogo ordenado, asesoría de selección, despacho programado, reposición y soporte postventa.",
+          "service": "Diagnóstico, sesión estratégica, plantilla, acompañamiento, dashboard y revisión posterior."
+        },
+        {
+          "key": "proof",
+          "label": "Prueba y credibilidad",
+          "question": "¿Qué evidencia puede demostrar que la oferta funciona o que la empresa puede cumplir?",
+          "commercial": "Clientes atendidos, tiempos de entrega, marcas representadas, garantías, fotos de entregas o casos.",
+          "service": "Casos de mejora, testimonios, antes/después, métricas de clientes o metodología documentada."
+        },
+        {
+          "key": "cta",
+          "label": "Próximo paso de compra",
+          "question": "¿Qué acción simple debería tomar el cliente para avanzar sin sentirse presionado?",
+          "commercial": "Solicitar cotización guiada, agendar asesoría de producto, pedir catálogo segmentado.",
+          "service": "Agendar diagnóstico, responder test inicial, descargar checklist, reservar sesión."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Tasa de conversión de oferta",
+          "definition": "Mide qué porcentaje de prospectos interesados termina comprando la oferta.",
+          "formula": "Ventas de la oferta / oportunidades de la oferta x 100",
+          "target": "20% a 35% en servicios consultivos; 5% a 15% en retail según canal",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Ticket promedio",
+          "definition": "Mide el valor medio de cada venta generada por la oferta.",
+          "formula": "Ingresos de la oferta / número de ventas",
+          "target": "Debe cubrir margen, CAC y utilidad esperada",
+          "good": 85,
+          "warn": 60
+        },
+        {
+          "name": "Margen por oferta",
+          "definition": "Mide la rentabilidad real de la oferta después de costos directos.",
+          "formula": "(Precio - costo directo) / precio x 100",
+          "target": "Mayor a 35% en servicios; variable en productos según categoría",
+          "good": 80,
+          "warn": 55
+        },
+        {
+          "name": "Objeciones repetidas",
+          "definition": "Mide si la oferta está generando fricción comercial.",
+          "formula": "Número de objeciones frecuentes por oportunidad",
+          "target": "Menos de 2 objeciones críticas por oportunidad",
+          "good": 75,
+          "warn": 50
+        }
+      ],
+      "promptTask": "Genera una oferta optimizada con nombre, promesa, componentes, diferenciadores, prueba, objeciones y CTA. Incluye versión para landing, WhatsApp y discurso comercial."
+    },
+    {
+      "id": "P02",
+      "title": "Propuesta de valor que diferencia y justifica la compra",
+      "problem": "El cliente no entiende por qué elegir esta empresa y no otra.",
+      "opportunity": "Desarrollar una explicación breve y poderosa de por qué la solución es valiosa, diferente y adecuada para un segmento específico.",
+      "analysis": "Cuando una empresa dice “calidad, experiencia y servicio personalizado”, casi siempre suena igual a sus competidores. La propuesta de valor debe conectar tres elementos: cliente específico, problema relevante y resultado superior. No es un eslogan. Es una herramienta para vender, alinear al equipo y evitar competir solo por precio.",
+      "decision": "Decidir cuál será el argumento central de diferenciación y qué promesa puede sostener la empresa con evidencia real.",
+      "actions": [
+        "Redactar una propuesta de valor en una frase.",
+        "Comparar contra alternativas: competidor, no hacer nada, hacerlo internamente.",
+        "Alinear sitio web, discurso comercial y contenido con la propuesta.",
+        "Crear pruebas que respalden el diferencial."
+      ],
+      "deliverable": "Propuesta de valor principal, versiones por segmento y mensajes comerciales derivados.",
+      "fields": [
+        {
+          "key": "ideal_customer",
+          "label": "Cliente ideal",
+          "question": "¿Para qué tipo de cliente la empresa puede generar más valor y obtener mejores resultados?",
+          "commercial": "Distribuidores que necesitan proveedor confiable, stock y entrega rápida.",
+          "service": "Dueños de pymes que necesitan vender más pero no tienen sistema comercial claro."
+        },
+        {
+          "key": "main_outcome",
+          "label": "Resultado valioso",
+          "question": "¿Qué resultado busca el cliente que justifica invertir tiempo, dinero y atención?",
+          "commercial": "Comprar mejor, reducir tiempos, recibir productos listos para comercializar.",
+          "service": "Ordenar su estrategia, conseguir leads calificados, mejorar cierres."
+        },
+        {
+          "key": "differentiator",
+          "label": "Diferenciador real",
+          "question": "¿Qué hace la empresa de forma distinta, más confiable o más conveniente?",
+          "commercial": "Inventario disponible, marcas exclusivas, asesoría por categoría, logística nacional.",
+          "service": "Metodología práctica, acompañamiento, herramientas, experiencia directiva real."
+        },
+        {
+          "key": "alternative",
+          "label": "Alternativas del cliente",
+          "question": "¿Contra qué opciones compite realmente la empresa: precio, proveedor actual, improvisación o no hacer nada?",
+          "commercial": "El cliente puede comprar a importadores informales, marketplaces o proveedores más baratos.",
+          "service": "El cliente puede contratar una agencia, seguir improvisando o delegar todo al vendedor."
+        },
+        {
+          "key": "value_statement",
+          "label": "Frase final",
+          "question": "¿Cómo se expresa la propuesta de valor en una frase clara, concreta y comercial?",
+          "commercial": "Ayudamos a distribuidores a abastecerse con productos listos para vender, respaldo de marca y entrega confiable.",
+          "service": "Ayudamos a pymes a convertir marketing y ventas en un sistema medible de crecimiento."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Conversión de página principal",
+          "definition": "Mide si la propuesta de valor motiva una acción.",
+          "formula": "Contactos o clics CTA / visitas x 100",
+          "target": "2% a 8% según industria y tráfico",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Tasa de aceptación de propuestas",
+          "definition": "Mide si el valor percibido supera objeciones de precio.",
+          "formula": "Propuestas aceptadas / propuestas enviadas x 100",
+          "target": "25% a 50% en B2B consultivo",
+          "good": 80,
+          "warn": 55
+        },
+        {
+          "name": "Tiempo de explicación comercial",
+          "definition": "Mide cuán rápido se entiende el valor.",
+          "formula": "Minutos promedio para explicar la oferta",
+          "target": "Menos de 5 minutos para una oferta simple",
+          "good": 90,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas y crea una propuesta de valor principal, 3 versiones por segmento, mensajes para web, LinkedIn, WhatsApp y un argumento contra competir por precio."
+    },
+    {
+      "id": "P03",
+      "title": "Cliente ideal y segmentación rentable",
+      "problem": "La empresa atrae clientes incorrectos o demasiado dispersos.",
+      "opportunity": "Enfocar recursos en segmentos donde la empresa tiene más probabilidad de vender, entregar valor y obtener margen.",
+      "analysis": "Venderle a todos parece ambicioso, pero en marketing suele ser costoso. Cuando el cliente ideal no está definido, el mensaje se vuelve tibio, la pauta atrae curiosos, ventas pierde tiempo y la empresa no aprende. Segmentar no significa excluir oportunidades; significa priorizar dónde conviene poner energía primero.",
+      "decision": "Decidir qué segmento merece prioridad comercial, qué segmento debe nutrirse y qué tipo de cliente no debe perseguirse.",
+      "actions": [
+        "Definir cliente ideal por rentabilidad, urgencia y capacidad de compra.",
+        "Separar segmentos B2B, B2C, corporativo, distribuidores o cuentas clave.",
+        "Construir mensajes distintos por segmento.",
+        "Crear criterios para calificar leads."
+      ],
+      "deliverable": "Matriz de cliente ideal, segmentos prioritarios y criterios de calificación comercial.",
+      "fields": [
+        {
+          "key": "segments",
+          "label": "Segmentos prioritarios",
+          "question": "¿Qué segmentos tienen mayor potencial de compra, repetición, margen o afinidad con la oferta?",
+          "commercial": "Corporativos para promociones, distribuidores de productos técnicos, tiendas especializadas.",
+          "service": "Pymes en crecimiento, emprendedores con ventas activas, gerentes que necesitan ordenar equipos."
+        },
+        {
+          "key": "pain_points",
+          "label": "Dolores del segmento",
+          "question": "¿Qué problemas específicos vive cada segmento antes de buscar una solución?",
+          "commercial": "Demoras, mala calidad, proveedores sin stock, dificultad para personalizar o entregar a tiempo.",
+          "service": "Falta de leads calificados, ventas desordenadas, baja retención, poca medición."
+        },
+        {
+          "key": "buying_trigger",
+          "label": "Disparador de compra",
+          "question": "¿Qué evento o situación activa la necesidad de comprar ahora?",
+          "commercial": "Temporada alta, campaña corporativa, lanzamiento, quiebre de inventario.",
+          "service": "Caída de ventas, nueva meta, expansión, presión de dirección, problema de caja."
+        },
+        {
+          "key": "qualification",
+          "label": "Criterios de calificación",
+          "question": "¿Qué señales indican que un lead merece atención comercial prioritaria?",
+          "commercial": "Volumen, fecha de entrega, presupuesto, tipo de cliente, recurrencia potencial.",
+          "service": "Urgencia, decisión directa, presupuesto, tamaño de equipo, compromiso de implementación."
+        },
+        {
+          "key": "non_ideal",
+          "label": "Cliente no ideal",
+          "question": "¿Qué tipo de cliente consume tiempo, presiona precio o no valora la solución?",
+          "commercial": "Compradores sin presupuesto, pedidos mínimos no rentables, clientes sin claridad de especificaciones.",
+          "service": "Personas que solo buscan consejos gratuitos, no tienen negocio activo o no implementan."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "% leads calificados",
+          "definition": "Mide la calidad de la atracción y segmentación.",
+          "formula": "Leads calificados / leads totales x 100",
+          "target": "40% a 70% según canal",
+          "good": 85,
+          "warn": 55
+        },
+        {
+          "name": "Tasa de cierre por segmento",
+          "definition": "Mide qué segmento convierte mejor.",
+          "formula": "Ventas del segmento / oportunidades del segmento x 100",
+          "target": "Depende de industria; priorizar segmentos con tendencia superior",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Margen por segmento",
+          "definition": "Mide la rentabilidad comparativa por tipo de cliente.",
+          "formula": "Utilidad por segmento / ingresos por segmento x 100",
+          "target": "Mayor margen que promedio general",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Tiempo de ciclo por segmento",
+          "definition": "Mide qué segmentos compran más rápido.",
+          "formula": "Días desde lead hasta venta",
+          "target": "Reducir 15% a 30% por priorización",
+          "good": 75,
+          "warn": 50
+        }
+      ],
+      "promptTask": "Crea una matriz de segmentación con cliente ideal, cliente no ideal, mensajes por segmento, criterios de calificación y recomendaciones de canal."
+    },
+    {
+      "id": "P04",
+      "title": "Mensaje comercial que capta atención",
+      "problem": "El mensaje suena genérico y no mueve a la acción.",
+      "opportunity": "Convertir la comunicación en un puente entre el dolor del cliente y la solución.",
+      "analysis": "Un mensaje fuerte hace que el cliente se reconozca. No busca sonar elegante, busca ser claro, específico y relevante. El mensaje debe mostrar que la empresa entiende el problema, conoce la consecuencia y ofrece un camino creíble.",
+      "decision": "Decidir qué idea central se repetirá en web, anuncios, contenido y ventas.",
+      "actions": [
+        "Crear una arquitectura de mensajes por etapa del embudo.",
+        "Probar hooks y argumentos por segmento.",
+        "Eliminar frases genéricas."
+      ],
+      "deliverable": "Mapa de mensajes por segmento y etapa.",
+      "fields": [
+        {
+          "key": "mensaje_actual",
+          "label": "Mensaje actual",
+          "question": "¿Qué información concreta necesitamos definir sobre “Mensaje actual” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "dolor_que_activa_atención",
+          "label": "Dolor que activa atención",
+          "question": "¿Qué información concreta necesitamos definir sobre “Dolor que activa atención” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "resultado_deseado",
+          "label": "Resultado deseado",
+          "question": "¿Qué información concreta necesitamos definir sobre “Resultado deseado” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "prueba_o_evidencia",
+          "label": "Prueba o evidencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Prueba o evidencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cta_principal",
+          "label": "CTA principal",
+          "question": "¿Qué información concreta necesitamos definir sobre “CTA principal” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Mensaje comercial que capta atención. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P05",
+      "title": "Embudo digital medible",
+      "problem": "La empresa tiene campañas sueltas, pero no una ruta de conversión.",
+      "opportunity": "Diseñar un recorrido que convierta atención en datos, conversaciones, oportunidades y ventas.",
+      "analysis": "Sin embudo cada campaña empieza desde cero. El embudo permite entender dónde se pierde el cliente: si no llega, si no deja datos, si no responde, si no agenda o si no compra.",
+      "decision": "Decidir qué ruta seguirá un prospecto desde el primer contacto hasta la recompra.",
+      "actions": [
+        "Mapear etapas actuales.",
+        "Crear activos por etapa.",
+        "Medir fugas.",
+        "Optimizar la etapa más débil."
+      ],
+      "deliverable": "Embudo documentado con activos, responsables y métricas.",
+      "fields": [
+        {
+          "key": "atracción",
+          "label": "Atracción",
+          "question": "¿Qué información concreta necesitamos definir sobre “Atracción” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "captura",
+          "label": "Captura",
+          "question": "¿Qué información concreta necesitamos definir sobre “Captura” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "nutrición",
+          "label": "Nutrición",
+          "question": "¿Qué información concreta necesitamos definir sobre “Nutrición” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "conversión",
+          "label": "Conversión",
+          "question": "¿Qué información concreta necesitamos definir sobre “Conversión” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "seguimiento",
+          "label": "Seguimiento",
+          "question": "¿Qué información concreta necesitamos definir sobre “Seguimiento” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "venta",
+          "label": "Venta",
+          "question": "¿Qué información concreta necesitamos definir sobre “Venta” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "retención",
+          "label": "Retención",
+          "question": "¿Qué información concreta necesitamos definir sobre “Retención” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "referidos",
+          "label": "Referidos",
+          "question": "¿Qué información concreta necesitamos definir sobre “Referidos” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Embudo digital medible. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P06",
+      "title": "Alineación marketing y ventas",
+      "problem": "Marketing y ventas trabajan con criterios distintos.",
+      "opportunity": "Construir un lenguaje común para que cada lead tenga seguimiento, aprendizaje y trazabilidad.",
+      "analysis": "Cuando marketing y ventas no comparten definiciones, se desperdicia dinero. El objetivo no es culpar áreas, sino diseñar un sistema donde el origen, calidad, seguimiento y cierre sean visibles.",
+      "decision": "Definir qué es un lead calificado, quién responde, cuándo y cómo se retroalimenta el sistema.",
+      "actions": [
+        "Definir MQL y SQL.",
+        "Crear SLA de respuesta.",
+        "Reunión semanal de calidad de leads."
+      ],
+      "deliverable": "Acuerdo marketing-ventas con criterios y responsabilidades.",
+      "fields": [
+        {
+          "key": "definición_de_lead",
+          "label": "Definición de lead",
+          "question": "¿Qué información concreta necesitamos definir sobre “Definición de lead” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "mql",
+          "label": "MQL",
+          "question": "¿Qué información concreta necesitamos definir sobre “MQL” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "sql",
+          "label": "SQL",
+          "question": "¿Qué información concreta necesitamos definir sobre “SQL” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "tiempo_de_respuesta",
+          "label": "Tiempo de respuesta",
+          "question": "¿Qué información concreta necesitamos definir sobre “Tiempo de respuesta” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "retroalimentación_de_ventas",
+          "label": "Retroalimentación de ventas",
+          "question": "¿Qué información concreta necesitamos definir sobre “Retroalimentación de ventas” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Alineación marketing y ventas. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P07",
+      "title": "Contenido con intención comercial",
+      "problem": "La empresa publica, pero no construye confianza ni oportunidades.",
+      "opportunity": "Diseñar contenido que eduque, diferencie, resuelva objeciones y active conversaciones comerciales.",
+      "analysis": "El contenido no debe ser relleno de calendario. Debe ayudar a que la audiencia entienda su problema, confíe en la empresa y avance en el embudo.",
+      "decision": "Decidir qué rol cumplirá cada pieza: atraer, educar, probar, convertir o fidelizar.",
+      "actions": [
+        "Crear pilares de contenido.",
+        "Clasificar contenido por embudo.",
+        "Diseñar CTAs por pieza."
+      ],
+      "deliverable": "Plan de contenidos por intención y etapa.",
+      "fields": [
+        {
+          "key": "objetivo_del_contenido",
+          "label": "Objetivo del contenido",
+          "question": "¿Qué información concreta necesitamos definir sobre “Objetivo del contenido” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "tema_central",
+          "label": "Tema central",
+          "question": "¿Qué información concreta necesitamos definir sobre “Tema central” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "problema_del_cliente",
+          "label": "Problema del cliente",
+          "question": "¿Qué información concreta necesitamos definir sobre “Problema del cliente” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "formato",
+          "label": "Formato",
+          "question": "¿Qué información concreta necesitamos definir sobre “Formato” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "hook",
+          "label": "Hook",
+          "question": "¿Qué información concreta necesitamos definir sobre “Hook” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "prueba",
+          "label": "Prueba",
+          "question": "¿Qué información concreta necesitamos definir sobre “Prueba” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cta",
+          "label": "CTA",
+          "question": "¿Qué acción concreta, simple y natural debería tomar la persona al terminar esta pieza?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Contenido con intención comercial. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P08",
+      "title": "Laboratorio de inspiración y producción de contenido",
+      "problem": "El creador se siente bloqueado, repetitivo o abrumado.",
+      "opportunity": "Transformar la presión de crear contenido en un sistema de observación, captura, producción y aprendizaje.",
+      "analysis": "Los creadores no necesitan esperar inspiración. Necesitan fuentes, filtros y estructuras. Una idea puede convertirse en reel, carrusel, email, guion, anuncio o argumento comercial.",
+      "decision": "Decidir cómo se capturan ideas, cómo se clasifican y cómo se transforman en activos reutilizables.",
+      "actions": [
+        "Crear banco de inspiración.",
+        "Usar matriz de ángulos.",
+        "Multiplicar ideas por formato.",
+        "Medir contenido por aprendizaje."
+      ],
+      "deliverable": "Banco de ideas, matriz de ángulos y calendario de producción.",
+      "fields": [
+        {
+          "key": "fuente_de_inspiración",
+          "label": "Fuente de inspiración",
+          "question": "¿Qué información concreta necesitamos definir sobre “Fuente de inspiración” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "idea_base",
+          "label": "Idea base",
+          "question": "¿Qué información concreta necesitamos definir sobre “Idea base” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "ángulo",
+          "label": "Ángulo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Ángulo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "formato",
+          "label": "Formato",
+          "question": "¿Qué información concreta necesitamos definir sobre “Formato” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "guion",
+          "label": "Guion",
+          "question": "¿Qué información concreta necesitamos definir sobre “Guion” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cta",
+          "label": "CTA",
+          "question": "¿Qué acción concreta, simple y natural debería tomar la persona al terminar esta pieza?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "métrica_de_aprendizaje",
+          "label": "Métrica de aprendizaje",
+          "question": "¿Qué información concreta necesitamos definir sobre “Métrica de aprendizaje” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Laboratorio de inspiración y producción de contenido. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P09",
+      "title": "Mix de canales rentable",
+      "problem": "La empresa depende de un canal o de pauta pagada.",
+      "opportunity": "Diversificar adquisición para reducir riesgo, mejorar margen y construir activos propios.",
+      "analysis": "La pauta ayuda, pero si la empresa solo vende pagando anuncios, el negocio queda vulnerable. El mix debe combinar canales pagos, orgánicos, base de datos, referidos, alianzas y contenido.",
+      "decision": "Decidir qué canales mantener, cuáles optimizar y cuáles desarrollar como activos de largo plazo.",
+      "actions": [
+        "Evaluar CAC por canal.",
+        "Crear canal orgánico prioritario.",
+        "Activar referidos y email."
+      ],
+      "deliverable": "Mapa de canales con inversión, riesgo y retorno.",
+      "fields": [
+        {
+          "key": "canal_actual",
+          "label": "Canal actual",
+          "question": "¿Qué información concreta necesitamos definir sobre “Canal actual” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "costo",
+          "label": "Costo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Costo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "resultado",
+          "label": "Resultado",
+          "question": "¿Qué información concreta necesitamos definir sobre “Resultado” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "riesgo",
+          "label": "Riesgo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Riesgo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "canal_alternativo",
+          "label": "Canal alternativo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Canal alternativo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Mix de canales rentable. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P10",
+      "title": "Sistema de KPIs de conversión",
+      "problem": "La empresa mide actividad, pero no decisiones.",
+      "opportunity": "Convertir los datos en una herramienta directiva para decidir qué escalar, corregir o detener.",
+      "analysis": "Los likes no pagan nómina. Los KPIs deben explicar el recorrido completo: inversión, leads, calidad, oportunidades, cierre, margen y recompra.",
+      "decision": "Decidir qué indicadores serán obligatorios para marketing, ventas y dirección.",
+      "actions": [
+        "Definir KPIs por etapa.",
+        "Crear frecuencia de revisión.",
+        "Asignar responsables."
+      ],
+      "deliverable": "Tablero de KPIs por módulo y etapa.",
+      "fields": [
+        {
+          "key": "kpi_principal",
+          "label": "KPI principal",
+          "question": "¿Qué información concreta necesitamos definir sobre “KPI principal” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "fuente_de_datos",
+          "label": "Fuente de datos",
+          "question": "¿Qué información concreta necesitamos definir sobre “Fuente de datos” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "meta",
+          "label": "Meta",
+          "question": "¿Qué información concreta necesitamos definir sobre “Meta” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "frecuencia",
+          "label": "Frecuencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Frecuencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "responsable",
+          "label": "Responsable",
+          "question": "¿Qué información concreta necesitamos definir sobre “Responsable” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Sistema de KPIs de conversión. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P11",
+      "title": "Seguimiento comercial y automatización",
+      "problem": "La empresa pierde oportunidades por respuesta lenta o seguimiento débil.",
+      "opportunity": "Aumentar conversión con velocidad, orden y secuencias útiles.",
+      "analysis": "Un lead caliente se enfría rápido. La automatización no reemplaza la relación; garantiza que nadie quede olvidado y que cada contacto reciba el siguiente paso correcto.",
+      "decision": "Decidir tiempos máximos de respuesta y secuencias por canal.",
+      "actions": [
+        "Crear secuencia WhatsApp/email.",
+        "Automatizar recordatorios.",
+        "Medir contacto efectivo."
+      ],
+      "deliverable": "Secuencia de seguimiento multicanal.",
+      "fields": [
+        {
+          "key": "canal_de_entrada",
+          "label": "Canal de entrada",
+          "question": "¿Qué información concreta necesitamos definir sobre “Canal de entrada” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "mensaje_inicial",
+          "label": "Mensaje inicial",
+          "question": "¿Qué información concreta necesitamos definir sobre “Mensaje inicial” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "secuencia",
+          "label": "Secuencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Secuencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "prueba_a_enviar",
+          "label": "Prueba a enviar",
+          "question": "¿Qué información concreta necesitamos definir sobre “Prueba a enviar” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cierre",
+          "label": "Cierre",
+          "question": "¿Qué información concreta necesitamos definir sobre “Cierre” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Seguimiento comercial y automatización. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P12",
+      "title": "CRM como sistema de gestión comercial",
+      "problem": "Los leads están dispersos y no hay trazabilidad.",
+      "opportunity": "Convertir conversaciones en pipeline visible, medible y gestionable.",
+      "analysis": "Un CRM no es una libreta digital. Es el lugar donde la empresa entiende qué oportunidades existen, en qué etapa están, cuánto valen y qué acción sigue.",
+      "decision": "Decidir etapas, campos obligatorios, responsables y reglas de actualización.",
+      "actions": [
+        "Diseñar pipeline.",
+        "Definir campos mínimos.",
+        "Capacitar usuarios."
+      ],
+      "deliverable": "Mapa de CRM y reglas de uso.",
+      "fields": [
+        {
+          "key": "etapas",
+          "label": "Etapas",
+          "question": "¿Qué información concreta necesitamos definir sobre “Etapas” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "campos_obligatorios",
+          "label": "Campos obligatorios",
+          "question": "¿Qué información concreta necesitamos definir sobre “Campos obligatorios” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "responsable",
+          "label": "Responsable",
+          "question": "¿Qué información concreta necesitamos definir sobre “Responsable” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "motivo_de_pérdida",
+          "label": "Motivo de pérdida",
+          "question": "¿Qué información concreta necesitamos definir sobre “Motivo de pérdida” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "próxima_acción",
+          "label": "Próxima acción",
+          "question": "¿Qué información concreta necesitamos definir sobre “Próxima acción” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo CRM como sistema de gestión comercial. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P13",
+      "title": "Guiones de venta consultiva",
+      "problem": "Cada vendedor improvisa y la experiencia comercial cambia.",
+      "opportunity": "Estandarizar conversaciones sin volverlas robóticas, para descubrir necesidad y presentar valor.",
+      "analysis": "Un buen guion no encierra al vendedor; le da estructura. Permite hacer mejores preguntas, entender impacto, manejar objeciones y cerrar con claridad.",
+      "decision": "Decidir qué preguntas, argumentos y cierres serán parte del playbook comercial.",
+      "actions": [
+        "Crear guion base.",
+        "Mapear objeciones.",
+        "Entrenar con roleplay."
+      ],
+      "deliverable": "Playbook comercial con preguntas y respuestas.",
+      "fields": [
+        {
+          "key": "apertura",
+          "label": "Apertura",
+          "question": "¿Qué información concreta necesitamos definir sobre “Apertura” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "pregunta_de_problema",
+          "label": "Pregunta de problema",
+          "question": "¿Qué información concreta necesitamos definir sobre “Pregunta de problema” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "impacto",
+          "label": "Impacto",
+          "question": "¿Qué información concreta necesitamos definir sobre “Impacto” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "solución",
+          "label": "Solución",
+          "question": "¿Qué información concreta necesitamos definir sobre “Solución” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "objeción",
+          "label": "Objeción",
+          "question": "¿Qué información concreta necesitamos definir sobre “Objeción” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cierre",
+          "label": "Cierre",
+          "question": "¿Qué información concreta necesitamos definir sobre “Cierre” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Guiones de venta consultiva. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P14",
+      "title": "IA aplicada con criterio estratégico",
+      "problem": "La IA se usa para producir más, no para decidir mejor.",
+      "opportunity": "Usar IA como asistente para análisis, contenido, ventas, reportes y aprendizaje.",
+      "analysis": "La IA sin criterio produce ruido. Con buen contexto puede acelerar diagnóstico, redacción, seguimiento, análisis de métricas y generación de entregables.",
+      "decision": "Decidir procesos donde IA reduce tiempo o mejora calidad sin perder voz ni control.",
+      "actions": [
+        "Crear biblioteca de prompts.",
+        "Definir datos de entrada.",
+        "Validar salidas."
+      ],
+      "deliverable": "Mapa de casos de uso IA.",
+      "fields": [
+        {
+          "key": "proceso",
+          "label": "Proceso",
+          "question": "¿Qué información concreta necesitamos definir sobre “Proceso” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "datos_necesarios",
+          "label": "Datos necesarios",
+          "question": "¿Qué información concreta necesitamos definir sobre “Datos necesarios” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "question": "¿Qué información concreta necesitamos definir sobre “Prompt” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "resultado_esperado",
+          "label": "Resultado esperado",
+          "question": "¿Qué información concreta necesitamos definir sobre “Resultado esperado” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "control_humano",
+          "label": "Control humano",
+          "question": "¿Qué información concreta necesitamos definir sobre “Control humano” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo IA aplicada con criterio estratégico. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P15",
+      "title": "Dashboard directivo",
+      "problem": "La dirección no ve el impacto real de marketing y ventas.",
+      "opportunity": "Dar visibilidad ejecutiva para tomar decisiones rápidas y basadas en datos.",
+      "analysis": "Un dashboard no debe mostrar todo. Debe mostrar lo que permite decidir: dónde se gana, dónde se pierde, qué canal funciona, qué vendedor convierte y qué acción sigue.",
+      "decision": "Decidir qué tablero revisará dirección y con qué frecuencia.",
+      "actions": [
+        "Definir indicadores ejecutivos.",
+        "Crear vista por canal y etapa.",
+        "Reunión mensual de decisiones."
+      ],
+      "deliverable": "Dashboard ejecutivo de crecimiento.",
+      "fields": [
+        {
+          "key": "indicador_directivo",
+          "label": "Indicador directivo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Indicador directivo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "meta",
+          "label": "Meta",
+          "question": "¿Qué información concreta necesitamos definir sobre “Meta” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "tendencia",
+          "label": "Tendencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Tendencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "decisión",
+          "label": "Decisión",
+          "question": "¿Qué decisión concreta debe tomar la dirección para avanzar: invertir, priorizar, detener, automatizar, capacitar o rediseñar?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "responsable",
+          "label": "Responsable",
+          "question": "¿Qué información concreta necesitamos definir sobre “Responsable” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Dashboard directivo. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P16",
+      "title": "Gestión de agencias por resultados",
+      "problem": "Los proveedores entregan piezas, pero no siempre resultados.",
+      "opportunity": "Cambiar la relación con agencias hacia objetivos, métricas y aprendizaje de negocio.",
+      "analysis": "La empresa no compra posts ni diseños; compra avance hacia ventas, posicionamiento o retención. Una agencia debe reportar entregables, pero también impacto y aprendizajes.",
+      "decision": "Decidir acuerdos de servicio, KPIs y criterios de evaluación.",
+      "actions": [
+        "Redefinir brief.",
+        "Exigir reporte por conversión.",
+        "Reunión de optimización."
+      ],
+      "deliverable": "Matriz de gestión de proveedores.",
+      "fields": [
+        {
+          "key": "proveedor",
+          "label": "Proveedor",
+          "question": "¿Qué información concreta necesitamos definir sobre “Proveedor” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "objetivo",
+          "label": "Objetivo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Objetivo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "entregables",
+          "label": "Entregables",
+          "question": "¿Qué información concreta necesitamos definir sobre “Entregables” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "kpi",
+          "label": "KPI",
+          "question": "¿Qué información concreta necesitamos definir sobre “KPI” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "decisión_de_continuidad",
+          "label": "Decisión de continuidad",
+          "question": "¿Qué información concreta necesitamos definir sobre “Decisión de continuidad” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Gestión de agencias por resultados. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P17",
+      "title": "SEO orientado a demanda",
+      "problem": "El SEO genera tráfico sin intención comercial.",
+      "opportunity": "Usar SEO para construir autoridad, demanda y oportunidades, no solo visitas.",
+      "analysis": "El SEO moderno no puede depender solo de palabras clave. Debe responder intención, construir confianza y conectar contenido con conversión.",
+      "decision": "Decidir qué temas posicionan autoridad y cuáles capturan demanda comercial.",
+      "actions": [
+        "Mapear intención de búsqueda.",
+        "Crear páginas con CTA.",
+        "Medir leads orgánicos."
+      ],
+      "deliverable": "Plan SEO por intención y conversión.",
+      "fields": [
+        {
+          "key": "tema",
+          "label": "Tema",
+          "question": "¿Qué información concreta necesitamos definir sobre “Tema” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "intención",
+          "label": "Intención",
+          "question": "¿Qué información concreta necesitamos definir sobre “Intención” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "página",
+          "label": "Página",
+          "question": "¿Qué información concreta necesitamos definir sobre “Página” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cta",
+          "label": "CTA",
+          "question": "¿Qué acción concreta, simple y natural debería tomar la persona al terminar esta pieza?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "métrica",
+          "label": "Métrica",
+          "question": "¿Qué información concreta necesitamos definir sobre “Métrica” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo SEO orientado a demanda. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P18",
+      "title": "Redes sociales como sistema comercial",
+      "problem": "Las redes se gestionan como calendario, no como motor de confianza.",
+      "opportunity": "Convertir redes en un sistema de comunidad, autoridad, conversación y venta asistida.",
+      "analysis": "Redes no es publicar por publicar. Es escuchar mercado, mostrar criterio, activar conversaciones y alimentar ventas con confianza previa.",
+      "decision": "Decidir pilares, frecuencia, conversación y protocolo de derivación comercial.",
+      "actions": [
+        "Diseñar pilares.",
+        "Crear protocolo DM.",
+        "Medir conversaciones comerciales."
+      ],
+      "deliverable": "Sistema de redes por objetivo.",
+      "fields": [
+        {
+          "key": "pilar",
+          "label": "Pilar",
+          "question": "¿Qué información concreta necesitamos definir sobre “Pilar” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "formato",
+          "label": "Formato",
+          "question": "¿Qué información concreta necesitamos definir sobre “Formato” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "conversación_esperada",
+          "label": "Conversación esperada",
+          "question": "¿Qué información concreta necesitamos definir sobre “Conversación esperada” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cta",
+          "label": "CTA",
+          "question": "¿Qué acción concreta, simple y natural debería tomar la persona al terminar esta pieza?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "métrica",
+          "label": "Métrica",
+          "question": "¿Qué información concreta necesitamos definir sobre “Métrica” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Redes sociales como sistema comercial. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P19",
+      "title": "Producción audiovisual persuasiva",
+      "problem": "Se hacen videos bonitos que no retienen ni venden.",
+      "opportunity": "Diseñar videos como activos de persuasión, educación y conversión.",
+      "analysis": "El video no es solo imagen. Un reel con idea fuerte puede vender más que una producción impecable sin tensión, prueba ni CTA.",
+      "decision": "Decidir objetivo, hook, tensión, prueba y distribución antes de grabar.",
+      "actions": [
+        "Crear guiones con estructura.",
+        "Medir retención.",
+        "Reutilizar clips."
+      ],
+      "deliverable": "Guion audiovisual comercial.",
+      "fields": [
+        {
+          "key": "objetivo_del_video",
+          "label": "Objetivo del video",
+          "question": "¿Qué debe lograr este video: captar atención, educar, resolver una objeción, mostrar prueba o llevar a una conversación comercial?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "problema",
+          "label": "Problema",
+          "question": "¿Qué información concreta necesitamos definir sobre “Problema” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "hook_inicial",
+          "label": "Hook inicial",
+          "question": "¿Cuál es la primera frase o escena que haría que el cliente ideal piense “esto me pasa” o “necesito ver esto”?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "tensión",
+          "label": "Tensión",
+          "question": "¿Qué conflicto, error, riesgo o contraste mantendrá la atención hasta el final?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "prueba",
+          "label": "Prueba",
+          "question": "¿Qué información concreta necesitamos definir sobre “Prueba” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "cta",
+          "label": "CTA",
+          "question": "¿Qué acción concreta, simple y natural debería tomar la persona al terminar esta pieza?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Producción audiovisual persuasiva. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P20",
+      "title": "Community manager como inteligencia de mercado",
+      "problem": "El community manager opera publicaciones, pero no alimenta el negocio.",
+      "opportunity": "Convertir la gestión de comunidad en una fuente de objeciones, preguntas, señales y oportunidades.",
+      "analysis": "Quien responde DMs escucha el mercado todos los días. Si esa información se registra, puede mejorar contenido, ventas, producto y servicio.",
+      "decision": "Decidir protocolo de atención, clasificación de señales y transferencia a ventas.",
+      "actions": [
+        "Crear guiones de respuesta.",
+        "Registrar señales.",
+        "Derivar oportunidades."
+      ],
+      "deliverable": "Bitácora de inteligencia de comunidad.",
+      "fields": [
+        {
+          "key": "señal",
+          "label": "Señal",
+          "question": "¿Qué información concreta necesitamos definir sobre “Señal” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "canal",
+          "label": "Canal",
+          "question": "¿Qué información concreta necesitamos definir sobre “Canal” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "tipo",
+          "label": "Tipo",
+          "question": "¿Qué información concreta necesitamos definir sobre “Tipo” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "respuesta",
+          "label": "Respuesta",
+          "question": "¿Qué información concreta necesitamos definir sobre “Respuesta” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "área_responsable",
+          "label": "Área responsable",
+          "question": "¿Qué información concreta necesitamos definir sobre “Área responsable” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Community manager como inteligencia de mercado. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P21",
+      "title": "Dirección comercial integrada con marketing",
+      "problem": "Ventas no usa los datos de marketing para mejorar gestión.",
+      "opportunity": "Integrar fuentes, calidad, cierre y retroalimentación para dirigir mejor el crecimiento.",
+      "analysis": "La dirección comercial debe mirar más allá del número de leads. Debe entender qué fuente trae clientes rentables, qué objeciones frenan y qué vendedores convierten mejor.",
+      "decision": "Decidir rutinas de análisis comercial y retroalimentación a marketing.",
+      "actions": [
+        "Revisar ventas por fuente.",
+        "Medir conversión por vendedor.",
+        "Documentar objeciones."
+      ],
+      "deliverable": "Tablero comercial integrado.",
+      "fields": [
+        {
+          "key": "fuente",
+          "label": "Fuente",
+          "question": "¿Qué información concreta necesitamos definir sobre “Fuente” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "oportunidades",
+          "label": "Oportunidades",
+          "question": "¿Qué información concreta necesitamos definir sobre “Oportunidades” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "ventas",
+          "label": "Ventas",
+          "question": "¿Qué información concreta necesitamos definir sobre “Ventas” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "conversión",
+          "label": "Conversión",
+          "question": "¿Qué información concreta necesitamos definir sobre “Conversión” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "acción",
+          "label": "Acción",
+          "question": "¿Qué información concreta necesitamos definir sobre “Acción” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Dirección comercial integrada con marketing. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P22",
+      "title": "ABM y cuentas clave",
+      "problem": "Las cuentas estratégicas se manejan de forma reactiva.",
+      "opportunity": "Diseñar abordajes personalizados para cuentas de alto valor.",
+      "analysis": "En cuentas clave, el marketing debe ser quirúrgico: contenido por industria, decisores, problemas, casos de uso y contacto multicanal.",
+      "decision": "Decidir qué cuentas merecen estrategia personalizada y qué contenidos necesitan.",
+      "actions": [
+        "Seleccionar cuentas objetivo.",
+        "Crear mapa de decisores.",
+        "Diseñar secuencia multicanal."
+      ],
+      "deliverable": "Plan ABM por cuenta.",
+      "fields": [
+        {
+          "key": "cuenta",
+          "label": "Cuenta",
+          "question": "¿Qué información concreta necesitamos definir sobre “Cuenta” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "decisor",
+          "label": "Decisor",
+          "question": "¿Qué información concreta necesitamos definir sobre “Decisor” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "dolor",
+          "label": "Dolor",
+          "question": "¿Qué información concreta necesitamos definir sobre “Dolor” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "contenido",
+          "label": "Contenido",
+          "question": "¿Qué información concreta necesitamos definir sobre “Contenido” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "secuencia",
+          "label": "Secuencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Secuencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo ABM y cuentas clave. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P23",
+      "title": "Sistema operativo para agencias",
+      "problem": "Las agencias crecen en trabajo, pero no en margen ni escalabilidad.",
+      "opportunity": "Empaquetar servicios, procesos y reportes para vender valor y no solo horas.",
+      "analysis": "Una agencia sin sistema se vuelve dependiente del fundador, compite por precio y sufre con entregables infinitos. El crecimiento requiere foco, nicho, procesos y reportes claros.",
+      "decision": "Decidir nicho, paquetes, pricing, procesos y métricas de retención.",
+      "actions": [
+        "Definir nicho.",
+        "Crear paquetes.",
+        "Estandarizar onboarding y reporting."
+      ],
+      "deliverable": "Sistema operativo de agencia.",
+      "fields": [
+        {
+          "key": "nicho",
+          "label": "Nicho",
+          "question": "¿Qué información concreta necesitamos definir sobre “Nicho” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "paquete",
+          "label": "Paquete",
+          "question": "¿Qué información concreta necesitamos definir sobre “Paquete” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "precio",
+          "label": "Precio",
+          "question": "¿Qué información concreta necesitamos definir sobre “Precio” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "proceso",
+          "label": "Proceso",
+          "question": "¿Qué información concreta necesitamos definir sobre “Proceso” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "kpi_cliente",
+          "label": "KPI cliente",
+          "question": "¿Qué información concreta necesitamos definir sobre “KPI cliente” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Sistema operativo para agencias. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    },
+    {
+      "id": "P24",
+      "title": "Capacitación comercial y digital",
+      "problem": "El equipo tiene herramientas, pero no criterio ni hábitos de ejecución.",
+      "opportunity": "Convertir conocimiento en comportamiento medible dentro del equipo.",
+      "analysis": "Capacitar no es dar una charla. Es crear competencias, práctica, seguimiento y evidencias de cambio.",
+      "decision": "Decidir qué capacidades son críticas y cómo se medirán después de capacitar.",
+      "actions": [
+        "Diagnosticar brechas.",
+        "Crear plan de formación.",
+        "Medir antes/después."
+      ],
+      "deliverable": "Plan de capacitación por competencias.",
+      "fields": [
+        {
+          "key": "competencia",
+          "label": "Competencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Competencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "nivel_actual",
+          "label": "Nivel actual",
+          "question": "¿Qué información concreta necesitamos definir sobre “Nivel actual” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "nivel_requerido",
+          "label": "Nivel requerido",
+          "question": "¿Qué información concreta necesitamos definir sobre “Nivel requerido” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "práctica",
+          "label": "Práctica",
+          "question": "¿Qué información concreta necesitamos definir sobre “Práctica” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        },
+        {
+          "key": "evidencia",
+          "label": "Evidencia",
+          "question": "¿Qué información concreta necesitamos definir sobre “Evidencia” para convertir este módulo en una decisión útil y ejecutable?",
+          "commercial": "Empresa comercial: una tienda de accesorios para motociclistas puede usar esta respuesta para ordenar su catálogo, definir qué productos empujar por temporada y convertir consultas de WhatsApp en cotizaciones más rápidas.",
+          "service": "Empresa de servicios: una consultora puede usar esta respuesta para empaquetar conocimiento, explicar el valor de su acompañamiento y guiar al cliente hacia una sesión diagnóstica."
+        }
+      ],
+      "kpis": [
+        {
+          "name": "Indicador de avance del módulo",
+          "definition": "Mide el progreso operativo del módulo frente a su implementación esperada.",
+          "formula": "Actividades completadas / actividades planificadas x 100",
+          "target": "80% o más al cierre del ciclo",
+          "good": 80,
+          "warn": 50
+        },
+        {
+          "name": "Impacto en conversión",
+          "definition": "Mide si las mejoras del módulo aumentan el avance del cliente hacia compra.",
+          "formula": "Conversiones después / conversiones antes x 100",
+          "target": "Mejora mínima esperada del 10% al 25%",
+          "good": 75,
+          "warn": 50
+        },
+        {
+          "name": "Calidad de ejecución",
+          "definition": "Mide cumplimiento, claridad y uso real del entregable.",
+          "formula": "Puntuación interna promedio de calidad 1-100",
+          "target": "85% o más",
+          "good": 85,
+          "warn": 60
+        }
+      ],
+      "promptTask": "Analiza las respuestas del módulo Capacitación comercial y digital. Genera diagnóstico, oportunidad, recomendaciones, acciones, KPIs y un entregable práctico aplicable a empresas de productos y servicios."
+    }
+  ],
+  "companyTypes": [
+    "Retail/comercio",
+    "B2B",
+    "B2C",
+    "Distribuidor",
+    "E-commerce",
+    "Servicios profesionales",
+    "Industrial",
+    "Educación",
+    "Salud",
+    "Turismo",
+    "Agencia de marketing",
+    "Importador",
+    "Fabricante",
+    "Consultor independiente",
+    "Financiero",
+    "Mascotas",
+    "Tecnología",
+    "Otro"
+  ],
+  "segments": [
+    "B2B",
+    "B2C",
+    "B2B y B2C",
+    "Corporativo",
+    "Distribuidores",
+    "Retail",
+    "Cuentas clave",
+    "Emprendedores",
+    "Pymes",
+    "Consumidor final"
+  ]
+}

@@ -124,7 +124,7 @@ function Dashboard() {
 
   const metrics = [
     { label: "Clientes activos", value: clientes.length, icon: Briefcase, accent: "Cartera total", to: "/app/clientes" as const },
-    { label: "Diagnósticos este mes", value: sideCount, icon: Activity, accent: "SIDE completados", to: "/app/side_/historial" as const },
+    { label: "Diagnósticos este mes", value: sideCount, icon: Activity, accent: "SIDE completados", to: "/app/side/historial" as const },
     { label: "Sesiones este mes", value: stats.sesionesMes, icon: Users2, accent: "Consultoría", to: "/app/coaching" as const },
     { label: "Compromisos pendientes", value: stats.compPend, icon: Clock,
       accent: stats.compVencidos > 0 ? `${stats.compVencidos} vencidos` : "Al día", to: "/app/clientes" as const },
@@ -149,7 +149,7 @@ function Dashboard() {
           </p>
         </div>
         <Button asChild className="bg-navy text-primary-foreground hover:bg-navy/90">
-          <Link to="/app/side"><Plus className="w-4 h-4 mr-2" /> Nuevo diagnóstico</Link>
+          <Link to="/app/side" search={{ sesion: undefined }}><Plus className="w-4 h-4 mr-2" /> Nuevo diagnóstico</Link>
         </Button>
       </header>
 

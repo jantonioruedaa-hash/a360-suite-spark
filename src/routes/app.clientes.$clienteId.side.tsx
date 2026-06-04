@@ -74,7 +74,7 @@ function SideClientePage() {
           </p>
         </div>
         <Button asChild className="bg-navy hover:bg-navy/90">
-          <Link to="/app/side"><Plus className="w-4 h-4 mr-1" /> Nuevo SIDE</Link>
+          <Link to="/app/side" search={{ sesion: undefined }}><Plus className="w-4 h-4 mr-1" /> Nuevo SIDE</Link>
         </Button>
       </div>
 
@@ -125,7 +125,7 @@ function SideClientePage() {
             <div className="text-center py-8">
               <p className="text-sm text-muted-foreground mb-3">Este cliente aún no tiene diagnósticos SIDE.</p>
               <Button asChild className="bg-navy hover:bg-navy/90">
-                <Link to="/app/side">Iniciar primer diagnóstico <ArrowRight className="w-3 h-3 ml-1" /></Link>
+                <Link to="/app/side" search={{ sesion: undefined }}>Iniciar primer diagnóstico <ArrowRight className="w-3 h-3 ml-1" /></Link>
               </Button>
             </div>
           ) : (
@@ -149,7 +149,7 @@ function SideClientePage() {
                     return (
                       <tr key={s.id} className="border-b hover:bg-muted/30">
                         <td className="py-2">
-                          <Link to="/app/side" className="text-blue-600 hover:underline">
+                          <Link to="/app/side" search={{ sesion: undefined }} className="text-blue-600 hover:underline">
                             {s.nombre_sesion ?? "Diagnóstico SIDE"}
                           </Link>
                         </td>

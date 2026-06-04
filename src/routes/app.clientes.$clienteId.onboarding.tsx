@@ -17,7 +17,7 @@ import {
   type OnboardingPaso1, type OnboardingPaso2, type OnboardingPaso3, type OnboardingPaso4, type OnboardingPaso5,
 } from "@/lib/onboarding-helpers";
 import { generarPerfilClientePDF } from "@/lib/onboarding-pdf";
-import { generarAnalisisOnboarding } from "@/server/onboarding-ia.functions";
+import { generarAnalisisOnboarding } from "@/lib/server-fns";
 import {
   Plus, Trash2, ArrowLeft, ArrowRight, Save, FileDown, Sparkles, CheckCircle2, Loader2, ClipboardList, Users, Target, Handshake, FileText,
 } from "lucide-react";

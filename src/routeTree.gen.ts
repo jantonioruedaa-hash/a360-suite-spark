@@ -19,6 +19,7 @@ import { Route as AppPlanRouteImport } from './routes/app.plan'
 import { Route as AppLeeRouteImport } from './routes/app.lee'
 import { Route as AppKpisRouteImport } from './routes/app.kpis'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
 import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
@@ -86,6 +87,11 @@ const AppKpisRoute = AppKpisRouteImport.update({
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCrecimientoRoute = AppCrecimientoRouteImport.update({
+  id: '/crecimiento',
+  path: '/crecimiento',
   getParentRoute: () => AppRoute,
 } as any)
 const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
+  '/app/crecimiento': typeof AppCrecimientoRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
+  '/app/crecimiento': typeof AppCrecimientoRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
+  '/app/crecimiento': typeof AppCrecimientoRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app/clientes'
     | '/app/configuracion'
+    | '/app/crecimiento'
     | '/app/dashboard'
     | '/app/kpis'
     | '/app/lee'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app/clientes'
     | '/app/configuracion'
+    | '/app/crecimiento'
     | '/app/dashboard'
     | '/app/kpis'
     | '/app/lee'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app/clientes'
     | '/app/configuracion'
+    | '/app/crecimiento'
     | '/app/dashboard'
     | '/app/kpis'
     | '/app/lee'
@@ -451,6 +463,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/app/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/crecimiento': {
+      id: '/app/crecimiento'
+      path: '/crecimiento'
+      fullPath: '/app/crecimiento'
+      preLoaderRoute: typeof AppCrecimientoRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/configuracion': {
@@ -628,6 +647,7 @@ const AppClientesRouteWithChildren = AppClientesRoute._addFileChildren(
 interface AppRouteChildren {
   AppClientesRoute: typeof AppClientesRouteWithChildren
   AppConfiguracionRoute: typeof AppConfiguracionRoute
+  AppCrecimientoRoute: typeof AppCrecimientoRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppKpisRoute: typeof AppKpisRoute
   AppLeeRoute: typeof AppLeeRoute
@@ -642,6 +662,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppClientesRoute: AppClientesRouteWithChildren,
   AppConfiguracionRoute: AppConfiguracionRoute,
+  AppCrecimientoRoute: AppCrecimientoRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppKpisRoute: AppKpisRoute,
   AppLeeRoute: AppLeeRoute,
@@ -665,3 +686,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
