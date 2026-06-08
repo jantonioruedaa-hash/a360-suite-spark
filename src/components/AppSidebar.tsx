@@ -102,9 +102,15 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r" style={{ borderColor: "var(--sidebar-border)" }}>
-      {/* Spacer que alinea con el topbar de 56px */}
-      <SidebarHeader className="h-14 border-b" style={{ borderColor: "var(--sidebar-border)" }} />
+    <Sidebar
+      collapsible="icon"
+      className="border-r"
+      style={{
+        borderColor: "var(--sidebar-border)",
+        top: "56px",
+        height: "calc(100vh - 56px)",
+      }}
+    >
 
       <SidebarContent className="gap-1">
         {visibleSections.map((s) => (
