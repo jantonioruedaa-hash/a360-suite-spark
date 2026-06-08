@@ -63,6 +63,22 @@ const METODOLOGIA_STEPS = [
   { num: "04", icon: "📋", title: "Plan de acción", desc: "Cada sesión cierra con compromisos concretos, medibles y con fecha. Se revisan en el siguiente encuentro sin excepción." },
 ];
 
+// ── Colores y gradientes por etapa ────────────────────────────────────────────
+const ETAPA_HERO_GRADS: Record<string, string> = {
+  "#7F77DD": "linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4C1D95 100%)",
+  "#1D9E75": "linear-gradient(135deg, #064E3B 0%, #065F46 50%, #059669 100%)",
+  "#BA7517": "linear-gradient(135deg, #78350F 0%, #92400E 50%, #B45309 100%)",
+  "#D85A30": "linear-gradient(135deg, #7C2D12 0%, #9A3412 50%, #C2410C 100%)",
+};
+const ETAPA_ACTIVE_GRADS: Record<string, string> = {
+  "#7F77DD": "linear-gradient(135deg, #7F77DD, #A855F7)",
+  "#1D9E75": "linear-gradient(135deg, #1D9E75, #0EA5E9)",
+  "#BA7517": "linear-gradient(135deg, #BA7517, #EF4444)",
+  "#D85A30": "linear-gradient(135deg, #D85A30, #F59E0B)",
+};
+const etapaHeroGrad = (color: string) => ETAPA_HERO_GRADS[color] ?? "linear-gradient(135deg, #0C4A6E, #1E3A8A, #312E81)";
+const etapaActiveGrad = (color: string) => ETAPA_ACTIVE_GRADS[color] ?? "linear-gradient(135deg, #0EA5E9, #6366F1)";
+
 // ── Estilos inline reutilizables ──────────────────────────────────────────────
 const BTN_PRIMARY: React.CSSProperties = {
   padding: "14px 28px", borderRadius: "10px",
@@ -122,6 +138,17 @@ function CoachingClienteWorkspace() {
   const totalCompletadas = sesiones.filter((s) => s.completada).length;
   const pctGlobal = Math.round((totalCompletadas / HERRAMIENTAS_A360.length) * 100);
   const analisisCount = sesiones.filter((s) => (s.datos as Record<string, unknown>)?.analisis_ia).length;
+
+  const diasEnPrograma = useMemo(() => {
+    if (sesiones.length === 0) return 0;
+    const primera = new Date(sesiones[sesiones.length - 1].created_at);
+    return Math.round((Date.now() - primera.getTime()) / (1000 * 60 * 60 * 24));
+  }, [sesiones]);
+
+  const proximaHerramienta = useMemo(
+    () => HERRAMIENTAS_A360.find(h => !sesiones.some(s => s.herramienta_id === h.id)),
+    [sesiones]
+  );
 
   const heroStats = [
     { val: totalCompletadas, lbl: "Herramientas completadas" },
@@ -252,19 +279,38 @@ function CoachingClienteWorkspace() {
       {/* ─ TAB: RESUMEN ─────────────────────────────────────────────────────── */}
       {activeTab === "resumen" && (
         <>
-          {/* Quote */}
-          <div
-            className="flex items-center gap-7 px-6 lg:px-16 py-11 relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)" }}
-          >
-            <div className="absolute left-8 -top-3 pointer-events-none select-none" style={{
-              fontSize: "140px", color: "rgba(255,255,255,0.08)", lineHeight: 1, fontWeight: 900,
-            }}>"</div>
+          {/* 3 KPI stat cards */}
+          <div className="bg-white px-6 lg:px-16 py-12">
+            <div style={SECTION_LABEL}>
+              <span style={{ display: "inline-block", width: "28px", height: "3px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px" }} />
+              Estado del programa — {clienteNombre}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {[
+                { val: totalCompletadas, extra: `de ${HERRAMIENTAS_A360.length} herramientas`, lbl: "Completadas", icon: "✅", accent: "#0EA5E9" },
+                { val: sesiones.length, extra: `${analisisCount} con análisis IA`, lbl: "Sesiones registradas", icon: "📝", accent: "#6366F1" },
+                { val: diasEnPrograma > 0 ? `${diasEnPrograma}d` : "—", extra: diasEnPrograma > 0 ? "desde la primera sesión" : "sin sesiones aún", lbl: "Días en el programa", icon: "📅", accent: "#A855F7" },
+              ].map((s, i) => (
+                <div key={i} style={{ background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", borderRadius: "20px", padding: "28px", position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 80% at 80% 20%, rgba(14,165,233,0.2), transparent)", pointerEvents: "none" }} />
+                  <div style={{ position: "relative", zIndex: 1 }}>
+                    <div style={{ fontSize: "32px", marginBottom: "8px" }}>{s.icon}</div>
+                    <div style={{ fontSize: "44px", fontWeight: 900, color: "white", lineHeight: 1, letterSpacing: "-0.03em" }}>{s.val}</div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "rgba(255,255,255,0.7)", marginTop: "6px" }}>{s.lbl}</div>
+                    <div style={{ fontSize: "12px", color: "#38BDF8", marginTop: "4px" }}>{s.extra}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quote block */}
+          <div className="flex items-center gap-7 px-6 lg:px-16 py-11 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)" }}>
+            <div className="absolute left-8 -top-3 pointer-events-none select-none" style={{ fontSize: "140px", color: "rgba(255,255,255,0.08)", lineHeight: 1, fontWeight: 900 }}>"</div>
             <div style={{ fontSize: "52px", flexShrink: 0, position: "relative", zIndex: 2 }}>💡</div>
             <div className="relative z-10">
               <p style={{ fontSize: "20px", fontWeight: 700, color: "white", lineHeight: 1.5 }}>
-                "El coaching no te da las respuestas. Te hace las preguntas correctas para que
-                encuentres las tuyas — y actúes en consecuencia."
+                "El coaching no te da las respuestas. Te hace las preguntas correctas para que encuentres las tuyas — y actúes en consecuencia."
               </p>
               <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", marginTop: "8px", fontStyle: "italic" }}>
                 — Metodología Coaching A360SGP
@@ -272,108 +318,169 @@ function CoachingClienteWorkspace() {
             </div>
           </div>
 
-          {/* Transformación */}
+          {/* Tu transformación — 3 cards con colores de etapas */}
           <div className="bg-white px-6 lg:px-16 py-16">
             <div style={SECTION_LABEL}>
               <span style={{ display: "inline-block", width: "28px", height: "3px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px" }} />
-              Lo que logra el programa
+              Tu transformación
             </div>
             <h2 className="mb-3.5" style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-              De líder reactivo a{" "}
-              <span style={GRADIENT_TEXT}>arquitecto estratégico</span>
+              De líder reactivo a <span style={GRADIENT_TEXT}>arquitecto estratégico</span>
             </h2>
-            <p className="mb-12" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px" }}>
-              El coaching A360 está diseñado para producir una transformación real y medible en la
-              forma en que liderás, decidís y construís tu empresa.
+            <p className="mb-12" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const }}>
+              El coaching A360 está diseñado para producir una transformación real y medible en la forma en que liderás, decidís y construís tu empresa.
             </p>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {TRANSFORM_ITEMS.map((item, i) => (
-                <div
-                  key={i}
-                  className="text-center rounded-[18px] transition-all cursor-default"
-                  style={{ background: "#F5F7FF", border: "1px solid #E0E7FF", padding: "32px 28px" }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = "white";
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 12px 32px rgba(14,165,233,0.1)";
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#BAE6FD";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = "#F5F7FF";
-                    (e.currentTarget as HTMLDivElement).style.transform = "none";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#E0E7FF";
-                  }}
+              {[
+                { icon: "😰", before: "Apagando incendios todo el día", after: "Líder que diseña el sistema y delega con confianza", color: "#7F77DD", etapa: "Diagnóstico" },
+                { icon: "🌫️", before: "Decisiones bajo presión sin claridad", after: "Marco de decisión claro y criterios definidos", color: "#1D9E75", etapa: "Activación" },
+                { icon: "🔄", before: "Reuniones sin resultados concretos", after: "Compromisos medibles que se cumplen sesión a sesión", color: "#BA7517", etapa: "Sostenimiento" },
+              ].map((item, i) => (
+                <div key={i} className="text-center rounded-[18px] transition-all cursor-default"
+                  style={{ background: "#F5F7FF", border: `1px solid ${item.color}30`, padding: "32px 28px" }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = "white"; el.style.transform = "translateY(-4px)"; el.style.boxShadow = `0 12px 32px ${item.color}20`; el.style.borderColor = `${item.color}60`; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = "#F5F7FF"; el.style.transform = "none"; el.style.boxShadow = "none"; el.style.borderColor = `${item.color}30`; }}
                 >
-                  <div style={{ fontSize: "44px", marginBottom: "14px", opacity: 0.7 }}>{item.icon}</div>
-                  <div style={{ fontSize: "14px", color: "#94A3B8", marginBottom: "12px" }}>Antes: {item.before}</div>
-                  <div style={{ fontSize: "22px", fontWeight: 900, ...GRADIENT_TEXT, marginBottom: "12px" }}>↓</div>
-                  <div style={{ fontSize: "17px", fontWeight: 800, color: "#0C4A6E", letterSpacing: "-0.01em" }}>{item.after}</div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 12px", borderRadius: "999px", background: `${item.color}15`, marginBottom: "16px" }}>
+                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: item.color }} />
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: item.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{item.etapa}</span>
+                  </div>
+                  <div style={{ fontSize: "44px", marginBottom: "14px" }}>{item.icon}</div>
+                  <div style={{ fontSize: "14px", color: "#94A3B8", marginBottom: "12px", lineHeight: 1.5 }}>Antes: {item.before}</div>
+                  <div style={{ fontSize: "22px", fontWeight: 900, color: item.color, marginBottom: "12px" }}>↓</div>
+                  <div style={{ fontSize: "17px", fontWeight: 800, color: "#0C4A6E", letterSpacing: "-0.01em", lineHeight: 1.4 }}>{item.after}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Metodología */}
+          {/* Mapa visual: 4 etapas como cards horizontales */}
           <div className="px-6 lg:px-16 py-16" style={{ background: "#F5F7FF" }}>
             <div style={SECTION_LABEL}>
               <span style={{ display: "inline-block", width: "28px", height: "3px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px" }} />
-              Cómo funciona cada sesión
+              Tu ruta de transformación
             </div>
             <h2 className="mb-3.5" style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-              Una estructura probada<br />
-              <span style={GRADIENT_TEXT}>que produce resultados</span>
+              Las 4 etapas del <span style={GRADIENT_TEXT}>programa</span>
             </h2>
-            <p className="mb-12" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px" }}>
-              Cada sesión sigue una metodología rigurosa que convierte la conversación en acción concreta.
+            <p className="mb-10" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const }}>
+              Cada etapa tiene un propósito específico en la transformación. El avance es acumulativo — cada herramienta construye sobre la anterior.
             </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {METODOLOGIA_STEPS.map((step) => (
-                <div
-                  key={step.num}
-                  className="relative overflow-hidden rounded-2xl transition-all"
-                  style={{ background: "white", border: "1px solid #E0E7FF", padding: "28px 24px" }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 24px rgba(14,165,233,0.1)";
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#BAE6FD";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-                    (e.currentTarget as HTMLDivElement).style.transform = "none";
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#E0E7FF";
-                  }}
-                >
-                  <div className="absolute" style={{ top: "-10px", right: "10px", fontSize: "72px", fontWeight: 900, color: "#EEF2FF", lineHeight: 1 }}>
-                    {step.num}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {ETAPAS_A360.map((et, etIdx) => {
+                const roman = (["I", "II", "III", "IV"] as const)[etIdx] ?? String(etIdx + 1);
+                const p = progreso.find(pr => pr.etapa.id === et.id);
+                const etapaCompleta = (p?.pct ?? 0) === 100;
+                const esActual = et.id === etapa;
+                return (
+                  <div key={et.id} style={{ background: "white", borderRadius: "16px", border: `2px solid ${esActual ? et.color : etapaCompleta ? `${et.color}60` : "#E0E7FF"}`, padding: "20px", position: "relative", overflow: "hidden", transition: "all 0.2s" }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = `0 12px 32px ${et.color}20`; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = "none"; }}
+                  >
+                    {esActual && <span style={{ position: "absolute", top: "10px", right: "10px", width: "8px", height: "8px", borderRadius: "50%", background: et.color, display: "block" }} className="animate-pulse" />}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                      <span style={{ fontSize: "13px", fontWeight: 900, color: "white", background: et.color, width: "32px", height: "32px", borderRadius: "8px", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{roman}</span>
+                      {esActual && <span style={{ fontSize: "11px", fontWeight: 700, color: et.color, background: `${et.color}15`, padding: "2px 10px", borderRadius: "999px" }}>Activa</span>}
+                      {etapaCompleta && <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669", background: "#ECFDF5", padding: "2px 10px", borderRadius: "999px" }}>✓</span>}
+                    </div>
+                    <div style={{ fontSize: "15px", fontWeight: 800, color: "#0C4A6E", letterSpacing: "-0.01em", marginBottom: "4px" }}>{et.id}</div>
+                    <div style={{ fontSize: "13px", color: "#64748B", marginBottom: "12px", lineHeight: 1.5 }}>{et.descripcion}</div>
+                    <div style={{ height: "6px", background: "#F0F4FF", borderRadius: "999px", overflow: "hidden", marginBottom: "6px" }}>
+                      <div style={{ height: "100%", background: et.color, borderRadius: "999px", width: `${p?.pct ?? 0}%`, transition: "width 0.5s ease" }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                      <span style={{ color: "#94A3B8" }}>{p?.completadas ?? 0}/{p?.total ?? 0} herr.</span>
+                      <span style={{ fontWeight: 700, color: et.color }}>{p?.pct ?? 0}%</span>
+                    </div>
                   </div>
-                  <div style={{ fontSize: "36px", marginBottom: "16px" }}>{step.icon}</div>
-                  <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", marginBottom: "10px", letterSpacing: "-0.01em" }}>
-                    {step.title}
-                  </div>
-                  <div style={{ fontSize: "14px", color: "#64748B", lineHeight: 1.7 }}>
-                    {step.desc}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* CTA del Resumen */}
-          <div
-            className="px-6 lg:px-16 py-[72px] relative overflow-hidden flex items-center justify-between gap-12 flex-wrap"
-            style={{ background: "linear-gradient(135deg, #0C4A6E, #1E3A8A, #312E81)" }}
-          >
+          {/* Próxima herramienta recomendada */}
+          {proximaHerramienta && (() => {
+            const etapaInfo = ETAPAS_A360.find(e => e.id === proximaHerramienta.etapa);
+            return (
+              <div className="bg-white px-6 lg:px-16 py-12">
+                <div style={SECTION_LABEL}>
+                  <span style={{ display: "inline-block", width: "28px", height: "3px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px" }} />
+                  Recomendación
+                </div>
+                <h2 className="mb-6" style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em" }}>
+                  Próxima herramienta <span style={GRADIENT_TEXT}>recomendada</span>
+                </h2>
+                <div style={{ background: `linear-gradient(135deg, ${etapaInfo?.color ?? "#0EA5E9"}10, ${etapaInfo?.color ?? "#6366F1"}08)`, border: `1.5px solid ${etapaInfo?.color ?? "#C7D2FE"}40`, borderRadius: "20px", padding: "28px 32px", display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
+                  <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: etapaActiveGrad(etapaInfo?.color ?? "#0EA5E9"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", flexShrink: 0, boxShadow: `0 4px 20px ${etapaInfo?.color ?? "#0EA5E9"}30` }}>
+                    🛠️
+                  </div>
+                  <div style={{ flex: 1, minWidth: "200px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: etapaInfo?.color ?? "#0EA5E9", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>
+                      {proximaHerramienta.etapa} · {proximaHerramienta.duracion}
+                    </div>
+                    <div style={{ fontSize: "20px", fontWeight: 900, color: "#0C4A6E", marginBottom: "6px", letterSpacing: "-0.01em" }}>{proximaHerramienta.nombre}</div>
+                    <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, textAlign: "justify" as const, margin: 0 }}>{proximaHerramienta.descripcion}</p>
+                  </div>
+                  <button onClick={() => setOpenNueva({ herramientaId: proximaHerramienta.id })} style={{ padding: "14px 28px", borderRadius: "12px", background: etapaActiveGrad(etapaInfo?.color ?? "#0EA5E9"), color: "white", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: `0 4px 20px ${etapaInfo?.color ?? "#0EA5E9"}35`, flexShrink: 0 }}>
+                    Iniciar herramienta →
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Últimas sesiones registradas */}
+          {sesiones.length > 0 && (
+            <div className="px-6 lg:px-16 py-12" style={{ background: "#F5F7FF" }}>
+              <div style={SECTION_LABEL}>
+                <span style={{ display: "inline-block", width: "28px", height: "3px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px" }} />
+                Actividad reciente
+              </div>
+              <h2 className="mb-6" style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em" }}>
+                Últimas <span style={GRADIENT_TEXT}>sesiones registradas</span>
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {sesiones.slice(0, 4).map((s) => {
+                  const h = s.herramienta_id ? getHerramienta(s.herramienta_id) : null;
+                  const etapaInfo = ETAPAS_A360.find(e => e.id === s.etapa);
+                  const hasIA = !!(s.datos as Record<string, unknown>)?.analisis_ia;
+                  return (
+                    <div key={s.id} onClick={() => setEditing(s)} style={{ background: "white", border: "1px solid #E0E7FF", borderRadius: "14px", padding: "18px 22px", display: "flex", gap: "16px", cursor: "pointer", transition: "all 0.2s" }}
+                      onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = `0 8px 24px ${etapaInfo?.color ?? "#0EA5E9"}15`; el.style.borderColor = `${etapaInfo?.color ?? "#BAE6FD"}60`; }}
+                      onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = "none"; el.style.borderColor = "#E0E7FF"; }}
+                    >
+                      <div style={{ width: "44px", height: "44px", borderRadius: "10px", flexShrink: 0, background: s.completada ? (etapaInfo?.color ?? "#059669") : `${etapaInfo?.color ?? "#0EA5E9"}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 900, color: s.completada ? "white" : (etapaInfo?.color ?? "#0EA5E9") }}>
+                        {s.completada ? <Check style={{ width: "18px", height: "18px" }} /> : "•"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "15px", fontWeight: 700, color: "#0C4A6E", marginBottom: "4px" }}>{h?.nombre ?? "Sesión"}</div>
+                        <div style={{ display: "flex", gap: "10px", fontSize: "12px", color: "#94A3B8", flexWrap: "wrap" }}>
+                          <span>📅 {new Date(s.created_at).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          {etapaInfo && <span style={{ color: etapaInfo.color, fontWeight: 600 }}>{s.etapa}</span>}
+                          {hasIA && <span style={{ color: "#0EA5E9", fontWeight: 600 }}>🤖 IA</span>}
+                        </div>
+                      </div>
+                      <ChevronRight style={{ width: "16px", height: "16px", color: "#94A3B8", flexShrink: 0 }} />
+                    </div>
+                  );
+                })}
+              </div>
+              {sesiones.length > 4 && (
+                <button onClick={() => setActiveTab("historial")} style={{ marginTop: "16px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: 600, color: "#0EA5E9", background: "none", border: "none", cursor: "pointer" }}>
+                  Ver todas las sesiones <ChevronRight style={{ width: "14px", height: "14px" }} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* CTA */}
+          <div className="px-6 lg:px-16 py-[72px] relative overflow-hidden flex items-center justify-between gap-12 flex-wrap" style={{ background: "linear-gradient(135deg, #0C4A6E, #1E3A8A, #312E81)" }}>
             <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 80% at 20% 50%, rgba(14,165,233,0.12), transparent)" }} />
             <div className="relative z-10">
               <div style={{ width: "48px", height: "4px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px", marginBottom: "18px" }} />
               <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, color: "white", letterSpacing: "-0.04em", lineHeight: 1.05 }}>
                 El siguiente nivel<br />
-                <span style={{ background: "linear-gradient(135deg, #38BDF8, #A5B4FC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                  te está esperando.
-                </span>
+                <span style={{ background: "linear-gradient(135deg, #38BDF8, #A5B4FC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>te está esperando.</span>
               </h2>
               <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.5)", marginTop: "10px", lineHeight: 1.65 }}>
                 {totalCompletadas} de {HERRAMIENTAS_A360.length} herramientas completadas. Cada sesión es un punto de inflexión.
@@ -435,16 +542,16 @@ function CoachingClienteWorkspace() {
             const etaProgreso = progreso.find(p => p.etapa.id === et.id);
             return (
               <div key={et.id}>
-                {/* Gradient header con número romano decorativo */}
-                <div className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 60%, #312E81 100%)" }}>
+                {/* Gradient header con número romano decorativo y color de etapa */}
+                <div className="relative overflow-hidden" style={{ background: etapaHeroGrad(et.color) }}>
                   <div className="absolute pointer-events-none select-none" style={{ right: "-20px", top: "-30px", fontSize: "220px", fontWeight: 900, color: "rgba(255,255,255,0.04)", lineHeight: 1, letterSpacing: "-0.05em" }}>
                     {roman}
                   </div>
-                  <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 80% 30%, rgba(14,165,233,0.12), transparent)" }} />
+                  <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 60% 80% at 80% 30%, ${et.color}25, transparent)` }} />
                   <div className="relative z-10 px-6 lg:px-16 py-14">
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                       <span style={{ display: "inline-block", width: "20px", height: "2px", background: et.color }} />
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#38BDF8", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
                         Etapa {roman} · {etaProgreso?.completadas ?? 0}/{etaProgreso?.total ?? 0} completadas · {etaProgreso?.pct ?? 0}%
                       </span>
                     </div>
@@ -455,7 +562,7 @@ function CoachingClienteWorkspace() {
                       {et.proposito}
                     </p>
                     <div style={{ marginTop: "16px", height: "6px", background: "rgba(255,255,255,0.12)", borderRadius: "999px", overflow: "hidden", maxWidth: "280px" }}>
-                      <div style={{ height: "100%", borderRadius: "999px", background: "linear-gradient(90deg, #38BDF8, #A5B4FC)", width: `${etaProgreso?.pct ?? 0}%`, transition: "width 0.5s ease" }} />
+                      <div style={{ height: "100%", borderRadius: "999px", background: `linear-gradient(90deg, ${et.color}, rgba(255,255,255,0.7))`, width: `${etaProgreso?.pct ?? 0}%`, transition: "width 0.5s ease" }} />
                     </div>
                     <div className="flex flex-wrap gap-3 mt-5">
                       {et.entregables.map((ent, ei) => (
@@ -501,7 +608,7 @@ function CoachingClienteWorkspace() {
                           <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
                             <button
                               onClick={() => setOpenNueva({ herramientaId: h.id })}
-                              style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: completa ? "#059669" : "linear-gradient(135deg, #0EA5E9, #6366F1)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(14,165,233,0.2)", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                              style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: completa ? "#059669" : etapaActiveGrad(et.color), color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${et.color}30`, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                             >
                               <Plus style={{ width: "14px", height: "14px" }} />
                               {completa ? "Nueva sesión" : "Iniciar herramienta"}
@@ -548,8 +655,8 @@ function CoachingClienteWorkspace() {
               {[
                 { val: `${pctGlobal}%`, lbl: "Avance total", extra: `${totalCompletadas} herramientas` },
                 { val: sesiones.length, lbl: "Registros totales", extra: `${analisisCount} con análisis IA` },
-                { val: ETAPAS_A360.filter(e => (progreso.find(p => p.etapa.id === e.id)?.pct ?? 0) === 100).length, lbl: "Etapas completas", extra: `de ${ETAPAS_A360.length} etapas` },
-                { val: `${sesiones.length > 0 ? Math.round((analisisCount / sesiones.length) * 100) : 0}%`, lbl: "Sesiones con IA", extra: `${analisisCount} analizadas` },
+                { val: etapa, lbl: "Etapa actual", extra: `${progreso.find(p => p.etapa.id === etapa)?.pct ?? "—"}% completada` },
+                { val: diasEnPrograma > 0 ? `${diasEnPrograma}d` : "—", lbl: "Días activo", extra: diasEnPrograma > 0 ? "desde primer registro" : "sin registros aún" },
               ].map((s, i) => (
                 <div key={i} className="rounded-2xl relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", padding: "24px 22px" }}>
                   <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 80% 80% at 80% 20%, rgba(14,165,233,0.2), transparent)" }} />
@@ -582,7 +689,7 @@ function CoachingClienteWorkspace() {
                     </div>
                   </div>
                   <div style={{ height: "8px", background: "#E0E7FF", borderRadius: "999px", overflow: "hidden" }}>
-                    <div style={{ height: "100%", borderRadius: "999px", background: p.pct === 100 ? "linear-gradient(90deg, #059669, #10B981)" : "linear-gradient(90deg, #0EA5E9, #6366F1)", width: `${p.pct}%`, transition: "width 0.5s ease" }} />
+                    <div style={{ height: "100%", borderRadius: "999px", background: p.etapa.color, width: `${p.pct}%`, transition: "width 0.5s ease" }} />
                   </div>
                 </div>
               ))}
@@ -625,14 +732,14 @@ function CoachingClienteWorkspace() {
                             <div
                               title={h.nombre}
                               onClick={() => { const ms = ses[0]; if (ms) setEditing(ms); else setOpenNueva({ herramientaId: h.id }); }}
-                              style={{ width: "52px", height: "52px", borderRadius: "50%", background: completa ? "#059669" : esProxima ? "linear-gradient(135deg, #0EA5E9, #6366F1)" : "white", color: completa || esProxima ? "white" : "#94A3B8", border: `2px solid ${completa ? "#059669" : esProxima ? "transparent" : "#E0E7FF"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 800, cursor: "pointer", boxShadow: esProxima ? "0 4px 14px rgba(14,165,233,0.3)" : "0 1px 3px rgba(0,0,0,0.06)", transition: "all 0.2s" }}
+                              style={{ width: "52px", height: "52px", borderRadius: "50%", background: completa ? et.color : esProxima ? etapaActiveGrad(et.color) : "white", color: completa || esProxima ? "white" : "#94A3B8", border: `2px solid ${completa ? et.color : esProxima ? "transparent" : "#E0E7FF"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 800, cursor: "pointer", boxShadow: esProxima ? `0 4px 14px ${et.color}40` : "0 1px 3px rgba(0,0,0,0.06)", transition: "all 0.2s" }}
                               onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.transform = "scale(1.12)"}
                               onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.transform = "none"}
                             >
                               {completa ? <Check style={{ width: "18px", height: "18px" }} /> : hi + 1}
                             </div>
                             {hi < herrs.length - 1 && (
-                              <div style={{ width: "20px", height: "2px", background: completa ? "#059669" : "#E0E7FF" }} />
+                              <div style={{ width: "20px", height: "2px", background: completa ? et.color : "#E0E7FF" }} />
                             )}
                           </div>
                         );
@@ -647,31 +754,51 @@ function CoachingClienteWorkspace() {
             </div>
           </div>
 
-          {/* Evolución por mes — solo si hay 2+ registros */}
+          {/* Gráfico de actividad por semana — solo si hay 2+ registros */}
           {sesiones.length >= 2 && (() => {
-            const byMonth = new Map<string, number>();
+            const getWeekKey = (d: Date) => {
+              const startOfWeek = new Date(d);
+              startOfWeek.setDate(d.getDate() - d.getDay());
+              return startOfWeek.toISOString().slice(0, 10);
+            };
+            const byWeek = new Map<string, number>();
             sesiones.forEach(s => {
-              const d = new Date(s.created_at);
-              const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-              byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+              const key = getWeekKey(new Date(s.created_at));
+              byWeek.set(key, (byWeek.get(key) ?? 0) + 1);
             });
-            const months = Array.from(byMonth.entries()).sort(([a], [b]) => a.localeCompare(b));
-            const maxVal = Math.max(...months.map(([, v]) => v), 1);
+            const weeks = Array.from(byWeek.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-12);
+            const maxVal = Math.max(...weeks.map(([, v]) => v), 1);
+            const weekLabel = (iso: string) => {
+              const d = new Date(iso);
+              return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+            };
             return (
               <div className="bg-white px-6 lg:px-16 py-12">
                 <div style={SECTION_LABEL}>
                   <span style={{ display: "inline-block", width: "28px", height: "3px", background: "linear-gradient(90deg, #0EA5E9, #6366F1)", borderRadius: "2px" }} />
-                  Evolución en el tiempo
+                  Gráfico de actividad
                 </div>
                 <h2 className="mb-8" style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em" }}>
-                  Actividad por <span style={GRADIENT_TEXT}>mes</span>
+                  Registros por <span style={GRADIENT_TEXT}>semana</span>
                 </h2>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", height: "140px" }}>
-                  {months.map(([month, count]) => (
-                    <div key={month} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
-                      <div style={{ fontSize: "13px", fontWeight: 800, color: "#0C4A6E" }}>{count}</div>
-                      <div style={{ width: "100%", background: "linear-gradient(180deg, #0EA5E9, #6366F1)", borderRadius: "6px 6px 0 0", height: `${Math.max((count / maxVal) * 90, 8)}px`, transition: "height 0.3s ease" }} />
-                      <div style={{ fontSize: "10px", color: "#94A3B8", fontWeight: 600 }}>{month.slice(5)}/{month.slice(2, 4)}</div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "140px" }}>
+                  {weeks.map(([week, count], wi) => {
+                    const etapaColors = ["#7F77DD", "#1D9E75", "#BA7517", "#D85A30"];
+                    const barColor = etapaColors[wi % etapaColors.length];
+                    return (
+                      <div key={week} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                        <div style={{ fontSize: "12px", fontWeight: 800, color: "#0C4A6E" }}>{count}</div>
+                        <div style={{ width: "100%", background: barColor, borderRadius: "6px 6px 0 0", height: `${Math.max((count / maxVal) * 90, 8)}px`, transition: "height 0.3s ease", opacity: 0.85 }} />
+                        <div style={{ fontSize: "9px", color: "#94A3B8", fontWeight: 600, textAlign: "center" as const }}>{weekLabel(week)}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", gap: "12px", marginTop: "12px", flexWrap: "wrap" }}>
+                  {ETAPAS_A360.map(et => (
+                    <div key={et.id} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "#64748B", fontWeight: 600 }}>
+                      <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: et.color, display: "inline-block" }} />
+                      {et.id}
                     </div>
                   ))}
                 </div>
@@ -764,25 +891,30 @@ function CoachingClienteWorkspace() {
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {sesiones.filter(s => !!(s.datos as Record<string, unknown>)?.analisis_ia).map((s) => {
                       const h = s.herramienta_id ? getHerramienta(s.herramienta_id) : null;
+                      const etapaInfo = ETAPAS_A360.find(e => e.id === s.etapa);
+                      const etapaColor = etapaInfo?.color ?? "#0EA5E9";
                       const analisisTexto = String((s.datos as Record<string, unknown>).analisis_ia ?? "");
                       const preview = analisisTexto.slice(0, 200).trim();
                       return (
                         <div key={s.id}
                           onClick={() => setEditing(s)}
-                          style={{ background: "white", border: "1px solid #E0E7FF", borderLeft: "4px solid #0EA5E9", borderRadius: "0 14px 14px 0", padding: "20px 24px", cursor: "pointer", transition: "all 0.2s" }}
-                          onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateX(4px)"; el.style.boxShadow = "0 4px 16px rgba(14,165,233,0.08)"; }}
+                          style={{ background: "white", border: "1px solid #E0E7FF", borderLeft: `4px solid ${etapaColor}`, borderRadius: "0 14px 14px 0", padding: "20px 24px", cursor: "pointer", transition: "all 0.2s" }}
+                          onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateX(4px)"; el.style.boxShadow = `0 4px 16px ${etapaColor}15`; }}
                           onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = "none"; }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
                             <div style={{ fontSize: "15px", fontWeight: 700, color: "#0C4A6E" }}>{h?.nombre ?? "Sesión"}</div>
-                            <span style={{ fontSize: "11px", color: "#94A3B8", flexShrink: 0 }}>
-                              {new Date(s.created_at).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" })}
-                            </span>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                              {etapaInfo && <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "999px", background: `${etapaColor}15`, color: etapaColor }}>{s.etapa}</span>}
+                              <span style={{ fontSize: "11px", color: "#94A3B8", flexShrink: 0 }}>
+                                {new Date(s.created_at).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" })}
+                              </span>
+                            </div>
                           </div>
                           <p style={{ fontSize: "14px", color: "#64748B", lineHeight: 1.6, textAlign: "justify" as const }}>
                             {preview}{analisisTexto.length > 200 ? "…" : ""}
                           </p>
-                          <div style={{ fontSize: "12px", color: "#0EA5E9", fontWeight: 600, marginTop: "8px" }}>
+                          <div style={{ fontSize: "12px", color: etapaColor, fontWeight: 600, marginTop: "8px" }}>
                             Ver análisis completo →
                           </div>
                         </div>
@@ -840,33 +972,43 @@ function CoachingClienteWorkspace() {
               {sesiones.length} registro{sesiones.length !== 1 ? "s" : ""} de sesión
             </h2>
 
-            {/* Stats rápidas */}
+            {/* Stats rápidas — gradient cards */}
             {sesiones.length > 0 && (
               <div className="grid grid-cols-3 gap-4 mb-8">
                 {[
-                  { val: sesiones.length, lbl: "Total registros" },
-                  { val: lastSes ? new Date(lastSes.created_at).toLocaleDateString("es", { day: "numeric", month: "short" }) : "—", lbl: "Última sesión" },
-                  { val: avgPerMonth, lbl: "Promedio por mes" },
+                  { val: sesiones.length, lbl: "Total registros", icon: "📝" },
+                  { val: lastSes ? new Date(lastSes.created_at).toLocaleDateString("es", { day: "numeric", month: "short" }) : "—", lbl: "Última sesión", icon: "📅" },
+                  { val: avgPerMonth, lbl: "Promedio por mes", icon: "📊" },
                 ].map((s, i) => (
-                  <div key={i} style={{ background: "#F5F7FF", border: "1px solid #E0E7FF", borderRadius: "14px", padding: "18px 20px" }}>
-                    <div style={{ fontSize: "28px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.val}</div>
-                    <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "5px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.lbl}</div>
+                  <div key={i} style={{ background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", borderRadius: "14px", padding: "20px 22px", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 80% at 80% 20%, rgba(14,165,233,0.2), transparent)", pointerEvents: "none" }} />
+                    <div style={{ position: "relative", zIndex: 1 }}>
+                      <div style={{ fontSize: "20px", marginBottom: "4px" }}>{s.icon}</div>
+                      <div style={{ fontSize: "28px", fontWeight: 900, color: "white", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.val}</div>
+                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", marginTop: "4px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.lbl}</div>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Filtros por etapa */}
-            {etapasDisponibles.length > 1 && (
+            {/* Filtros por etapa con color de etapa */}
+            {etapasDisponibles.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
-                <button onClick={() => setFiltroEtapa("")} style={{ fontSize: "12px", padding: "6px 16px", borderRadius: "999px", border: `1.5px solid ${filtroEtapa === "" ? "#0EA5E9" : "#E0E7FF"}`, background: filtroEtapa === "" ? "#0EA5E9" : "white", color: filtroEtapa === "" ? "white" : "#64748B", cursor: "pointer", fontWeight: 600, transition: "all 0.15s" }}>
+                <button onClick={() => setFiltroEtapa("")} style={{ fontSize: "12px", padding: "6px 16px", borderRadius: "999px", border: `1.5px solid ${filtroEtapa === "" ? "#0C4A6E" : "#E0E7FF"}`, background: filtroEtapa === "" ? "#0C4A6E" : "white", color: filtroEtapa === "" ? "white" : "#64748B", cursor: "pointer", fontWeight: 600, transition: "all 0.15s" }}>
                   Todas las etapas
                 </button>
-                {etapasDisponibles.map(e => (
-                  <button key={e} onClick={() => setFiltroEtapa(filtroEtapa === e ? "" : e)} style={{ fontSize: "12px", padding: "6px 16px", borderRadius: "999px", border: `1.5px solid ${filtroEtapa === e ? "#0EA5E9" : "#E0E7FF"}`, background: filtroEtapa === e ? "#0EA5E9" : "white", color: filtroEtapa === e ? "white" : "#64748B", cursor: "pointer", fontWeight: 600, transition: "all 0.15s" }}>
-                    {e}
-                  </button>
-                ))}
+                {etapasDisponibles.map(e => {
+                  const etapaInfo = ETAPAS_A360.find(et => et.id === e);
+                  const eColor = etapaInfo?.color ?? "#0EA5E9";
+                  const isActive = filtroEtapa === e;
+                  return (
+                    <button key={e} onClick={() => setFiltroEtapa(isActive ? "" : e)} style={{ fontSize: "12px", padding: "6px 16px", borderRadius: "999px", border: `1.5px solid ${isActive ? eColor : "#E0E7FF"}`, background: isActive ? eColor : "white", color: isActive ? "white" : "#64748B", cursor: "pointer", fontWeight: 600, transition: "all 0.15s", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.7)" : eColor, display: "inline-block" }} />
+                      {e}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -882,6 +1024,8 @@ function CoachingClienteWorkspace() {
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 {sesionesFiltradas.map((s, idx) => {
                   const h = s.herramienta_id ? getHerramienta(s.herramienta_id) : null;
+                  const etapaInfo = ETAPAS_A360.find(e => e.id === s.etapa);
+                  const eColor = etapaInfo?.color ?? "#0EA5E9";
                   const isLatest = idx === 0 && sesiones[0]?.id === s.id;
                   const notas = String((s.datos as Record<string, unknown>)?.notas ?? "").trim();
                   const hasIA = !!(s.datos as Record<string, unknown>)?.analisis_ia;
@@ -889,29 +1033,29 @@ function CoachingClienteWorkspace() {
                     <div
                       key={s.id}
                       onClick={() => setEditing(s)}
-                      style={{ background: isLatest ? "#EFF6FF" : s.completada ? "#F0FDF4" : "white", border: `1px solid ${isLatest ? "#BAE6FD" : s.completada ? "#BBF7D0" : "#E0E7FF"}`, borderRadius: "16px", padding: "22px 28px", display: "flex", gap: "20px", cursor: "pointer", transition: "all 0.2s" }}
-                      onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 8px 24px rgba(14,165,233,0.08)"; }}
+                      style={{ background: isLatest ? `${eColor}08` : s.completada ? "#F0FDF4" : "white", border: `1px solid ${isLatest ? `${eColor}40` : s.completada ? "#BBF7D0" : "#E0E7FF"}`, borderRadius: "16px", padding: "22px 28px", display: "flex", gap: "20px", cursor: "pointer", transition: "all 0.2s" }}
+                      onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = `0 8px 24px ${eColor}15`; }}
                       onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = "none"; }}
                     >
-                      {/* Number */}
-                      <div style={{ width: "52px", height: "52px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 900, ...(isLatest ? { background: "linear-gradient(135deg, #0EA5E9, #6366F1)", color: "white", boxShadow: "0 4px 12px rgba(14,165,233,0.3)" } : s.completada ? { background: "#DCFCE7", color: "#059669" } : { background: "white", border: "1px solid #E0E7FF", color: "#0369A1" }) }}>
+                      {/* Number with etapa color */}
+                      <div style={{ width: "52px", height: "52px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 900, ...(isLatest ? { background: etapaActiveGrad(eColor), color: "white", boxShadow: `0 4px 12px ${eColor}40` } : s.completada ? { background: `${eColor}20`, color: eColor } : { background: "white", border: `1.5px solid ${eColor}40`, color: eColor }) }}>
                         {s.completada ? <Check style={{ width: "20px", height: "20px" }} /> : sesionesFiltradas.length - idx}
                       </div>
 
                       {/* Content */}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginBottom: "6px" }}>
-                          <div style={{ fontSize: "16px", fontWeight: 800, color: isLatest ? "#0EA5E9" : "#0C4A6E", letterSpacing: "-0.01em" }}>
+                          <div style={{ fontSize: "16px", fontWeight: 800, color: isLatest ? eColor : "#0C4A6E", letterSpacing: "-0.01em" }}>
                             {h?.nombre ?? "Sesión"}
                           </div>
-                          <span style={{ fontSize: "11px", fontWeight: 700, padding: "4px 12px", borderRadius: "999px", flexShrink: 0, background: isLatest ? "linear-gradient(135deg,#0EA5E9,#6366F1)" : s.completada ? "#DCFCE7" : "#F1F5F9", color: isLatest ? "white" : s.completada ? "#065F46" : "#94A3B8" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, padding: "4px 12px", borderRadius: "999px", flexShrink: 0, background: isLatest ? etapaActiveGrad(eColor) : s.completada ? `${eColor}20` : "#F1F5F9", color: isLatest ? "white" : s.completada ? eColor : "#94A3B8" }}>
                             {isLatest ? "Más reciente" : s.completada ? "✓ Completada" : "Pendiente"}
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-3 mb-2" style={{ fontSize: "13px", color: "#64748B" }}>
                           <span>📅 {new Date(s.created_at).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" })}</span>
-                          <span>📋 {s.etapa}</span>
-                          {h && <span>🛠 {h.tipo}</span>}
+                          {etapaInfo && <span style={{ color: eColor, fontWeight: 700 }}>{s.etapa}</span>}
+                          {h && <span style={{ color: "#94A3B8" }}>🛠 {h.tipo}</span>}
                           {hasIA && <span style={{ color: "#0EA5E9", fontWeight: 600 }}>🤖 Con análisis IA</span>}
                         </div>
                         {notas && (
