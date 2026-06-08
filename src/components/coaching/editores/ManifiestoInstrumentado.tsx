@@ -11,8 +11,8 @@ const C = {
   active: "linear-gradient(135deg, #1D9E75, #0EA5E9)",
 };
 
-const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
-const IN: React.CSSProperties = { width: "100%", padding: "12px 16px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
+const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
+const IN: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
 const LB: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#374151", marginBottom: "8px", display: "block" };
 
 const foc = (e: React.FocusEvent<HTMLTextAreaElement | HTMLInputElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}25`; };
@@ -45,7 +45,7 @@ export function ManifiestoInstrumentado({ datos, setDatos }: { datos: any; setDa
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Manifiesto del <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>líder</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             El contrato del líder consigo mismo. No declaraciones de intención — compromisos accionables, observables y verificables en cada una de las 5 dimensiones del liderazgo ejecutivo.
           </p>
           <div style={{ display: "flex", gap: "0", marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
@@ -68,7 +68,7 @@ export function ManifiestoInstrumentado({ datos, setDatos }: { datos: any; setDa
         <span style={{ fontSize: "26px", flexShrink: 0 }}>📜</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#064E3B", marginBottom: "5px" }}>¿Para qué sirve el Manifiesto del líder?</div>
-          <div style={{ fontSize: "14px", color: "#065F46", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#065F46", lineHeight: 1.8, textAlign: "justify" as const }}>
             El manifiesto fuerza al líder a traducir el diagnóstico en compromisos accionables. Es el contrato visible que firma frente al coach y que define exactamente cómo va a operar distinto. Sin manifiesto, el insight se convierte en buenas intenciones. Con él, se convierte en compromisos verificables que el coach revisa en cada sesión.
           </div>
         </div>

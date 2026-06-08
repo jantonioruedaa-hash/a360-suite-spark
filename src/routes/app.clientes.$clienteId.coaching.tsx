@@ -208,7 +208,7 @@ function CoachingClienteWorkspace() {
           {/* Subtitle */}
           <p className="mb-9" style={{
             fontSize: "17px", color: "rgba(255,255,255,0.6)",
-            lineHeight: 1.7, maxWidth: "520px",
+            lineHeight: 1.8, maxWidth: "520px",
           }}>
             {clienteNombre} · Metodología probada en más de 200 empresas latinoamericanas.
             Herramientas estructuradas y análisis con inteligencia artificial incluido en cada sesión.
@@ -327,7 +327,7 @@ function CoachingClienteWorkspace() {
             <h2 className="mb-3.5" style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               De líder reactivo a <span style={GRADIENT_TEXT}>arquitecto estratégico</span>
             </h2>
-            <p className="mb-12" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const }}>
+            <p className="mb-12" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const }}>
               El coaching A360 está diseñado para producir una transformación real y medible en la forma en que liderás, decidís y construís tu empresa.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -363,7 +363,7 @@ function CoachingClienteWorkspace() {
             <h2 className="mb-3.5" style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               Las 4 etapas del <span style={GRADIENT_TEXT}>programa</span>
             </h2>
-            <p className="mb-10" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const }}>
+            <p className="mb-10" style={{ fontSize: "17px", color: "#64748B", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const }}>
               Cada etapa tiene un propósito específico en la transformación. El avance es acumulativo — cada herramienta construye sobre la anterior.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -419,7 +419,7 @@ function CoachingClienteWorkspace() {
                       {proximaHerramienta.etapa} · {proximaHerramienta.duracion}
                     </div>
                     <div style={{ fontSize: "20px", fontWeight: 900, color: "#0C4A6E", marginBottom: "6px", letterSpacing: "-0.01em" }}>{proximaHerramienta.nombre}</div>
-                    <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, textAlign: "justify" as const, margin: 0 }}>{proximaHerramienta.descripcion}</p>
+                    <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.8, textAlign: "justify" as const, margin: 0 }}>{proximaHerramienta.descripcion}</p>
                   </div>
                   <button onClick={() => setOpenNueva({ herramientaId: proximaHerramienta.id })} style={{ padding: "14px 28px", borderRadius: "12px", background: etapaActiveGrad(etapaInfo?.color ?? "#0EA5E9"), color: "white", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: `0 4px 20px ${etapaInfo?.color ?? "#0EA5E9"}35`, flexShrink: 0 }}>
                     Iniciar herramienta →
@@ -558,7 +558,7 @@ function CoachingClienteWorkspace() {
                     <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: "12px" }}>
                       {et.titulo}
                     </h2>
-                    <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "640px", textAlign: "justify" as const, margin: 0 }}>
+                    <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
                       {et.proposito}
                     </p>
                     <div style={{ marginTop: "16px", height: "6px", background: "rgba(255,255,255,0.12)", borderRadius: "999px", overflow: "hidden", maxWidth: "280px" }}>
@@ -598,7 +598,7 @@ function CoachingClienteWorkspace() {
                           </div>
                           <div>
                             <div style={{ fontSize: "18px", fontWeight: 800, color: completa ? "#065F46" : "#0C4A6E", letterSpacing: "-0.01em", marginBottom: "8px" }}>{h.nombre}</div>
-                            <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, textAlign: "justify" as const, margin: 0 }}>{h.descripcion}</p>
+                            <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, textAlign: "justify" as const, margin: 0 }}>{h.descripcion}</p>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#94A3B8" }}>
                             <Clock style={{ width: "13px", height: "13px" }} />
@@ -705,7 +705,7 @@ function CoachingClienteWorkspace() {
             <h2 className="mb-3" style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em" }}>
               Ruta de <span style={GRADIENT_TEXT}>transformación completa</span>
             </h2>
-            <p className="mb-10" style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const }}>
+            <p className="mb-10" style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const }}>
               Haz clic en cualquier herramienta para abrirla. Verde = completada · Gradiente = próxima recomendada · Gris = pendiente.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -823,7 +823,7 @@ function CoachingClienteWorkspace() {
                 >
                   <div style={{ fontSize: "10px", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>{f.label}</div>
                   <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", marginBottom: "8px", letterSpacing: "-0.01em" }}>{f.titulo}</div>
-                  <div style={{ fontSize: "14px", color: "#64748B", lineHeight: 1.75, textAlign: "justify" as const }}>{f.desc}</div>
+                  <div style={{ fontSize: "14px", color: "#64748B", lineHeight: 1.8, textAlign: "justify" as const }}>{f.desc}</div>
                 </div>
               ))}
             </div>
@@ -839,7 +839,7 @@ function CoachingClienteWorkspace() {
               <div className="rounded-2xl p-12 text-center" style={{ background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", border: "1.5px solid #C7D2FE" }}>
                 <div style={{ fontSize: "56px", marginBottom: "20px" }}>🤖</div>
                 <h3 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", marginBottom: "12px", letterSpacing: "-0.01em" }}>Aún no hay datos para analizar</h3>
-                <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "440px", margin: "0 auto 28px", textAlign: "justify" as const }}>
+                <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, maxWidth: "440px", margin: "0 auto 28px", textAlign: "justify" as const }}>
                   Registra y guarda tu primera herramienta de coaching para que la IA pueda generar análisis de patrones, evolución y recomendaciones personalizadas.
                 </p>
                 <button style={BTN_PRIMARY} onClick={() => setActiveTab("herramientas")}>
@@ -861,7 +861,7 @@ function CoachingClienteWorkspace() {
                   <h2 style={{ fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 900, color: "white", letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: "12px" }}>
                     Análisis profundo con <span style={{ background: "linear-gradient(135deg, #38BDF8, #A5B4FC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Claude AI</span>
                   </h2>
-                  <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, textAlign: "justify" as const }}>
+                  <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, textAlign: "justify" as const }}>
                     Claude analiza los {sesiones.length} registros de sesión para identificar patrones de liderazgo, evolución del radar, brechas de comportamiento, compromisos cumplidos vs. pendientes, y genera recomendaciones estratégicas para el coach y el sponsor.
                   </p>
                   <div className="flex gap-3 mt-6 flex-wrap">
@@ -1299,7 +1299,7 @@ function DialogoSesion({
 // Constantes Aurora compartidas entre editores inline
 // ─────────────────────────────────────────────────────────────────────────────
 const AURORA_LABEL: React.CSSProperties = { fontSize: "13px", fontWeight: 700, color: "#374151", marginBottom: "8px", display: "block" };
-const AURORA_TEXTAREA: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, minHeight: "140px", resize: "vertical", transition: "all 0.15s" };
+const AURORA_TEXTAREA: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, minHeight: "140px", resize: "vertical", transition: "all 0.15s" };
 const AURORA_QCARD: React.CSSProperties = { background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", borderLeft: "4px solid #0EA5E9", borderRadius: "0 12px 12px 0", padding: "20px 24px", marginBottom: "12px" };
 const AURORA_SECTION: React.CSSProperties = { background: "white", border: "1px solid #E0E7FF", borderRadius: "16px", padding: "20px 24px" };
 const AURORA_STAT_DARK: React.CSSProperties = { background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", borderRadius: "12px", padding: "18px 22px", color: "white", position: "relative", overflow: "hidden" };

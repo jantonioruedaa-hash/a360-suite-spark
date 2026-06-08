@@ -10,8 +10,8 @@ const C = {
   active: "linear-gradient(135deg, #D85A30, #F59E0B)",
 };
 
-const IN: React.CSSProperties = { width: "100%", padding: "10px 14px", border: "1.5px solid #E0E7FF", borderRadius: "8px", fontSize: "14px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.4, transition: "all 0.15s" };
-const LB: React.CSSProperties = { fontSize: "13px", fontWeight: 700, color: "#374151", marginBottom: "6px", display: "block" };
+const IN: React.CSSProperties = { width: "100%", padding: "12px 14px", border: "1.5px solid #E0E7FF", borderRadius: "8px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
+const LB: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#374151", marginBottom: "8px", display: "block" };
 
 const foc = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}20`; };
 const blu = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { e.target.style.borderColor = "#E0E7FF"; e.target.style.boxShadow = "none"; };
@@ -45,7 +45,7 @@ export function PlanContinuidadInstrumentado({ datos, setDatos }: { datos: any; 
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Plan de continuidad <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>90 días</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             El cambio sin plan post-programa se erosiona en 60 días. Este plan garantiza que el líder tiene hitos verificables, testigos externos y un sistema de auto-revisión para sostener la transformación sin necesitar al coach presente.
           </p>
           <div style={{ display: "flex", gap: "0", marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
@@ -68,7 +68,7 @@ export function PlanContinuidadInstrumentado({ datos, setDatos }: { datos: any; 
         <span style={{ fontSize: "26px", flexShrink: 0 }}>🎯</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#7C2D12", marginBottom: "5px" }}>¿Para qué sirve el Plan de continuidad?</div>
-          <div style={{ fontSize: "14px", color: "#9A3412", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#9A3412", lineHeight: 1.8, textAlign: "justify" as const }}>
             El programa termina, pero el cambio no debe terminar con él. El plan de continuidad divide los 90 días post-programa en 4 fases progresivas, cada una con un hito observable y un testigo externo. Sin este plan, el 70% de los líderes vuelve a sus patrones anteriores en 8 semanas. Con él, la tasa de sostenimiento sube al 85%.
           </div>
         </div>
@@ -94,7 +94,7 @@ export function PlanContinuidadInstrumentado({ datos, setDatos }: { datos: any; 
 
       {/* Action */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "24px" }}>
-        <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "500px", textAlign: "justify" as const, margin: 0 }}>
+        <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
           Define compromisos observables en 4 fases. Cada uno debe tener responsable, testigo externo, fecha e indicador de éxito concreto.
         </p>
         <button onClick={cargarEjemplos} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "11px 20px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", fontSize: "14px", fontWeight: 600, color: "#7C2D12", cursor: "pointer" }}>

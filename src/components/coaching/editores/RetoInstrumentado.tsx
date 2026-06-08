@@ -11,7 +11,7 @@ const C = {
   active: "linear-gradient(135deg, #BA7517, #EF4444)",
 };
 
-const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, resize: "vertical", minHeight: "100px", transition: "all 0.15s" };
+const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
 const foc = (e: React.FocusEvent<HTMLTextAreaElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}25`; };
 const blu = (e: React.FocusEvent<HTMLTextAreaElement>) => { e.target.style.borderColor = "#E0E7FF"; e.target.style.boxShadow = "none"; };
 
@@ -54,7 +54,7 @@ export function RetoInstrumentado({ datos, setDatos }: { datos: any; setDatos: (
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Reto de <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>7 días</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             Instalación de un nuevo comportamiento de liderazgo a través de la repetición consciente. La práctica diaria de 7 días crea el surco neuronal que convierte el comportamiento nuevo en automático.
           </p>
           {reto && (
@@ -74,7 +74,7 @@ export function RetoInstrumentado({ datos, setDatos }: { datos: any; setDatos: (
         <span style={{ fontSize: "26px", flexShrink: 0 }}>💪</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#78350F", marginBottom: "5px" }}>¿Para qué sirve el Reto de 7 días?</div>
-          <div style={{ fontSize: "14px", color: "#92400E", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#92400E", lineHeight: 1.8, textAlign: "justify" as const }}>
             El cambio profundo no ocurre en la sesión — ocurre entre sesiones, en los micro-momentos del día real. El reto fuerza la repetición de un nuevo comportamiento hasta que deja de requerir esfuerzo consciente. Si el líder falla un día, no se reinicia — se continúa y se reflexiona el fallo. La imperfección es parte del aprendizaje.
           </div>
         </div>

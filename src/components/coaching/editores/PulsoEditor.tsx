@@ -8,7 +8,7 @@ const C = {
   active: "linear-gradient(135deg, #BA7517, #EF4444)",
 };
 
-const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
+const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
 
 const foc = (e: React.FocusEvent<HTMLTextAreaElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}25`; };
 const blu = (e: React.FocusEvent<HTMLTextAreaElement>) => { e.target.style.borderColor = "#E0E7FF"; e.target.style.boxShadow = "none"; };
@@ -65,7 +65,7 @@ export function PulsoEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Pulso del <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>equipo</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             Tres minutos disciplinados cada semana para monitorear el momentum y detectar bloqueos antes de que se conviertan en crisis. Los patrones de más de 3 semanas son señales de alerta que se trabajan en sesión.
           </p>
           <div style={{ display: "flex", gap: "0", marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
@@ -88,7 +88,7 @@ export function PulsoEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
         <span style={{ fontSize: "26px", flexShrink: 0 }}>📊</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#78350F", marginBottom: "5px" }}>¿Para qué sirve el Pulso semanal?</div>
-          <div style={{ fontSize: "14px", color: "#92400E", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#92400E", lineHeight: 1.8, textAlign: "justify" as const }}>
             El Pulso es un auto-monitoreo de 3 minutos que el líder hace cada semana durante la etapa de Sostenimiento. No es un reporte — es una foto de su estado real en este momento. El coach revisa los pulsos antes de cada sesión para calibrar el trabajo. Los patrones de más de 3 semanas revelan los verdaderos bloqueos del programa.
           </div>
         </div>

@@ -11,8 +11,8 @@ const C = {
   active: "linear-gradient(135deg, #1D9E75, #0EA5E9)",
 };
 
-const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, resize: "vertical", minHeight: "120px", transition: "all 0.15s" };
-const IN: React.CSSProperties = { width: "100%", padding: "12px 16px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
+const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
+const IN: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
 const LB: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#374151", marginBottom: "8px", display: "block" };
 
 const foc = (e: React.FocusEvent<HTMLTextAreaElement | HTMLInputElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}25`; };
@@ -64,7 +64,7 @@ export function SimuladorInstrumentado({ datos, setDatos }: { datos: any; setDat
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Simulador de <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>decisiones</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             Prueba el manifiesto bajo presión simulada. Cada dilema activa exactamente las creencias limitantes mapeadas y revela la distancia entre lo que el líder declara y lo que hace cuando no tiene tiempo para pensar.
           </p>
           <div style={{ display: "flex", gap: "0", marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
@@ -87,7 +87,7 @@ export function SimuladorInstrumentado({ datos, setDatos }: { datos: any; setDat
         <span style={{ fontSize: "26px", flexShrink: 0 }}>⚡</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#064E3B", marginBottom: "5px" }}>¿Para qué sirve el Simulador de decisiones?</div>
-          <div style={{ fontSize: "14px", color: "#065F46", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#065F46", lineHeight: 1.8, textAlign: "justify" as const }}>
             Un dilema muestra la naturaleza real del líder — lo que elige bajo presión, en segundos, sin tiempo para pensar. El simulador pone el manifiesto a prueba con situaciones calibradas a las creencias limitantes mapeadas. La distancia entre la respuesta inmediata y el manifiesto es el verdadero material del coaching.
           </div>
         </div>

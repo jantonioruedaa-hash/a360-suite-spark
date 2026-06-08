@@ -9,8 +9,8 @@ const C = {
   active: "linear-gradient(135deg, #7F77DD, #A855F7)",
 };
 
-const IN: React.CSSProperties = { width: "100%", padding: "12px 16px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
-const TA: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, resize: "vertical", minHeight: "120px", transition: "all 0.15s" };
+const IN: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
+const TA: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
 const LB: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#374151", marginBottom: "8px", display: "block" };
 
 const foc = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}20`; };
@@ -43,7 +43,7 @@ export function ContextoInstrumentado({ datos, setDatos }: { datos: any; setDato
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Perfil de <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>contexto</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             Mapea las fuerzas externas que condicionan al líder. Sin contexto el coaching se vuelve genérico. Con él, cada conversación se conecta a la realidad específica de esta persona en este momento de su empresa y su vida.
           </p>
           <div style={{ marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
@@ -63,7 +63,7 @@ export function ContextoInstrumentado({ datos, setDatos }: { datos: any; setDato
         <span style={{ fontSize: "26px", flexShrink: 0 }}>🗺️</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#4C1D95", marginBottom: "5px" }}>¿Para qué sirve el Perfil de contexto?</div>
-          <div style={{ fontSize: "14px", color: "#3730A3", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#3730A3", lineHeight: 1.8, textAlign: "justify" as const }}>
             Este perfil se completa en la primera sesión y se revisa en cada sesión subsiguiente. Su función es dar al coach el mapa completo: quién pagó el coaching y qué espera, qué está pasando en el negocio, y qué cargas personales están afectando el liderazgo. Sin este mapa el coach da consejos genéricos. Con él, da orientación calibrada a esta persona específica.
           </div>
         </div>

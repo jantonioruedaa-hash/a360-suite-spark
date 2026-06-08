@@ -229,7 +229,7 @@ export function RadarEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
         <span style={{ fontSize: "28px", flexShrink: 0 }}>💡</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E", marginBottom: "5px" }}>¿Para qué sirve el Radar de Liderazgo?</div>
-          <div style={{ fontSize: "14px", color: "#475569", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#475569", lineHeight: 1.8, textAlign: "justify" as const }}>
             El Radar no juzga ni califica — revela. Cada dimensión representa un área crítica del liderazgo ejecutivo que determina tu capacidad para construir, escalar y sostener una organización de alto desempeño. Complétalo con total honestidad — cuanto más preciso sea tu autodiagnóstico, más poderoso será el plan de desarrollo que construiremos juntos.
           </div>
         </div>
@@ -318,7 +318,7 @@ export function RadarEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
       <h3 style={{ fontSize: "24px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em", marginBottom: "8px" }}>
         Evalúa cada área de <span style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>tu liderazgo</span>
       </h3>
-      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, marginBottom: "28px", textAlign: "justify" as const }}>
+      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, marginBottom: "28px", textAlign: "justify" as const }}>
         Asigna una puntuación del 1 al 10 a cada dimensión con total honestidad. No hay respuestas correctas — hay respuestas honestas que generan planes de desarrollo poderosos.
       </p>
 
@@ -372,7 +372,7 @@ export function RadarEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
       <h3 style={{ fontSize: "24px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em", marginBottom: "8px" }}>
         Profundiza en cada <span style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>dimensión</span>
       </h3>
-      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, marginBottom: "28px", textAlign: "justify" as const }}>
+      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, marginBottom: "28px", textAlign: "justify" as const }}>
         Para cada dimensión evalúa tu puntuación y responde las preguntas de reflexión. Estas respuestas son la base del plan de desarrollo personalizado.
       </p>
 
@@ -470,7 +470,7 @@ export function RadarEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
                     <div style={{ fontSize: "13px", color: "#64748B", marginTop: "5px", fontStyle: "italic" }}>{pq.hint}</div>
                   </div>
                   <textarea
-                    style={{ width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", resize: "vertical", minHeight: "120px", outline: "none", lineHeight: 1.75, transition: "all 0.15s", marginBottom: qi === 0 ? "16px" : "0" }}
+                    style={{ width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", resize: "vertical", minHeight: "140px", outline: "none", lineHeight: 1.8, transition: "all 0.15s", marginBottom: qi === 0 ? "16px" : "0" }}
                     value={reflexiones[`${d.id}_${qi}`] ?? ""}
                     onChange={(e) => updRef(`${d.id}_${qi}`, e.target.value)}
                     onFocus={onFocus}
@@ -495,7 +495,7 @@ export function RadarEditor({ datos, setDatos }: { datos: any; setDatos: (d: any
           <h3 style={{ fontSize: "24px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em", marginBottom: "8px" }}>
             Tu progreso <span style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>en el tiempo</span>
           </h3>
-          <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, marginBottom: "24px", textAlign: "justify" as const }}>
+          <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.8, marginBottom: "24px", textAlign: "justify" as const }}>
             Comparativa entre la medición guardada como referencia y la medición actual. Cada punto de mejora representa trabajo real y decisiones valientes.
           </p>
           <div style={{ background: "white", borderRadius: "18px", border: "1px solid #E0E7FF", padding: "28px", marginBottom: "8px" }}>

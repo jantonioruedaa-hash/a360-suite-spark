@@ -24,8 +24,8 @@ const C = {
   statBg: "linear-gradient(135deg, #1E1B4B, #312E81)",
 };
 
-const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.75, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
-const IN: React.CSSProperties = { width: "100%", padding: "12px 16px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
+const TA: React.CSSProperties = { width: "100%", padding: "16px 18px", border: "1.5px solid #E0E7FF", borderRadius: "12px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.8, resize: "vertical", minHeight: "140px", transition: "all 0.15s" };
+const IN: React.CSSProperties = { width: "100%", padding: "14px 18px", border: "1.5px solid #E0E7FF", borderRadius: "10px", fontSize: "15px", fontFamily: "inherit", color: "#1E293B", background: "white", outline: "none", lineHeight: 1.5, transition: "all 0.15s" };
 const LB: React.CSSProperties = { fontSize: "14px", fontWeight: 700, color: "#374151", marginBottom: "8px", display: "block" };
 
 const foc = (e: React.FocusEvent<HTMLTextAreaElement | HTMLInputElement | HTMLSelectElement>) => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 4px ${C.accent}20`; };
@@ -73,7 +73,7 @@ export function CreenciasInstrumentado({ datos, setDatos }: { datos: any; setDat
           <h2 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "8px" }}>
             Mapa de <span style={{ background: C.span, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>creencias</span>
           </h2>
-          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.8, maxWidth: "560px", textAlign: "justify" as const, margin: 0 }}>
             Hace visibles las narrativas internas que el líder repite inconscientemente y que actúan como techo invisible de su desempeño. Sin nombrarlas no se pueden desafiar. Con ellas nombradas, empieza el verdadero trabajo de transformación.
           </p>
           <div style={{ display: "flex", gap: "0", marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
@@ -96,7 +96,7 @@ export function CreenciasInstrumentado({ datos, setDatos }: { datos: any; setDat
         <span style={{ fontSize: "26px", flexShrink: 0 }}>🧠</span>
         <div>
           <div style={{ fontSize: "14px", fontWeight: 700, color: "#4C1D95", marginBottom: "5px" }}>¿Para qué sirve el Mapa de creencias?</div>
-          <div style={{ fontSize: "14px", color: "#3730A3", lineHeight: 1.75, textAlign: "justify" as const }}>
+          <div style={{ fontSize: "15px", color: "#3730A3", lineHeight: 1.8, textAlign: "justify" as const }}>
             Las creencias limitantes son las narrativas que el líder se repite — a menudo sin saberlo — y que determinan sus decisiones, su tolerancia al riesgo y su capacidad para delegar. El Mapa hace visible lo invisible: nombrar una creencia es el primer paso para poder cuestionarla. Sin este mapa, el coaching trabaja síntomas; con él, trabaja causas.
           </div>
         </div>
@@ -189,7 +189,7 @@ export function CreenciasInstrumentado({ datos, setDatos }: { datos: any; setDat
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: "11px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Creencia #{idx + 1}</div>
-                    <textarea style={{ ...TA, minHeight: "100px" }} value={c.texto} onChange={e => upd(c.id, { texto: e.target.value })} onFocus={foc as React.FocusEventHandler<HTMLTextAreaElement>} onBlur={blu as React.FocusEventHandler<HTMLTextAreaElement>} placeholder="En lenguaje del propio líder — tal como lo dice en sus propias palabras…" />
+                    <textarea style={{ ...TA, minHeight: "140px" }} value={c.texto} onChange={e => upd(c.id, { texto: e.target.value })} onFocus={foc as React.FocusEventHandler<HTMLTextAreaElement>} onBlur={blu as React.FocusEventHandler<HTMLTextAreaElement>} placeholder="En lenguaje del propio líder — tal como lo dice en sus propias palabras…" />
                   </div>
                   <button onClick={() => quitar(c.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#EF4444", padding: "4px", flexShrink: 0 }}><X style={{ width: "16px", height: "16px" }} /></button>
                 </div>
@@ -228,14 +228,14 @@ export function CreenciasInstrumentado({ datos, setDatos }: { datos: any; setDat
                   <div style={{ fontSize: "15px", fontWeight: 700, color: "#0C4A6E", lineHeight: 1.5 }}>¿En qué situación concreta de la semana pasada se activó esta creencia? ¿Cómo afectó tu decisión o comportamiento?</div>
                   <div style={{ fontSize: "13px", color: "#64748B", marginTop: "4px", fontStyle: "italic" }}>La evidencia concreta es lo que transforma una creencia abstracta en un patrón observable y trabajable.</div>
                 </div>
-                <textarea style={{ ...TA, minHeight: "100px", marginBottom: "14px" }} value={c.evidencia ?? ""} onChange={e => upd(c.id, { evidencia: e.target.value })} onFocus={foc as React.FocusEventHandler<HTMLTextAreaElement>} onBlur={blu as React.FocusEventHandler<HTMLTextAreaElement>} placeholder="Situación concreta donde se activó esta creencia esta semana…" />
+                <textarea style={{ ...TA, minHeight: "140px", marginBottom: "14px" }} value={c.evidencia ?? ""} onChange={e => upd(c.id, { evidencia: e.target.value })} onFocus={foc as React.FocusEventHandler<HTMLTextAreaElement>} onBlur={blu as React.FocusEventHandler<HTMLTextAreaElement>} placeholder="Situación concreta donde se activó esta creencia esta semana…" />
 
                 <div style={{ background: C.qBg, borderLeft: `4px solid ${C.qBorder}`, borderRadius: "0 12px 12px 0", padding: "16px 20px", marginBottom: "12px" }}>
                   <div style={{ fontSize: "11px", fontWeight: 700, color: C.accent, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Reformulación</div>
                   <div style={{ fontSize: "15px", fontWeight: 700, color: "#0C4A6E", lineHeight: 1.5 }}>Si esta creencia fuera una mentira cómoda, ¿cuál sería la narrativa más útil y honesta que podría tomar su lugar?</div>
                   <div style={{ fontSize: "13px", color: "#64748B", marginTop: "4px", fontStyle: "italic" }}>No se trata de pensar positivo — se trata de una narrativa más precisa y útil que la actual.</div>
                 </div>
-                <textarea style={{ ...TA, minHeight: "100px" }} value={c.reformulacion ?? ""} onChange={e => upd(c.id, { reformulacion: e.target.value })} onFocus={foc as React.FocusEventHandler<HTMLTextAreaElement>} onBlur={blu as React.FocusEventHandler<HTMLTextAreaElement>} placeholder="Nueva narrativa más útil — en primera persona, presente, accionable…" />
+                <textarea style={{ ...TA, minHeight: "140px" }} value={c.reformulacion ?? ""} onChange={e => upd(c.id, { reformulacion: e.target.value })} onFocus={foc as React.FocusEventHandler<HTMLTextAreaElement>} onBlur={blu as React.FocusEventHandler<HTMLTextAreaElement>} placeholder="Nueva narrativa más útil — en primera persona, presente, accionable…" />
               </div>
             );
           })}
