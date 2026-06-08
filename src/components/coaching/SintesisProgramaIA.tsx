@@ -1,12 +1,52 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Brain, Loader2, Edit3, Save, RotateCw, Sparkles } from "lucide-react";
 import { sintetizarProgramaCoaching } from "@/lib/coaching-ia.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const BTN_GRADIENT: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: "8px",
+  padding: "14px 28px", borderRadius: "10px",
+  background: "linear-gradient(135deg, #0EA5E9, #6366F1)",
+  color: "white", fontSize: "14px", fontWeight: 700,
+  border: "none", cursor: "pointer",
+  boxShadow: "0 4px 20px rgba(14,165,233,0.35)",
+  transition: "all 0.2s",
+};
+
+function renderizarAnalisis(texto: string) {
+  if (!texto) return null;
+  const lineas = texto.split("\n").filter(l => l.trim());
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {lineas.map((linea, i) => {
+        const esEncabezado = linea.startsWith("##") || linea.startsWith("**") || /^\d+\.\s/.test(linea);
+        const esViñeta = linea.startsWith("- ") || linea.startsWith("• ");
+        const texto = linea.replace(/^#+\s*/, "").replace(/^\*\*(.+)\*\*$/, "$1").replace(/^[-•]\s*/, "");
+        if (esEncabezado) {
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "14px 18px", background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", border: "1.5px solid #C7D2FE", borderLeft: "4px solid #0EA5E9", borderRadius: "0 10px 10px 0" }}>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "#0C4A6E", lineHeight: 1.5 }}>{texto}</div>
+            </div>
+          );
+        }
+        if (esViñeta) {
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", paddingLeft: "8px" }}>
+              <span style={{ color: "#0EA5E9", fontWeight: 800, flexShrink: 0, marginTop: "2px" }}>›</span>
+              <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, margin: 0, textAlign: "justify" as const }}>{texto}</p>
+            </div>
+          );
+        }
+        return (
+          <p key={i} style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, margin: 0, textAlign: "justify" as const }}>{linea}</p>
+        );
+      })}
+    </div>
+  );
+}
 
 export function SintesisProgramaIA({
   clienteId, contextoCliente, sintesisInicial, fechaInicial, onGuardar,
@@ -42,37 +82,66 @@ export function SintesisProgramaIA({
   };
 
   return (
-    <div className="rounded-lg border-2 border-navy/20 bg-gradient-to-br from-navy/5 to-gold/5 p-5">
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5 text-navy" />
-          <h3 className="font-display text-navy">Síntesis IA del programa completo</h3>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* Botón de acción prominente */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+        <div>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "#0C4A6E", marginBottom: "3px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Brain style={{ width: "18px", height: "18px", color: "#0EA5E9" }} />
+            Síntesis ejecutiva del programa completo
+          </div>
+          {fecha && <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0 }}>
+            Generado: {new Date(fecha).toLocaleString("es", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>}
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", gap: "10px" }}>
           {texto && !edit && (
-            <Button size="sm" variant="outline" onClick={() => setEdit(true)}><Edit3 className="w-3 h-3 mr-1" />Editar</Button>
+            <button
+              onClick={() => setEdit(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", fontSize: "13px", fontWeight: 600, color: "#0369A1", cursor: "pointer" }}
+            >
+              <Edit3 style={{ width: "14px", height: "14px" }} /> Editar
+            </button>
           )}
           {texto && edit && (
-            <Button size="sm" onClick={() => { setEdit(false); onGuardar?.(texto, fecha ?? new Date().toISOString()); }} className="bg-navy hover:bg-navy/90 text-white">
-              <Save className="w-3 h-3 mr-1" />Guardar
-            </Button>
+            <button
+              onClick={() => { setEdit(false); onGuardar?.(texto, fecha ?? new Date().toISOString()); }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "none", background: "#059669", fontSize: "13px", fontWeight: 700, color: "white", cursor: "pointer" }}
+            >
+              <Save style={{ width: "14px", height: "14px" }} /> Guardar edición
+            </button>
           )}
-          <Button size="sm" onClick={generar} disabled={loading} className="bg-gold hover:bg-gold/90 text-navy">
-            {loading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> :
-              texto ? <RotateCw className="w-3 h-3 mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
-            {loading ? "Sintetizando…" : texto ? "Regenerar" : "Generar síntesis"}
-          </Button>
+          <button onClick={generar} disabled={loading} style={BTN_GRADIENT}>
+            {loading ? (
+              <><Loader2 style={{ width: "16px", height: "16px" }} className="animate-spin" />Sintetizando…</>
+            ) : texto ? (
+              <><RotateCw style={{ width: "16px", height: "16px" }} />Regenerar síntesis</>
+            ) : (
+              <><Sparkles style={{ width: "16px", height: "16px" }} />Generar síntesis con IA</>
+            )}
+          </button>
         </div>
       </div>
-      {fecha && <p className="text-[11px] text-muted-foreground mb-2">Generado: {new Date(fecha).toLocaleString()}</p>}
+
+      {/* Contenido */}
       {edit ? (
-        <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={20} className="font-mono text-xs" />
+        <Textarea
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          rows={20}
+          style={{ fontFamily: "inherit", fontSize: "14px", lineHeight: 1.75, padding: "16px", border: "1.5px solid #E0E7FF", borderRadius: "10px", outline: "none" }}
+        />
       ) : texto ? (
-        <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">{texto}</div>
+        <div style={{ background: "white", border: "1px solid #E0E7FF", borderRadius: "16px", padding: "28px 32px" }}>
+          {renderizarAnalisis(texto)}
+        </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Genera la síntesis ejecutiva del programa: línea base, hilos de transformación, brechas, delta del Radar, recomendaciones y mensaje al sponsor.
-        </p>
+        <div style={{ background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", border: "1.5px solid #C7D2FE", borderRadius: "16px", padding: "32px", textAlign: "center" }}>
+          <div style={{ fontSize: "44px", marginBottom: "16px" }}>🤖</div>
+          <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, maxWidth: "460px", margin: "0 auto", textAlign: "justify" as const }}>
+            Genera la síntesis ejecutiva del programa: línea base del Radar, hilos de transformación identificados, brechas actuales, delta de evolución, compromisos clave y recomendaciones estratégicas para el coach y el sponsor.
+          </p>
+        </div>
       )}
     </div>
   );
