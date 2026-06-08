@@ -3,7 +3,6 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent,
   SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-import { A360Logo } from "@/components/A360Logo";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
   LayoutDashboard, Settings, LogOut, BookOpen, History as HistoryIcon, TrendingUp,
@@ -12,6 +11,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useAlertas } from "@/lib/alertas-helpers";
 import { useAppSettings } from "@/lib/app-settings";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { toast } from "sonner";
 
 type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean };
@@ -102,23 +102,26 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarHeader className="bg-sidebar pt-5 pb-4 px-3">
-        <A360Logo size={36} withText={!collapsed} />
-      </SidebarHeader>
+    <Sidebar collapsible="icon" className="border-r" style={{ borderColor: "var(--sidebar-border)" }}>
+      {/* Spacer que alinea con el topbar de 56px */}
+      <SidebarHeader className="h-14 border-b" style={{ borderColor: "var(--sidebar-border)" }} />
 
-      <SidebarContent className="bg-sidebar gap-2">
+      <SidebarContent className="gap-1">
         {visibleSections.map((s) => (
           <SidebarGroup key={s.label}>
             {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em] text-gold/80 font-semibold px-3">
-                ─── {s.label} ───
+              <SidebarGroupLabel
+                className="text-[10px] uppercase tracking-widest font-semibold px-3 mb-0.5"
+                style={{ color: "var(--sidebar-label-text)" }}
+              >
+                {s.label}
               </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
               <SidebarMenu>
                 {s.items.map((item) => {
                   const badge = badgePorUrl[item.url] ?? 0;
+
                   if (item.upcoming) {
                     return (
                       <SidebarMenuItem key={item.title}>
@@ -128,25 +131,40 @@ export function AppSidebar() {
                               description: "Este módulo estará disponible próximamente. Te notificaremos cuando esté listo.",
                             })
                           }
-                          className="text-sidebar-foreground/40 hover:text-sidebar-foreground/50 cursor-not-allowed"
+                          className="opacity-50 hover:opacity-60 cursor-not-allowed"
+                          style={{ color: "var(--sidebar-foreground)" }}
                         >
-                          <Lock className="w-4 h-4" />
+                          <Lock className="w-[18px] h-[18px] shrink-0" />
                           <span className="flex-1">{item.title}</span>
                           {!collapsed && (
-                            <span className="ml-auto px-1.5 py-0.5 rounded bg-gold/20 text-gold text-[9px] font-semibold uppercase tracking-wide">
-                              Próximamente
+                            <span
+                              className="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide text-white"
+                              style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)" }}
+                            >
+                              Pronto
                             </span>
                           )}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
                   }
+
+                  const active = isActive(item.url);
                   return (
                     <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)}
-                        className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium">
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        className="transition-all"
+                        style={{
+                          color: active ? "var(--sidebar-accent-foreground)" : "var(--sidebar-foreground)",
+                          background: active ? "var(--sidebar-accent)" : "transparent",
+                          fontWeight: active ? 600 : 400,
+                          boxShadow: active ? "0 1px 4px rgba(14,165,233,0.12)" : "none",
+                        }}
+                      >
                         <Link to={item.url}>
-                          <item.icon className="w-4 h-4" />
+                          <item.icon className="w-[18px] h-[18px] shrink-0" />
                           <span className="flex-1">{item.title}</span>
                           {badge > 0 && !collapsed && (
                             <span className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
@@ -164,22 +182,41 @@ export function AppSidebar() {
         ))}
 
         {!isConsultorOrAdmin && !collapsed && (
-          <div className="px-4 mt-2 text-[11px] text-sidebar-foreground/60 leading-relaxed">
+          <div className="px-4 mt-2 text-[11px] leading-relaxed opacity-60" style={{ color: "var(--sidebar-foreground)" }}>
             {getText("sidebar.cliente_hint", "Estás viendo tu portal como cliente. Tu consultor gestiona el resto del workspace.")}
           </div>
         )}
       </SidebarContent>
 
-      <SidebarFooter className="bg-sidebar border-t border-sidebar-border/60">
+      <SidebarFooter className="border-t" style={{ borderColor: "var(--sidebar-border)" }}>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
-              <Link to="/app/configuracion"><Settings className="w-4 h-4" /><span>Configuración</span></Link>
+            <SidebarMenuButton
+              asChild
+              className="transition-colors hover:bg-white/10"
+              style={{ color: "var(--sidebar-foreground)" }}
+            >
+              <Link to="/app/configuracion">
+                <Settings className="w-[18px] h-[18px] shrink-0" />
+                <span>Configuración</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+
+          {!collapsed && (
+            <SidebarMenuItem>
+              <ThemeSwitcher />
+            </SidebarMenuItem>
+          )}
+
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut} className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
-              <LogOut className="w-4 h-4" /><span>Cerrar sesión</span>
+            <SidebarMenuButton
+              onClick={signOut}
+              className="transition-colors hover:bg-white/10"
+              style={{ color: "var(--sidebar-foreground)" }}
+            >
+              <LogOut className="w-[18px] h-[18px] shrink-0" />
+              <span>Cerrar sesión</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
