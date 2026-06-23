@@ -16,7 +16,7 @@ export const Route = createFileRoute("/app/coaching/")({
 });
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type TabId = "inicio" | "metodologia" | "etapas" | "radar" | "plan90" | "preguntas";
+type TabId = "inicio" | "metodologia" | "etapas" | "herramientas" | "radar" | "plan90" | "preguntas";
 type Cliente = { id: string; nombre_empresa: string };
 
 async function listarClientes(): Promise<Cliente[]> {
@@ -60,8 +60,9 @@ const SLL: React.CSSProperties = {
 const TABS: { id: TabId; label: string; badge?: number }[] = [
   { id: "inicio",      label: "Coaching A360" },
   { id: "metodologia", label: "Metodología",         badge: 4 },
-  { id: "etapas",      label: "Las 4 etapas",        badge: 4 },
-  { id: "radar",       label: "Radar 6 dim",         badge: 6 },
+  { id: "etapas",        label: "Las 4 etapas",        badge: 4 },
+  { id: "herramientas", label: "🛠️ Herramientas",    badge: 12 },
+  { id: "radar",        label: "Radar 6 dim",         badge: 6 },
   { id: "plan90",      label: "Plan 90 días",        badge: 4 },
   { id: "preguntas",   label: "Preguntas poderosas", badge: 24 },
 ];
@@ -115,6 +116,69 @@ const DIM_CFG: Record<string, { color: string; bg: string; icono: string }> = {
 
 const PHASE_COLORS = ["#7F77DD", "#1D9E75", "#BA7517", "#D85A30"];
 const PHASE_ICONS  = ["🎯", "🔧", "🤝", "📊"];
+
+const HERRAMIENTAS_VISTA = [
+  {
+    icono: "📡", nombre: "Radar del líder",
+    etapa: "Diagnóstico", color: "#7F77DD", duracion: "10 min",
+    desc: "Diagnóstico inicial de las 6 dimensiones del liderazgo ejecutivo. Establece la línea base honesta desde la que se medirá toda la transformación del programa.",
+  },
+  {
+    icono: "🗺️", nombre: "Mapa de creencias",
+    etapa: "Diagnóstico", color: "#7F77DD", duracion: "15 min",
+    desc: "Identifica las creencias limitantes y potenciadoras que gobiernan las decisiones del líder. Revela los patrones invisibles que frenan o impulsan el desempeño.",
+  },
+  {
+    icono: "👤", nombre: "Perfil de contexto",
+    etapa: "Diagnóstico", color: "#7F77DD", duracion: "8 min",
+    desc: "Captura el contexto organizacional, el equipo y los desafíos actuales del líder. Permite al coach diseñar sesiones calibradas a la realidad específica del cliente.",
+  },
+  {
+    icono: "📜", nombre: "Manifiesto del líder",
+    etapa: "Activación", color: "#1D9E75", duracion: "30 min",
+    desc: "Define la declaración de liderazgo personal: quién elige ser, cómo decide y qué compromisos asume. Es el ancla de transformación del programa.",
+  },
+  {
+    icono: "⚡", nombre: "Simulador de decisiones",
+    etapa: "Activación", color: "#1D9E75", duracion: "20 min",
+    desc: "Estructura situaciones reales de alta complejidad para practicar el proceso de decisión bajo presión. Convierte la teoría en músculo ejecutivo.",
+  },
+  {
+    icono: "🪞", nombre: "Espejo de liderazgo",
+    etapa: "Activación", color: "#1D9E75", duracion: "15 min",
+    desc: "Confronta al líder con su impacto real en el equipo a través de retroalimentación estructurada. Es el punto de inflexión más poderoso del programa.",
+  },
+  {
+    icono: "💓", nombre: "Pulso semanal",
+    etapa: "Sostenimiento", color: "#BA7517", duracion: "3 min",
+    desc: "Check-in de 3 minutos para mantener el foco y la energía entre sesiones. Registra avances, bloqueos y compromisos de la semana con precisión quirúrgica.",
+  },
+  {
+    icono: "🎯", nombre: "Reto de 7 días",
+    etapa: "Sostenimiento", color: "#BA7517", duracion: "15 min/día",
+    desc: "Desafío práctico diario para instalar un nuevo comportamiento de liderazgo. Diseñado para producir cambio observable en una semana de práctica sostenida.",
+  },
+  {
+    icono: "📚", nombre: "Biblioteca de preguntas poderosas",
+    etapa: "Sostenimiento", color: "#BA7517", duracion: "libre",
+    desc: "Colección de preguntas calibradas por dimensión e intensidad. Una pregunta precisa en el momento correcto mueve más que una hora de consejo directo.",
+  },
+  {
+    icono: "🔚", nombre: "Radar de cierre",
+    etapa: "Transformación", color: "#D85A30", duracion: "10 min",
+    desc: "Segunda medición de las 6 dimensiones al finalizar el programa. El delta con el radar inicial es la evidencia más impactante de la transformación lograda.",
+  },
+  {
+    icono: "📋", nombre: "Plan de continuidad 90 días",
+    etapa: "Transformación", color: "#D85A30", duracion: "20 min",
+    desc: "Diseña el plan de acción post-programa con métricas, testigos y revisiones periódicas. Asegura que el cambio se instale como hábito permanente.",
+  },
+  {
+    icono: "📊", nombre: "Reporte de transformación",
+    etapa: "Transformación", color: "#D85A30", duracion: "auto",
+    desc: "Documento ejecutivo generado con IA que consolida los insights, compromisos cumplidos y la evolución del líder a lo largo de todo el programa.",
+  },
+];
 
 // ── Main component ─────────────────────────────────────────────────────────────
 function CoachingHome() {
@@ -536,6 +600,94 @@ function CoachingHome() {
     );
   }
 
+  // ── Tab: Herramientas ────────────────────────────────────────────────────────
+  function renderHerramientas() {
+    return (
+      <>
+        <DarkHero
+          bg="linear-gradient(135deg, #0C4A6E, #1E3A8A)"
+          eyebrow="Programa A360 · Catálogo completo"
+          title="Las 12 herramientas"
+          span="del programa"
+          sub="Una herramienta para cada momento del proceso de transformación. Cada una tiene un propósito claro, una duración estimada y su lugar en el arco del programa."
+        />
+        <div style={{ background: "#F5F7FF", padding: "64px" }}>
+          <div style={SL}><span style={SLL} />Catálogo de herramientas</div>
+          <h2 style={{ fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", marginBottom: "40px" }}>
+            Todas las herramientas, <span style={GT}>sin excepción</span>
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
+            {HERRAMIENTAS_VISTA.map((h, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "white",
+                  borderRadius: "16px",
+                  border: "1px solid #E0E7FF",
+                  borderTop: `3px solid ${h.color}`,
+                  padding: "28px 24px",
+                  transition: "all 0.2s",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(-4px)";
+                  el.style.boxShadow = `0 12px 32px ${h.color}28`;
+                  el.style.borderColor = `${h.color}50`;
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "none";
+                  el.style.boxShadow = "none";
+                  el.style.borderColor = "#E0E7FF";
+                }}
+              >
+                {/* Icon + name row */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                  <div style={{
+                    width: "52px", height: "52px", borderRadius: "14px", flexShrink: 0,
+                    background: `${h.color}12`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "26px",
+                  }}>
+                    {h.icono}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", lineHeight: 1.3, marginBottom: "8px" }}>
+                      {h.nombre}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <span style={{
+                        fontSize: "11px", fontWeight: 700,
+                        padding: "3px 9px", borderRadius: "999px",
+                        background: `${h.color}18`, color: h.color,
+                      }}>
+                        {h.etapa}
+                      </span>
+                      <span style={{ fontSize: "12px", color: "#94A3B8", fontWeight: 600 }}>
+                        ⏱ {h.duracion}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {/* Description */}
+                <p style={{
+                  fontSize: "15px", color: "#64748B",
+                  lineHeight: 1.8, textAlign: "justify",
+                  margin: 0, flexGrow: 1,
+                }}>
+                  {h.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // ── Tab: Radar 6 dimensiones ─────────────────────────────────────────────────
   function renderRadar() {
     return (
@@ -666,20 +818,22 @@ function CoachingHome() {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8 bg-[#F5F7FF]">
-      {/* Sticky dark internal navbar */}
-      <nav style={{
-        background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)",
-        position: "sticky", top: 0, zIndex: 40,
-        padding: "0 32px", display: "flex", gap: "2px",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        overflowX: "auto",
-      }}>
+      {/* Sticky dark internal navbar — 2-row grid: 4 cols on md+, 2 cols on mobile */}
+      <nav
+        className="grid grid-cols-2 md:grid-cols-4"
+        style={{
+          background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)",
+          position: "sticky", top: 0, zIndex: 40,
+          padding: "0 16px",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             style={{
-              padding: "18px 18px",
+              padding: "16px 14px",
               fontSize: "15px",
               fontWeight: tab === t.id ? 700 : 600,
               color: tab === t.id ? "#38BDF8" : "rgba(255,255,255,0.55)",
@@ -688,10 +842,10 @@ function CoachingHome() {
               borderBottom: tab === t.id ? "3px solid #0EA5E9" : "3px solid transparent",
               borderTop: "3px solid transparent",
               cursor: "pointer",
-              whiteSpace: "nowrap",
               transition: "all 0.15s",
-              display: "flex", alignItems: "center", gap: "8px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
               outline: "none",
+              width: "100%",
             }}
           >
             {t.label}
@@ -706,8 +860,9 @@ function CoachingHome() {
 
       {tab === "inicio"      && renderInicio()}
       {tab === "metodologia" && renderMetodologia()}
-      {tab === "etapas"      && renderEtapas()}
-      {tab === "radar"       && renderRadar()}
+      {tab === "etapas"        && renderEtapas()}
+      {tab === "herramientas" && renderHerramientas()}
+      {tab === "radar"         && renderRadar()}
       {tab === "plan90"      && renderPlan90()}
       {tab === "preguntas"   && renderPreguntas()}
     </div>
