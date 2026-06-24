@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Bun lockfile — Cloudflare Pages uses npm (package-lock.json); never commit bun.lockb
+bun.lockb
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
