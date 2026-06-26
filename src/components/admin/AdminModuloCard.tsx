@@ -48,7 +48,8 @@ export default function AdminModuloCard({ modulo }: Props) {
           style={{
             fontSize: "14px",
             color: "#64748B",
-            lineHeight: "1.6",
+            lineHeight: "1.85",
+            textAlign: "justify",
           }}
         >
           {modulo.description}

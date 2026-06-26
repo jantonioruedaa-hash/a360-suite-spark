@@ -17,18 +17,11 @@ interface Props {
   empresas: AdminEmpresaRow[];
 }
 
-const PLAN_BADGE: Record<string, { bg: string; color: string; icon: string }> = {
-  esencial: { bg: "#F5F7FF", color: "#6366F1", icon: "" },
-  avanzado: {
-    bg: "linear-gradient(135deg, #EFF6FF, #EDE9FE)",
-    color: "#0EA5E9",
-    icon: "💼 ",
-  },
-  corporativo: {
-    bg: "linear-gradient(135deg, #FEF3C7, #FDE68A)",
-    color: "#B45309",
-    icon: "⭐ ",
-  },
+const PLAN_BADGE: Record<string, { bg: string; color: string; icon: string; border?: string }> = {
+  esencial: { bg: "#F5F7FF", color: "#6366F1", icon: "", border: "1px solid #E0E7FF" },
+  avanzado: { bg: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", color: "#0EA5E9", icon: "💼 " },
+  corporativo: { bg: "linear-gradient(135deg, #FEF3C7, #FDE68A)", color: "#B45309", icon: "⭐ " },
+  enterprise: { bg: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", icon: "🏆 " },
 };
 
 const COLORS = [
@@ -61,6 +54,7 @@ const th: React.CSSProperties = {
 
 export default function AdminEmpresaTable({ empresas }: Props) {
   const [search, setSearch] = useState("");
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const filtered = empresas.filter(
     (e) =>
@@ -157,7 +151,12 @@ export default function AdminEmpresaTable({ empresas }: Props) {
                 const pb = PLAN_BADGE[e.plan_licencia] ?? PLAN_BADGE.esencial!;
                 const grad = COLORS[i % COLORS.length]!;
                 return (
-                  <tr key={e.id}>
+                  <tr
+                    key={e.id}
+                    onMouseEnter={() => setHoveredId(e.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    style={{ background: hoveredId === e.id ? "#F8FAFF" : "white", cursor: "pointer" }}
+                  >
                     <td style={td}>
                       <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                         <div
@@ -202,6 +201,7 @@ export default function AdminEmpresaTable({ empresas }: Props) {
                           borderRadius: "999px",
                           background: pb.bg,
                           color: pb.color,
+                          border: pb.border ?? "none",
                         }}
                       >
                         {pb.icon}

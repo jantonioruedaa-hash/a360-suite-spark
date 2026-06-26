@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { adminListUsersExtra } from "@/lib/admin-users.functions";
 import AdminSidebar, { type AdminSection } from "@/components/admin/AdminSidebar";
 import AdminKpiCard from "@/components/admin/AdminKpiCard";
 import AdminUserTable, { type AdminUserRow } from "@/components/admin/AdminUserTable";
@@ -38,8 +39,9 @@ const pageTitle = {
 const pageSub = {
   fontSize: "17px",
   color: "#64748B",
-  lineHeight: "1.75",
+  lineHeight: "1.85",
   marginBottom: "36px",
+  textAlign: "justify" as const,
 };
 
 const tableCard = {
@@ -255,6 +257,9 @@ function AdminPanel() {
   const [empresas, setEmpresas] = useState<AdminEmpresaRow[]>([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [hoveredEmpresaId, setHoveredEmpresaId] = useState<string | null>(null);
 
   // Auth guard
   useEffect(() => {
@@ -270,34 +275,71 @@ function AdminPanel() {
     if (!user || role !== "admin") return;
 
     const load = async () => {
-      // Profiles + roles
+      // Get session token for admin API calls
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token ?? null;
+      setAccessToken(token);
+
+      // Parallel fetch
       const [{ data: profiles }, { data: roles }, { data: clientes }, { data: appSettings }] =
         await Promise.all([
-          supabase.from("profiles").select("id,email,name,company"),
+          supabase.from("profiles").select("id,email,name,company,created_at"),
           supabase.from("user_roles").select("user_id,role"),
           supabase
             .from("clientes")
-            .select("id,nombre_empresa,sector,ciudad,plan_licencia,consultor_id,activo,created_at"),
+            .select("id,nombre_empresa,sector,ciudad,plan_licencia,consultor_id,cliente_user_id,activo,created_at"),
           supabase.from("app_settings").select("*").eq("id", "global").maybeSingle(),
         ]);
+
+      // Fetch auth extras (ban status + last sign-in) via server function
+      type UserExtra = { id: string; banned_until: string | null; last_sign_in_at: string | null };
+      const extras: UserExtra[] = token
+        ? await adminListUsersExtra({ data: { accessToken: token } }).catch(() => [] as UserExtra[])
+        : [];
+      const extraMap = new Map<string, UserExtra>();
+      for (const e of extras) extraMap.set(e.id, e);
 
       // Build user rows
       const roleMap = new Map<string, string>();
       for (const r of roles ?? []) roleMap.set(r.user_id, r.role);
 
-      const userRows: AdminUserRow[] = (profiles ?? []).map((p) => ({
-        id: p.id,
-        name: p.name ?? null,
-        email: p.email,
-        role: roleMap.get(p.id) ?? "cliente",
-        empresa: p.company ?? null,
-        plan: null,
-        activo: true,
-        created_at: new Date().toISOString(),
-      }));
+      // Reverse maps: user_id → linked cliente id
+      const clienteUserMap = new Map<string, string>(); // cliente_user_id → cliente.id
+      const consultorClienteMap = new Map<string, string>(); // consultor_id → first cliente.id
+      for (const c of clientes ?? []) {
+        if (c.cliente_user_id) clienteUserMap.set(c.cliente_user_id, c.id);
+        if (c.consultor_id && !consultorClienteMap.has(c.consultor_id)) {
+          consultorClienteMap.set(c.consultor_id, c.id);
+        }
+      }
+
+      const userRows: AdminUserRow[] = (profiles ?? []).map((p) => {
+        const ext = extraMap.get(p.id);
+        const bannedUntil = ext?.banned_until ?? null;
+        const isActive = bannedUntil ? new Date(bannedUntil) <= new Date() : true;
+        const userRole = roleMap.get(p.id) ?? "cliente";
+        const empresaId =
+          userRole === "cliente" || userRole === "participante"
+            ? (clienteUserMap.get(p.id) ?? null)
+            : userRole === "consultor"
+              ? (consultorClienteMap.get(p.id) ?? null)
+              : null;
+        return {
+          id: p.id,
+          name: p.name ?? null,
+          email: p.email,
+          role: userRole,
+          empresa: p.company ?? null,
+          empresaId,
+          plan: null,
+          activo: isActive,
+          ultimo_acceso: ext?.last_sign_in_at ?? null,
+          created_at: p.created_at,
+        };
+      });
       setUsuarios(userRows);
 
-      // Consultant name map
+      // Consultant name map (for empresa rows)
       const consultorMap = new Map<string, string>();
       for (const u of userRows) {
         if (u.role === "consultor" || u.role === "admin") {
@@ -337,7 +379,7 @@ function AdminPanel() {
     };
 
     load();
-  }, [user, role]);
+  }, [user, role, refreshKey]);
 
   if (loading || !user) {
     return (
@@ -528,7 +570,12 @@ function AdminPanel() {
             </thead>
             <tbody>
               {(dataLoaded ? empresas.slice(0, 5) : []).map((e, i) => (
-                <tr key={e.id}>
+                <tr
+                  key={e.id}
+                  onMouseEnter={() => setHoveredEmpresaId(e.id)}
+                  onMouseLeave={() => setHoveredEmpresaId(null)}
+                  style={{ background: hoveredEmpresaId === e.id ? "#F8FAFF" : "white", cursor: "pointer" }}
+                >
                   <td
                     style={{
                       padding: "18px 28px",
@@ -915,7 +962,12 @@ function AdminPanel() {
           {section === "actividad" && renderActividad()}
 
           {section === "usuarios" && (
-            <AdminUserTable usuarios={dataLoaded ? usuarios : []} />
+            <AdminUserTable
+              usuarios={dataLoaded ? usuarios : []}
+              accessToken={accessToken}
+              clientes={empresas.map(e => ({ id: e.id, nombre_empresa: e.nombre_empresa }))}
+              onRefresh={() => setRefreshKey(k => k + 1)}
+            />
           )}
 
           {section === "empresas" && (

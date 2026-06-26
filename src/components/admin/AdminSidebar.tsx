@@ -17,6 +17,8 @@ interface Props {
 }
 
 export default function AdminSidebar({ active, onChange, counts }: Props) {
+  const [hovered, setHovered] = React.useState<AdminSection | null>(null);
+
   const lbl: React.CSSProperties = {
     fontSize: "11px",
     fontWeight: 700,
@@ -29,6 +31,7 @@ export default function AdminSidebar({ active, onChange, counts }: Props) {
 
   const nav = (sec: AdminSection, icon: string, label: string, count?: number) => {
     const on = active === sec;
+    const isHov = hovered === sec && !on;
     return (
       <div
         key={sec}
@@ -36,6 +39,8 @@ export default function AdminSidebar({ active, onChange, counts }: Props) {
         tabIndex={0}
         onClick={() => onChange(sec)}
         onKeyDown={(e) => e.key === "Enter" && onChange(sec)}
+        onMouseEnter={() => setHovered(sec)}
+        onMouseLeave={() => setHovered(null)}
         style={{
           display: "flex",
           alignItems: "center",
@@ -43,10 +48,14 @@ export default function AdminSidebar({ active, onChange, counts }: Props) {
           padding: "13px 22px",
           fontSize: "15px",
           fontWeight: on ? 700 : 600,
-          color: on ? "#0EA5E9" : "#64748B",
+          color: on ? "#0EA5E9" : isHov ? "#0EA5E9" : "#64748B",
           cursor: "pointer",
           borderLeft: on ? "3px solid #0EA5E9" : "3px solid transparent",
-          background: on ? "linear-gradient(90deg, #EFF6FF, transparent)" : undefined,
+          background: on
+            ? "linear-gradient(90deg, #EFF6FF, transparent)"
+            : isHov
+              ? "#F5F7FF"
+              : undefined,
           transition: "all 0.15s",
           userSelect: "none",
           outline: "none",
