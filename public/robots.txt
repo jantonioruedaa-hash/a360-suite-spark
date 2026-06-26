@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /reset-password
+Disallow: /share/
+
+Sitemap: https://a360-suite-spark.lovable.app/sitemap.xml

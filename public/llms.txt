@@ -1,0 +1,9 @@
+# A360SGP Suite — Aceleradora 360 SGP
+
+> Sistema Integral de Transformación Empresarial para PyMEs: Plan Estratégico, Coaching ejecutivo, Liderazgo (programa LEE) y diagnóstico SIDE.
+
+A360SGP Suite es una plataforma SaaS para consultoras y aceleradoras que acompañan a pequeñas y medianas empresas en su crecimiento. Integra metodologías propietarias (LEE — Liderazgo, Estrategia, Ejecución; SIDE — diagnóstico empresarial) con seguimiento de KPIs, coaching y planificación estratégica.
+
+## Pages
+
+- [Iniciar sesión](/login): Acceso al portal de consultores y administradores.

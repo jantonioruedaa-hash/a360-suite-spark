@@ -183,7 +183,7 @@ function Dashboard() {
         <div className="relative">
           <p className="text-sky-300 text-sm font-medium capitalize">{todayStr}</p>
           <h1 className="text-2xl font-semibold mt-1 text-white">
-            {greeting}, {firstName} 👋
+            Panel de Control — {greeting}, {firstName} 👋
           </h1>
           <p className="text-sky-200 text-sm mt-2 max-w-md">
             Plataforma A360SGP · Aceleradora 360 de Empresas
