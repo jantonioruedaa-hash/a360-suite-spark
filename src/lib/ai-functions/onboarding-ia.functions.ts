@@ -1,18 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
-interface Input {
-  accessToken?: string;
-  empresa: { nombre: string; sector?: string | null; ciudad?: string | null; pais?: string | null };
-  paso1: Record<string, unknown>;
-  paso2: Record<string, unknown>;
-  paso3: Record<string, unknown>;
-  paso4: Record<string, unknown>;
-  paso5: Record<string, unknown>;
-}
+const PasoSchema = z.record(z.string().max(200), z.unknown()).refine(
+  (o) => JSON.stringify(o).length <= 10000,
+  { message: "Paso demasiado grande" },
+);
+
+const InputSchema = z.object({
+  accessToken: z.string().min(10).max(4000).optional(),
+  empresa: z.object({
+    nombre: z.string().trim().min(1).max(200),
+    sector: z.string().trim().max(120).nullable().optional(),
+    ciudad: z.string().trim().max(120).nullable().optional(),
+    pais: z.string().trim().max(120).nullable().optional(),
+  }),
+  paso1: PasoSchema,
+  paso2: PasoSchema,
+  paso3: PasoSchema,
+  paso4: PasoSchema,
+  paso5: PasoSchema,
+});
+
+type Input = z.infer<typeof InputSchema>;
 
 export const generarAnalisisOnboarding = createServerFn({ method: "POST" })
-  .inputValidator((d: Input) => d)
+  .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data }) => {
     try {
       if (!data.accessToken) return { contenido: "", error: "Sesión expirada." };
