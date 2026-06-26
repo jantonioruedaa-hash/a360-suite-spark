@@ -18,9 +18,10 @@ export interface AdminPlanData {
 
 interface Props {
   plan: AdminPlanData;
+  onEdit?: () => void;
 }
 
-export default function AdminPlanCard({ plan }: Props) {
+export default function AdminPlanCard({ plan, onEdit }: Props) {
   const isPrimary = plan.popular;
   const isDark = plan.dark;
 
@@ -201,6 +202,7 @@ export default function AdminPlanCard({ plan }: Props) {
 
       {/* CTA button */}
       <button
+        onClick={onEdit}
         style={{
           width: "100%",
           padding: "13px",

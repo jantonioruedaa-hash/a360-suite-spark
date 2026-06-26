@@ -11,6 +11,8 @@ import AdminPlanCard, { type AdminPlanData } from "@/components/admin/AdminPlanC
 import AdminPermisosMatrix from "@/components/admin/AdminPermisosMatrix";
 import AdminModuloCard, { type AdminModuloData } from "@/components/admin/AdminModuloCard";
 import AdminConfiguracion from "@/components/admin/AdminConfiguracion";
+import AdminPlanEditor, { type PlanRecord } from "@/components/admin/AdminPlanEditor";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/admin")({ component: AdminPanel });
 
@@ -52,10 +54,11 @@ const tableCard = {
   marginBottom: "28px",
 };
 
-// ─── static plan data ────────────────────────────────────────────────────────
+// ─── default plan records (used as fallback before DB load) ──────────────────
 
-const PLANES: AdminPlanData[] = [
+const DEFAULT_PLAN_RECORDS: PlanRecord[] = [
   {
+    id: "esencial",
     name: "Básico",
     price: "$297",
     priceUnit: "/mes",
@@ -70,9 +73,11 @@ const PLANES: AdminPlanData[] = [
       { text: "Programa LEE", included: false },
       { text: "Plan Estratégico", included: false },
     ],
-    clientCount: 3,
+    maxUsers: 1,
+    modulos: ["SIDE"],
   },
   {
+    id: "avanzado",
     name: "Profesional",
     price: "$597",
     priceUnit: "/mes",
@@ -87,10 +92,12 @@ const PLANES: AdminPlanData[] = [
       { text: "Plan Estratégico", included: false },
       { text: "BizOS / Manual", included: false },
     ],
-    clientCount: 3,
+    maxUsers: 3,
+    modulos: ["SIDE", "Coaching A360", "LEE"],
     popular: true,
   },
   {
+    id: "corporativo",
     name: "Premium",
     price: "$997",
     priceUnit: "/mes",
@@ -103,9 +110,11 @@ const PLANES: AdminPlanData[] = [
       { text: "Hasta 5 usuarios", included: true },
       { text: "Soporte dedicado", included: true },
     ],
-    clientCount: 1,
+    maxUsers: 5,
+    modulos: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico", "Marketing Digital"],
   },
   {
+    id: "enterprise",
     name: "Enterprise",
     price: "A medida",
     description:
@@ -118,7 +127,8 @@ const PLANES: AdminPlanData[] = [
       { text: "SLA garantizado", included: true },
       { text: "Consultor dedicado", included: true },
     ],
-    clientCount: 1,
+    maxUsers: 0,
+    modulos: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico", "Marketing Digital", "BizOS", "Manual de Funciones"],
     dark: true,
   },
 ];
@@ -260,6 +270,12 @@ function AdminPanel() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [hoveredEmpresaId, setHoveredEmpresaId] = useState<string | null>(null);
+  const [plans, setPlans] = useState<PlanRecord[]>(DEFAULT_PLAN_RECORDS);
+  const [planModal, setPlanModal] = useState<{ open: boolean; plan: PlanRecord | null }>({
+    open: false,
+    plan: null,
+  });
+  const [planSaving, setPlanSaving] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -387,6 +403,17 @@ function AdminPanel() {
           accent_color: appSettings.accent_color ?? DEFAULT_SETTINGS.accent_color,
           font_family: appSettings.font_family ?? DEFAULT_SETTINGS.font_family,
         });
+        // Load plans from content_strings if available
+        const cs = appSettings.content_strings;
+        if (
+          cs &&
+          typeof cs === "object" &&
+          !Array.isArray(cs) &&
+          "planes" in (cs as object) &&
+          Array.isArray((cs as Record<string, unknown>).planes)
+        ) {
+          setPlans((cs as Record<string, unknown>).planes as PlanRecord[]);
+        }
       }
 
       setDataLoaded(true);
@@ -394,6 +421,45 @@ function AdminPanel() {
 
     load();
   }, [user, role, refreshKey]);
+
+  // Save plans to app_settings.content_strings
+  const savePlans = async (updatedPlan: PlanRecord) => {
+    setPlanSaving(true);
+    try {
+      const isNew = !plans.some((p) => p.id === updatedPlan.id);
+      const updatedPlans = isNew
+        ? [...plans, updatedPlan]
+        : plans.map((p) => (p.id === updatedPlan.id ? updatedPlan : p));
+
+      const { data: current } = await supabase
+        .from("app_settings")
+        .select("content_strings")
+        .eq("id", "global")
+        .single();
+
+      const existingCs =
+        current?.content_strings &&
+        typeof current.content_strings === "object" &&
+        !Array.isArray(current.content_strings)
+          ? (current.content_strings as Record<string, unknown>)
+          : {};
+
+      const { error } = await supabase
+        .from("app_settings")
+        // JSON round-trip satisfies Supabase's Json index-signature constraint
+        .update({ content_strings: JSON.parse(JSON.stringify({ ...existingCs, planes: updatedPlans })) })
+        .eq("id", "global");
+
+      if (error) throw new Error(error.message);
+      setPlans(updatedPlans);
+      setPlanModal({ open: false, plan: null });
+      toast.success(isNew ? "Plan creado exitosamente" : "Plan actualizado");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al guardar plan");
+    } finally {
+      setPlanSaving(false);
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -994,19 +1060,76 @@ function AdminPanel() {
             />
           )}
 
-          {section === "planes" && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "20px",
-              }}
-            >
-              {PLANES.map((p) => (
-                <AdminPlanCard key={p.name} plan={p} />
-              ))}
-            </div>
-          )}
+          {section === "planes" && (() => {
+            // Real client count per plan id
+            const clientCountByPlan = new Map<string, number>();
+            for (const e of empresas) {
+              clientCountByPlan.set(
+                e.plan_licencia,
+                (clientCountByPlan.get(e.plan_licencia) ?? 0) + 1,
+              );
+            }
+            return (
+              <>
+                {/* Toolbar */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "24px",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ fontSize: "17px", fontWeight: 700, color: "#0C4A6E" }}>
+                    {plans.length} plan{plans.length !== 1 ? "es" : ""} configurados
+                  </div>
+                  <button
+                    onClick={() => setPlanModal({ open: true, plan: null })}
+                    style={{
+                      padding: "11px 22px",
+                      borderRadius: "10px",
+                      background: "linear-gradient(135deg, #0EA5E9, #6366F1)",
+                      color: "white",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      border: "none",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 14px rgba(14,165,233,0.3)",
+                    }}
+                  >
+                    + Nuevo plan
+                  </button>
+                </div>
+                {/* Plan cards */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                    gap: "20px",
+                  }}
+                >
+                  {plans.map((p) => (
+                    <AdminPlanCard
+                      key={p.id}
+                      plan={{
+                        name: p.name,
+                        price: p.price,
+                        priceUnit: p.priceUnit,
+                        description: p.description,
+                        features: p.features,
+                        clientCount: clientCountByPlan.get(p.id) ?? 0,
+                        popular: p.popular,
+                        dark: p.dark,
+                      }}
+                      onEdit={() => setPlanModal({ open: true, plan: p })}
+                    />
+                  ))}
+                </div>
+              </>
+            );
+          })()}
 
           {section === "permisos" && <AdminPermisosMatrix />}
 
@@ -1027,6 +1150,16 @@ function AdminPanel() {
           {section === "configuracion" && <AdminConfiguracion settings={settings} />}
         </main>
       </div>
+
+      {/* Plan editor modal */}
+      {planModal.open && (
+        <AdminPlanEditor
+          plan={planModal.plan}
+          onClose={() => setPlanModal({ open: false, plan: null })}
+          onSave={savePlans}
+          saving={planSaving}
+        />
+      )}
     </div>
   );
 }
