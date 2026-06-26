@@ -33,7 +33,7 @@ export interface IniciativaIA {
 }
 
 export const generarIniciativasSide = createServerFn({ method: "POST" })
-  .inputValidator((d: Input) => d)
+  .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data }) => {
     try {
       if (!data.accessToken) return { iniciativas: [] as IniciativaIA[], error: "Tu sesión expiró. Vuelve a iniciar sesión." };
