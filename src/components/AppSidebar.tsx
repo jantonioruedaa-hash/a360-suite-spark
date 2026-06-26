@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent,
-  SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter, useSidebar,
+  SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Activity, Target, LineChart, Users2, GraduationCap, Briefcase,
@@ -196,6 +196,19 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t" style={{ borderColor: "var(--sidebar-border)" }}>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={path.startsWith("/app/admin")}
+              className="transition-colors hover:bg-white/10"
+              style={{ color: "var(--sidebar-foreground)" }}
+            >
+              <Link to="/app/admin">
+                <ShieldCheck className="w-[18px] h-[18px] shrink-0" />
+                <span>🛡️ Panel Admin</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

@@ -1,0 +1,765 @@
+// Framework de workbooks instrumentados LEE.
+// Cada sesión puede declarar un schema (secciones + campos tipados).
+// Si no existe schema, la UI cae al workbook simple de 4 textareas.
+
+export type CampoTipo =
+  | "textarea"
+  | "text"
+  | "lista"      // lista editable de strings
+  | "escala"     // 1-5 con etiquetas
+  | "semaforo"   // verde/ambar/rojo + justificación
+  | "tabla"      // filas dinámicas con columnas fijas
+  | "opcion";    // radio único
+
+export interface CampoBase {
+  id: string;
+  label: string;
+  ayuda?: string;
+  placeholder?: string;
+  requerido?: boolean;
+}
+
+export interface CampoTextarea extends CampoBase { type: "textarea"; rows?: number; }
+export interface CampoText extends CampoBase { type: "text"; }
+export interface CampoLista extends CampoBase { type: "lista"; inputLabel?: string; min?: number; }
+export interface CampoEscala extends CampoBase {
+  type: "escala";
+  min: number; max: number;
+  minLabel?: string; maxLabel?: string;
+  // sub-ítems opcionales (autoevaluación tipo diagnóstico)
+  items?: { id: string; texto: string }[];
+}
+export interface CampoSemaforo extends CampoBase {
+  type: "semaforo";
+  opciones?: { value: "verde" | "ambar" | "rojo"; label: string }[];
+  pedirJustificacion?: boolean;
+}
+export interface CampoTabla extends CampoBase {
+  type: "tabla";
+  columnas: { id: string; label: string; placeholder?: string; ancho?: string }[];
+  minFilas?: number;
+}
+export interface CampoOpcion extends CampoBase {
+  type: "opcion";
+  opciones: { value: string; label: string; descripcion?: string }[];
+}
+
+export type Campo =
+  | CampoTextarea | CampoText | CampoLista | CampoEscala | CampoSemaforo | CampoTabla | CampoOpcion;
+
+export interface SeccionWorkbook {
+  id: string;
+  titulo: string;
+  moduloRef?: string;        // "1.1", "1.2"
+  descripcion?: string;
+  preguntaCoaching?: string; // resaltada arriba de la sección
+  campos: Campo[];
+}
+
+export interface WorkbookSchema {
+  sesionKey: string;         // "1-1"
+  titulo: string;
+  proposito: string;
+  duracionEstimada?: string; // "30-45 min en casa"
+  secciones: SeccionWorkbook[];
+}
+
+// =================================================================
+// SCHEMAS POR SESIÓN
+// =================================================================
+
+const cap1ses1: WorkbookSchema = {
+  sesionKey: "1-1",
+  titulo: "La crisis invisible del liderazgo + Qué es el liderazgo real",
+  proposito:
+    "Diagnosticar el grado de dependencia estructural de tu empresa hacia ti como líder y diferenciar liderazgo operativo, ejecutivo y estratégico en tu rol actual.",
+  duracionEstimada: "45–60 min de trabajo posterior a la sesión",
+  secciones: [
+    {
+      id: "sintomas",
+      titulo: "1. Síntomas de crisis invisible en mi organización",
+      moduloRef: "1.1",
+      descripcion:
+        "Evidencia con casos concretos los síntomas que reconoces en tu empresa. No basta el síntoma — necesitas el hecho que lo demuestra.",
+      preguntaCoaching: "¿Qué pasaría si no estuvieras disponible durante 30 días?",
+      campos: [
+        {
+          id: "tabla_sintomas",
+          label: "Mapa de síntomas con evidencia",
+          type: "tabla",
+          minFilas: 4,
+          columnas: [
+            { id: "sintoma", label: "Síntoma observado", placeholder: "Decisiones lentas, equipo dependiente…", ancho: "30%" },
+            { id: "evidencia", label: "Evidencia concreta (caso real)", placeholder: "El martes pasado, el equipo esperó 3 días mi aprobación para…", ancho: "45%" },
+            { id: "impacto", label: "Impacto en el negocio", placeholder: "Pérdida de cliente, retraso, costo…", ancho: "25%" },
+          ],
+        },
+        {
+          id: "tres_sintomas_top",
+          label: "Top 3 síntomas que más debilitan a mi empresa hoy",
+          type: "lista",
+          inputLabel: "+ Agregar síntoma",
+          min: 3,
+        },
+      ],
+    },
+    {
+      id: "autoevaluacion",
+      titulo: "2. Autoevaluación de autonomía organizacional",
+      moduloRef: "1.1",
+      descripcion: "Califica del 1 (totalmente en desacuerdo) al 5 (totalmente de acuerdo). El promedio interpreta tu nivel de dependencia.",
+      campos: [
+        {
+          id: "diagnostico_autonomia",
+          label: "Diagnóstico inicial de crisis invisible",
+          type: "escala",
+          min: 1, max: 5,
+          minLabel: "Totalmente en desacuerdo",
+          maxLabel: "Totalmente de acuerdo",
+          items: [
+            { id: "i1", texto: "Mi equipo toma decisiones operativas sin consultarme." },
+            { id: "i2", texto: "Si yo no estoy, los procesos clave siguen funcionando." },
+            { id: "i3", texto: "Tengo tiempo semanal protegido para pensar estratégicamente." },
+            { id: "i4", texto: "Las áreas resuelven sus problemas entre sí, sin pasar por mí." },
+            { id: "i5", texto: "La información crítica del negocio no vive solo en mi cabeza." },
+            { id: "i6", texto: "Puedo desconectarme una semana sin que el negocio se detenga." },
+          ],
+        },
+        {
+          id: "nivel_dependencia",
+          label: "Nivel de dependencia que asumo según mi promedio",
+          type: "opcion",
+          opciones: [
+            { value: "critica", label: "🔴 Dependencia crítica (1.0–2.5)", descripcion: "Mi empresa no opera sin mí." },
+            { value: "media", label: "🟡 Dependencia media (2.6–3.5)", descripcion: "Hay áreas autónomas, pero las decisiones clave siguen pasando por mí." },
+            { value: "funcional", label: "🟢 Autonomía funcional (3.6–5.0)", descripcion: "El sistema puede operar y decidir sin mí." },
+          ],
+        },
+        {
+          id: "lectura_promedio",
+          label: "Mi lectura del resultado",
+          type: "textarea",
+          rows: 3,
+          placeholder: "¿Qué te dice este número sobre cómo construiste el liderazgo en tu empresa?",
+        },
+      ],
+    },
+    {
+      id: "ilusion_crecimiento",
+      titulo: "3. La ilusión del crecimiento",
+      moduloRef: "1.1",
+      preguntaCoaching: "¿Tu empresa crece... o solo trabaja más?",
+      campos: [
+        {
+          id: "evidencias_crecimiento",
+          label: "Evidencias de crecimiento real vs. crecimiento por esfuerzo",
+          type: "tabla",
+          minFilas: 3,
+          columnas: [
+            { id: "indicador", label: "Indicador", placeholder: "Ventas, # clientes, margen…", ancho: "25%" },
+            { id: "crece", label: "¿Está creciendo?", placeholder: "Sí / No / parcial", ancho: "20%" },
+            { id: "evolucion", label: "¿Lo respalda evolución estructural?", placeholder: "Procesos, equipo, sistemas…", ancho: "30%" },
+            { id: "riesgo", label: "Riesgo detectado", placeholder: "", ancho: "25%" },
+          ],
+        },
+        {
+          id: "semaforo_salud",
+          label: "Semáforo de salud organizacional",
+          type: "semaforo",
+          pedirJustificacion: true,
+        },
+      ],
+    },
+    {
+      id: "tres_niveles",
+      titulo: "4. Mis tres niveles de liderazgo (Operativo / Ejecutivo / Estratégico)",
+      moduloRef: "1.2",
+      descripcion:
+        "Estima honestamente cuánto % de tu tiempo invertiste la última semana en cada nivel. La suma debe dar 100%.",
+      preguntaCoaching: "¿Dónde estás invirtiendo tu tiempo realmente — y dónde deberías estarlo?",
+      campos: [
+        {
+          id: "porcentaje_operativo",
+          label: "% Operativo (resolver problemas del día, decisiones tácticas)",
+          type: "text",
+          placeholder: "Ej: 60",
+        },
+        {
+          id: "porcentaje_ejecutivo",
+          label: "% Ejecutivo (coordinar áreas, hacer cumplir prioridades, dar seguimiento)",
+          type: "text",
+          placeholder: "Ej: 30",
+        },
+        {
+          id: "porcentaje_estrategico",
+          label: "% Estratégico (visión, modelo de negocio, evolución del sistema)",
+          type: "text",
+          placeholder: "Ej: 10",
+        },
+        {
+          id: "brecha",
+          label: "Brecha entre el tiempo que invierto y el que requiere mi rol",
+          type: "textarea",
+          rows: 3,
+          placeholder: "¿Qué nivel estás invadiendo? ¿Qué nivel estás abandonando?",
+        },
+        {
+          id: "actividades_a_soltar",
+          label: "Actividades operativas que debo soltar este mes",
+          type: "lista",
+          inputLabel: "+ Agregar actividad",
+        },
+        {
+          id: "actividades_a_recuperar",
+          label: "Actividades estratégicas que debo recuperar",
+          type: "lista",
+          inputLabel: "+ Agregar actividad",
+        },
+      ],
+    },
+    {
+      id: "compromisos",
+      titulo: "5. Compromisos y bitácora del aprendizaje",
+      descripcion: "Cierra la sesión con compromisos accionables, no con buenas intenciones.",
+      campos: [
+        {
+          id: "insight_personal",
+          label: "Insight más fuerte que me llevo de esta sesión",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Una frase que sintetice tu descubrimiento.",
+        },
+        {
+          id: "tabla_compromisos",
+          label: "Compromisos para los próximos 7 días",
+          type: "tabla",
+          minFilas: 3,
+          columnas: [
+            { id: "accion", label: "Acción concreta", placeholder: "Qué voy a hacer", ancho: "40%" },
+            { id: "responsable", label: "Responsable", placeholder: "Yo / equipo / nombre", ancho: "20%" },
+            { id: "fecha", label: "Fecha límite", placeholder: "DD/MM", ancho: "15%" },
+            { id: "indicador", label: "¿Cómo sabré que se cumplió?", placeholder: "Evidencia observable", ancho: "25%" },
+          ],
+        },
+        {
+          id: "preguntas_para_proxima",
+          label: "Preguntas que quiero llevar a la próxima sesión",
+          type: "lista",
+          inputLabel: "+ Agregar pregunta",
+        },
+      ],
+    },
+  ],
+};
+
+const cap2ses1: WorkbookSchema = {
+  sesionKey: "2-1",
+  titulo: "La transición de operador a arquitecto + Los 4 roles del líder moderno",
+  proposito:
+    "Identificar en qué punto de la transición operador → líder estratégico te encuentras, y diagnosticar tu nivel actual en cada uno de los 4 roles del líder moderno (Visionario, Estratega, Arquitecto Organizacional, Desarrollador de Líderes).",
+  duracionEstimada: "45–60 min de trabajo posterior a la sesión",
+  secciones: [
+    {
+      id: "operador_vs_estratega",
+      titulo: "1. ¿Estás operando o liderando?",
+      moduloRef: "2.0",
+      descripcion:
+        "El modelo que te trajo hasta aquí no te llevará al siguiente nivel. La transición más importante es de Operador (ejecuta el presente) a Líder estratégico (construye el futuro).",
+      preguntaCoaching: "¿Tu empresa te necesita para operar o para crecer?",
+      campos: [
+        {
+          id: "tabla_actividades_semana",
+          label: "Mapa de tu última semana de trabajo",
+          type: "tabla",
+          minFilas: 4,
+          columnas: [
+            { id: "actividad", label: "Actividad realizada", placeholder: "Aprobé una cotización, resolví un reclamo…", ancho: "35%" },
+            { id: "tipo", label: "¿Operar o construir?", placeholder: "Operar / Construir", ancho: "20%" },
+            { id: "quien_mas", label: "¿Quién más podría haberlo hecho?", placeholder: "Nadie / Persona / Proceso", ancho: "25%" },
+            { id: "frecuencia", label: "¿Con qué frecuencia se repite?", placeholder: "Diario, semanal…", ancho: "20%" },
+          ],
+        },
+        {
+          id: "dia_pensar_estrategia",
+          label: "¿Cuándo fue la última vez que dedicaste un día completo a pensar en estrategia?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Describe la fecha aproximada y qué surgió de ese tiempo — o si nunca ha ocurrido, qué te lo ha impedido.",
+        },
+        {
+          id: "que_pasaria_50pct",
+          label: "¿Qué pasaría en tu empresa si dedicaras el 50% de tu tiempo a liderar y no a operar?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Piensa en lo que mejoraría — y en lo que se rompería si nadie más toma esas tareas operativas.",
+        },
+      ],
+    },
+    {
+      id: "los_4_roles",
+      titulo: "2. Los 4 roles del líder moderno — Autodiagnóstico",
+      moduloRef: "2.1",
+      descripcion:
+        "El líder moderno cumple 4 roles: Visionario (define el futuro), Estratega (convierte la visión en camino ejecutable), Arquitecto organizacional (construye la empresa que funciona sin él) y Desarrollador de líderes (multiplica la capacidad organizacional). Califica del 1 (rol ausente) al 5 (rol consolidado).",
+      preguntaCoaching: "¿Cuál de los 4 roles es tu más fuerte? ¿Cuál el más débil?",
+      campos: [
+        {
+          id: "diagnostico_4_roles",
+          label: "Nivel actual en cada rol",
+          type: "escala",
+          min: 1, max: 5,
+          minLabel: "Rol ausente",
+          maxLabel: "Rol consolidado",
+          items: [
+            { id: "visionario", texto: "Visionario — Defino con claridad hacia dónde va la empresa, y mi equipo lo conoce." },
+            { id: "estratega", texto: "Estratega — Tengo un camino concreto (qué hacer y qué NO hacer) para llegar a esa visión." },
+            { id: "arquitecto", texto: "Arquitecto organizacional — Mi empresa tiene sistemas y procesos que funcionan sin mi intervención directa." },
+            { id: "desarrollador", texto: "Desarrollador de líderes — Estoy formando activamente a personas que pueden tomar decisiones reales sin consultarme." },
+          ],
+        },
+        {
+          id: "tiempo_por_rol",
+          label: "Tiempo real dedicado a cada rol (estimación semanal en %, la suma debería dar 100%)",
+          type: "tabla",
+          minFilas: 4,
+          columnas: [
+            { id: "rol", label: "Rol", placeholder: "Visionario / Estratega / Arquitecto / Desarrollador", ancho: "30%" },
+            { id: "pct_actual", label: "% actual de mi semana", placeholder: "Ej: 5%", ancho: "20%" },
+            { id: "pct_deseado", label: "% que debería ser", placeholder: "Ej: 20%", ancho: "20%" },
+            { id: "que_cambiaria", label: "¿Qué cambiaría si lo cerrara?", placeholder: "", ancho: "30%" },
+          ],
+        },
+        {
+          id: "rol_mas_debil",
+          label: "Mi rol más débil y por qué",
+          type: "textarea",
+          rows: 3,
+          placeholder: "¿Cuál de los 4 roles obtuvo la calificación más baja? ¿Qué evidencia concreta de tu empresa lo confirma?",
+        },
+        {
+          id: "seguidores_o_lideres",
+          label: "¿Estás construyendo seguidores o líderes?",
+          type: "opcion",
+          opciones: [
+            { value: "seguidores", label: "Construyo seguidores", descripcion: "Mi equipo ejecuta lo que indico, pero no toma decisiones reales sin mí." },
+            { value: "mixto", label: "Es mixto", descripcion: "Algunas personas tienen autonomía real; la mayoría sigue esperando dirección." },
+            { value: "lideres", label: "Construyo líderes", descripcion: "Varias personas de mi equipo toman decisiones reales y desarrollan a otros." },
+          ],
+        },
+      ],
+    },
+    {
+      id: "compromisos",
+      titulo: "3. Compromisos y bitácora del aprendizaje",
+      descripcion: "Cierra la sesión con compromisos accionables, no con buenas intenciones.",
+      campos: [
+        {
+          id: "insight_personal",
+          label: "Insight más fuerte que me llevo de esta sesión",
+          type: "textarea",
+          rows: 3,
+          placeholder: "El modelo que te trajo hasta aquí no te llevará al siguiente nivel — ¿qué significa eso para ti específicamente?",
+        },
+        {
+          id: "tabla_compromisos",
+          label: "Compromisos para los próximos 7 días",
+          type: "tabla",
+          minFilas: 3,
+          columnas: [
+            { id: "accion", label: "Acción concreta", placeholder: "Qué voy a hacer", ancho: "40%" },
+            { id: "responsable", label: "Responsable", placeholder: "Yo / equipo / nombre", ancho: "20%" },
+            { id: "fecha", label: "Fecha límite", placeholder: "DD/MM", ancho: "15%" },
+            { id: "indicador", label: "¿Cómo sabré que se cumplió?", placeholder: "Evidencia observable", ancho: "25%" },
+          ],
+        },
+        {
+          id: "preguntas_para_proxima",
+          label: "Preguntas que quiero llevar a la próxima sesión",
+          type: "lista",
+          inputLabel: "+ Agregar pregunta",
+        },
+      ],
+    },
+  ],
+};
+const cap2ses2: WorkbookSchema = {
+  sesionKey: "2-2",
+  titulo: "El líder como visionario + El líder como estratega",
+  proposito:
+    "Construir una visión organizacional clara y compartible, y convertirla en una estrategia ejecutable que defina qué hacer y, más importante, qué NO hacer.",
+  duracionEstimada: "60–90 min de trabajo posterior a la sesión",
+  secciones: [
+    {
+      id: "vision",
+      titulo: "1. El líder como visionario — Definir el futuro antes de que exista",
+      moduloRef: "2.2",
+      descripcion:
+        "Las organizaciones que reaccionan sobreviven. Las que construyen el futuro dominan. La visión le da significado al esfuerzo: las personas no se comprometen con tareas, se comprometen con significado.",
+      preguntaCoaching: "¿Puedes explicar en 30 segundos hacia dónde va tu empresa en 5 años? ¿Tu equipo puede explicar esa misma visión?",
+      campos: [
+        {
+          id: "plantilla_vision",
+          label: "Plantilla de visión ejecutiva",
+          type: "textarea",
+          rows: 4,
+          ayuda: "Si no puedes completarla en 5 minutos, la visión no está clara — ese es el diagnóstico, no la falta de palabras.",
+          placeholder: "En los próximos [3-5] años, [nombre de la empresa] se convertirá en [descripción del liderazgo de mercado] para [cliente objetivo] en [geografía/sector], siendo reconocidos por [diferenciador clave].",
+        },
+        {
+          id: "equipo_conoce_vision",
+          label: "¿Tu equipo conoce y puede explicar esta visión con sus propias palabras?",
+          type: "opcion",
+          opciones: [
+            { value: "no", label: "No", descripcion: "La visión existe solo en mi cabeza, o nunca se ha comunicado formalmente." },
+            { value: "parcial", label: "Parcialmente", descripcion: "Algunas personas clave la conocen, pero no es algo compartido por todo el equipo." },
+            { value: "si", label: "Sí", descripcion: "La mayoría del equipo podría explicarla con sus propias palabras." },
+          ],
+        },
+        {
+          id: "vision_guia_decisiones",
+          label: "¿La visión guía tus decisiones cotidianas, o es decorativa?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Piensa en las últimas 3 decisiones importantes que tomaste. ¿Alguna de ellas estuvo conectada explícitamente con esta visión?",
+        },
+      ],
+    },
+    {
+      id: "estrategia",
+      titulo: "2. El líder como estratega — Convertir la visión en realidad ejecutable",
+      moduloRef: "2.3",
+      descripcion:
+        "La estrategia es la elección deliberada de un conjunto de actividades que crean una posición única y valiosa. Decidir qué hacer es relativamente fácil — decidir qué NO hacer es lo verdaderamente difícil.",
+      preguntaCoaching: "¿Está disperso o enfocado estratégicamente?",
+      campos: [
+        {
+          id: "ventaja_competitiva",
+          label: "¿Cuál es la principal ventaja competitiva de tu empresa?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Sé específico: ¿qué haces que tus competidores no pueden replicar fácilmente?",
+        },
+        {
+          id: "que_no_hacer",
+          label: "Cosas que has decidido deliberadamente NO hacer",
+          type: "lista",
+          inputLabel: "+ Agregar renuncia estratégica",
+          ayuda: "Sin renuncia no hay enfoque. Sin enfoque no hay ventaja competitiva.",
+        },
+        {
+          id: "estrategia_donde_hoy",
+          label: "¿Dónde estamos hoy?",
+          type: "textarea",
+          rows: 2,
+          placeholder: "Describe la situación actual real de tu empresa, sin adornos.",
+        },
+        {
+          id: "estrategia_donde_queremos",
+          label: "¿Dónde queremos estar?",
+          type: "textarea",
+          rows: 2,
+          placeholder: "Conecta esta respuesta con la visión que escribiste arriba.",
+        },
+        {
+          id: "estrategia_como_llegar",
+          label: "¿Cómo llegaremos?",
+          type: "textarea",
+          rows: 2,
+          placeholder: "El camino concreto — no la aspiración, sino los movimientos clave.",
+        },
+        {
+          id: "estrategia_que_construir",
+          label: "¿Qué debemos construir para llegar?",
+          type: "textarea",
+          rows: 2,
+          placeholder: "Capacidades, sistemas o equipo que hoy no existen y son indispensables.",
+        },
+        {
+          id: "decisiones_alineadas",
+          label: "¿Tus decisiones cotidianas están alineadas con tu estrategia?",
+          type: "semaforo",
+          pedirJustificacion: true,
+        },
+      ],
+    },
+    {
+      id: "compromisos",
+      titulo: "3. Compromisos y bitácora del aprendizaje",
+      descripcion: "Cierra la sesión con compromisos accionables, no con buenas intenciones.",
+      campos: [
+        {
+          id: "insight_personal",
+          label: "Insight más fuerte que me llevo de esta sesión",
+          type: "textarea",
+          rows: 3,
+          placeholder: "¿Qué descubriste sobre la claridad (o falta de claridad) de tu visión y tu estrategia?",
+        },
+        {
+          id: "tabla_compromisos",
+          label: "Compromisos para los próximos 7 días",
+          type: "tabla",
+          minFilas: 3,
+          columnas: [
+            { id: "accion", label: "Acción concreta", placeholder: "Qué voy a hacer", ancho: "40%" },
+            { id: "responsable", label: "Responsable", placeholder: "Yo / equipo / nombre", ancho: "20%" },
+            { id: "fecha", label: "Fecha límite", placeholder: "DD/MM", ancho: "15%" },
+            { id: "indicador", label: "¿Cómo sabré que se cumplió?", placeholder: "Evidencia observable", ancho: "25%" },
+          ],
+        },
+        {
+          id: "preguntas_para_proxima",
+          label: "Preguntas que quiero llevar a la próxima sesión",
+          type: "lista",
+          inputLabel: "+ Agregar pregunta",
+        },
+      ],
+    },
+  ],
+};
+const cap2ses3: WorkbookSchema = {
+  sesionKey: "2-3",
+  titulo: "Arquitecto de sistemas + Desarrollador de líderes",
+  proposito:
+    "Identificar las dependencias estructurales más costosas de tu empresa y construir un plan concreto de desarrollo de líderes usando el modelo DAR (Diagnóstico, Acompañamiento, Responsabilidad).",
+  duracionEstimada: "60–90 min de trabajo posterior a la sesión",
+  secciones: [
+    {
+      id: "arquitecto_sistemas",
+      titulo: "1. El líder como arquitecto de sistemas",
+      moduloRef: "2.4",
+      descripcion:
+        "El mayor límite del crecimiento no es el mercado — es el diseño organizacional. Una empresa depende del líder. Una organización depende de sistemas. Solo las organizaciones escalan.",
+      preguntaCoaching: "¿Podría replicar su empresa en otra ciudad sin estar presente?",
+      campos: [
+        {
+          id: "tabla_areas_criticas",
+          label: "Las 5 áreas más críticas de tu empresa",
+          type: "tabla",
+          minFilas: 5,
+          columnas: [
+            { id: "area", label: "Área crítica", placeholder: "Ventas, producción, atención al cliente…", ancho: "25%" },
+            { id: "sistema_doc", label: "¿Sistema documentado? (1-5)", placeholder: "1 = nada, 5 = totalmente", ancho: "20%" },
+            { id: "opera_sin_lider", label: "¿Opera sin el líder? (1-5)", placeholder: "1 = no, 5 = sí totalmente", ancho: "20%" },
+            { id: "indicadores_claros", label: "¿Indicadores claros? (1-5)", placeholder: "1 = no, 5 = sí", ancho: "20%" },
+            { id: "prioridad", label: "Prioridad de intervención", placeholder: "Alta / Media / Baja", ancho: "15%" },
+          ],
+        },
+        {
+          id: "dependencia_mas_costosa",
+          label: "La dependencia más costosa identificada — y su impacto en el crecimiento",
+          type: "textarea",
+          rows: 3,
+          placeholder: "¿Cuál de las 5 áreas obtuvo los puntajes más bajos? ¿Qué te está costando concretamente esa dependencia (tiempo, dinero, oportunidades perdidas)?",
+        },
+        {
+          id: "que_pasa_si_falta",
+          label: "¿Qué pasa cuando la persona clave de esa área no está disponible?",
+          type: "textarea",
+          rows: 2,
+          placeholder: "Describe la última vez que esto ocurrió y qué pasó realmente.",
+        },
+      ],
+    },
+    {
+      id: "desarrollador_lideres",
+      titulo: "2. El líder como desarrollador de líderes",
+      moduloRef: "2.5",
+      descripcion:
+        "El crecimiento organizacional depende del número de líderes en la organización, no del número de seguidores. Delegar es transferir ejecución; desarrollar es transferir capacidad de decisión.",
+      preguntaCoaching: "¿Cuánto de su crecimiento futuro depende de que haya más líderes?",
+      campos: [
+        {
+          id: "alguien_te_reemplaza",
+          label: "¿Alguien de tu equipo podría reemplazarte hoy en tus funciones?",
+          type: "opcion",
+          opciones: [
+            { value: "nadie", label: "Nadie", descripcion: "Toda decisión importante depende de mí." },
+            { value: "alguien_parcial", label: "Alguien, parcialmente", descripcion: "Hay 1 persona que podría cubrir parte de mis funciones con apoyo cercano." },
+            { value: "equipo_listo", label: "Sí, con preparación", descripcion: "Tengo al menos 1-2 personas que podrían asumir gran parte de mi rol con un plan de transición." },
+          ],
+        },
+        {
+          id: "modelo_dar",
+          label: "Modelo DAR — Plan de desarrollo de líderes",
+          type: "tabla",
+          minFilas: 2,
+          ayuda: "Identifica al menos 2 personas con potencial de liderazgo. Si no puedes nombrarlas, ese es el problema central — no hay pipeline de liderazgo.",
+          columnas: [
+            { id: "persona", label: "Persona", placeholder: "Nombre", ancho: "20%" },
+            { id: "diagnostico", label: "D — Diagnóstico: ¿en qué nivel está hoy?", placeholder: "", ancho: "30%" },
+            { id: "acompanamiento", label: "A — Acompañamiento: ¿qué acciones de desarrollo?", placeholder: "", ancho: "30%" },
+            { id: "responsabilidad", label: "R — Responsabilidad: ¿qué autoridad le transferirás y cuándo?", placeholder: "", ancho: "20%" },
+          ],
+        },
+        {
+          id: "resolviendo_o_desarrollando",
+          label: "En las últimas 2 semanas, ¿estuviste resolviendo problemas o desarrollando personas?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Piensa en una situación concreta: ¿la resolviste tú mismo, o la convertiste en una oportunidad de desarrollo para alguien de tu equipo?",
+        },
+      ],
+    },
+    {
+      id: "compromisos",
+      titulo: "3. Compromisos y bitácora del aprendizaje",
+      descripcion: "Cierra la sesión con compromisos accionables, no con buenas intenciones.",
+      campos: [
+        {
+          id: "insight_personal",
+          label: "Insight más fuerte que me llevo de esta sesión",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Un líder que no puede ausentarse es indispensable. Un líder indispensable es el techo de su organización — ¿qué significa esto para ti?",
+        },
+        {
+          id: "tabla_compromisos",
+          label: "Compromisos para los próximos 7 días",
+          type: "tabla",
+          minFilas: 3,
+          columnas: [
+            { id: "accion", label: "Acción concreta", placeholder: "Qué voy a hacer", ancho: "40%" },
+            { id: "responsable", label: "Responsable", placeholder: "Yo / equipo / nombre", ancho: "20%" },
+            { id: "fecha", label: "Fecha límite", placeholder: "DD/MM", ancho: "15%" },
+            { id: "indicador", label: "¿Cómo sabré que se cumplió?", placeholder: "Evidencia observable", ancho: "25%" },
+          ],
+        },
+        {
+          id: "preguntas_para_proxima",
+          label: "Preguntas que quiero llevar a la próxima sesión",
+          type: "lista",
+          inputLabel: "+ Agregar pregunta",
+        },
+      ],
+    },
+  ],
+};
+const cap2ses4: WorkbookSchema = {
+  sesionKey: "2-4",
+  titulo: "Evaluación integral + Casos Harvard: Amazon · Toyota",
+  proposito:
+    "Evaluar de forma integral tu nivel en los 4 roles del líder moderno, identificar tu cuello de botella organizacional, y conectar los casos Amazon (Bezos) y Toyota con tu propia transformación.",
+  duracionEstimada: "60–75 min de trabajo posterior a la sesión",
+  secciones: [
+    {
+      id: "evaluacion_integral",
+      titulo: "1. Los 4 roles del líder moderno — Evaluación integral",
+      moduloRef: "Eval.",
+      descripcion:
+        "Esta evaluación mide tu nivel real de desarrollo en cada uno de los 4 roles trabajados en este capítulo. El resultado revela cuál es tu rol más débil — generalmente el cuello de botella del crecimiento organizacional.",
+      campos: [
+        {
+          id: "evaluacion_4_roles",
+          label: "Evaluación final — Los 4 roles",
+          type: "escala",
+          min: 1, max: 5,
+          minLabel: "Rol ausente",
+          maxLabel: "Rol consolidado",
+          items: [
+            { id: "visionario", texto: "Visionario — Tengo una visión clara, documentada y compartida con mi equipo." },
+            { id: "estratega", texto: "Estratega — Tengo un camino concreto (qué hacer y qué NO hacer) para llegar a esa visión." },
+            { id: "arquitecto", texto: "Arquitecto organizacional — Mis áreas críticas operan con sistemas, no con dependencia de personas." },
+            { id: "desarrollador", texto: "Desarrollador de líderes — Tengo al menos 2 personas en desarrollo activo de liderazgo." },
+          ],
+        },
+        {
+          id: "cuello_botella",
+          label: "Tu cuello de botella organizacional",
+          type: "opcion",
+          opciones: [
+            { value: "vision", label: "Falta de visión", descripcion: "Sin dirección clara, la organización opera sin rumbo." },
+            { value: "estrategia", label: "Falta de estrategia", descripcion: "La visión existe pero no hay camino ejecutable hacia ella." },
+            { value: "sistemas", label: "Falta de sistemas", descripcion: "La empresa depende de personas específicas, no de procesos." },
+            { value: "lideres", label: "Falta de líderes desarrollados", descripcion: "El crecimiento está limitado por tu capacidad personal de decisión." },
+          ],
+        },
+        {
+          id: "plan_accion_rol_debil",
+          label: "Plan de acción para tu rol más débil — próximos 90 días",
+          type: "textarea",
+          rows: 4,
+          placeholder: "Define 2-3 acciones concretas, con fechas, para fortalecer el rol identificado como cuello de botella.",
+        },
+      ],
+    },
+    {
+      id: "casos_harvard",
+      titulo: "2. Casos Harvard — Amazon (Jeff Bezos) y Toyota",
+      moduloRef: "2.9",
+      descripcion:
+        "Amazon demuestra los 4 roles del líder moderno integrados en una sola trayectoria. Toyota demuestra que el crecimiento sostenido depende de sistemas y desarrollo de líderes, no de individuos brillantes.",
+      preguntaCoaching: "¿Estás operando tu organización o construyendo una organización capaz de crecer más allá de ti?",
+      campos: [
+        {
+          id: "rol_bezos_presente",
+          label: "¿Cuál de los 4 roles de Bezos está más presente en tu liderazgo hoy?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Identifica el rol y respáldalo con un ejemplo concreto de tu empresa.",
+        },
+        {
+          id: "decision_bezos_1997",
+          label: "Si fueras Bezos en 1997 con tu empresa actual, ¿qué decisión tomarías?",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Piensa en la apuesta de largo plazo que Bezos hizo en los inicios de Amazon. ¿Cuál sería tu equivalente?",
+        },
+        {
+          id: "leccion_toyota",
+          label: "La lección de Toyota que más aplica a tu empresa",
+          type: "textarea",
+          rows: 3,
+          placeholder: "Toyota no depende de un líder carismático sino de un sistema (TPS, Kaizen). ¿Qué sistema necesita tu empresa para no depender de ti?",
+        },
+      ],
+    },
+    {
+      id: "compromisos",
+      titulo: "3. Compromisos consolidados del Capítulo 2",
+      descripcion: "Cierra el capítulo con tu síntesis y los compromisos que llevarás al Capítulo 3.",
+      campos: [
+        {
+          id: "insight_capitulo",
+          label: "El insight más importante de todo el Capítulo 2",
+          type: "textarea",
+          rows: 3,
+          placeholder: "De los 4 roles, las preguntas de coaching y los casos, ¿cuál es la idea que más cambió tu forma de ver tu rol como líder?",
+        },
+        {
+          id: "tabla_compromisos",
+          label: "Compromisos consolidados — próximos 30 días",
+          type: "tabla",
+          minFilas: 4,
+          columnas: [
+            { id: "accion", label: "Acción concreta", placeholder: "Qué voy a hacer", ancho: "40%" },
+            { id: "responsable", label: "Responsable", placeholder: "Yo / equipo / nombre", ancho: "20%" },
+            { id: "fecha", label: "Fecha límite", placeholder: "DD/MM", ancho: "15%" },
+            { id: "indicador", label: "¿Cómo sabré que se cumplió?", placeholder: "Evidencia observable", ancho: "25%" },
+          ],
+        },
+        {
+          id: "pregunta_cap3",
+          label: "¿Qué pregunta llevas del Capítulo 2 al Capítulo 3?",
+          type: "textarea",
+          rows: 2,
+          placeholder: "El Capítulo 3 es el diagnóstico empresarial estructural — ¿qué necesitas medir o confirmar sobre tu empresa?",
+        },
+      ],
+    },
+  ],
+};
+
+
+const SCHEMAS: Record<string, WorkbookSchema> = {
+  "1-1": cap1ses1,
+  "2-1": cap2ses1,
+  "2-2": cap2ses2,
+  "2-3": cap2ses3,
+  "2-4": cap2ses4,
+};
+
+export function getWorkbookSchema(capitulo: number, sesion: number): WorkbookSchema | null {
+  return SCHEMAS[`${capitulo}-${sesion}`] ?? null;
+}
+
+export const SESIONES_INSTRUMENTADAS = Object.keys(SCHEMAS);

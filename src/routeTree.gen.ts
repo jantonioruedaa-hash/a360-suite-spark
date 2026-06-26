@@ -22,6 +22,7 @@ import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
+import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
 import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
@@ -102,6 +103,11 @@ const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
 const AppClientesRoute = AppClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCoachingIndexRoute = AppCoachingIndexRouteImport.update({
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/app/admin': typeof AppAdminRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/app/admin': typeof AppAdminRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/app/admin': typeof AppAdminRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
@@ -296,6 +305,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/reset-password'
+    | '/app/admin'
     | '/app/clientes'
     | '/app/configuracion'
     | '/app/crecimiento'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/reset-password'
+    | '/app/admin'
     | '/app/clientes'
     | '/app/configuracion'
     | '/app/crecimiento'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/reset-password'
+    | '/app/admin'
     | '/app/clientes'
     | '/app/configuracion'
     | '/app/crecimiento'
@@ -484,6 +496,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/app/clientes'
       preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin': {
+      id: '/app/admin'
+      path: '/admin'
+      fullPath: '/app/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/coaching/': {
@@ -645,6 +664,7 @@ const AppClientesRouteWithChildren = AppClientesRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
   AppClientesRoute: typeof AppClientesRouteWithChildren
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppCrecimientoRoute: typeof AppCrecimientoRoute
@@ -660,6 +680,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
   AppClientesRoute: AppClientesRouteWithChildren,
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppCrecimientoRoute: AppCrecimientoRoute,
