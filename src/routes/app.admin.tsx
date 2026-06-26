@@ -287,7 +287,7 @@ function AdminPanel() {
           supabase.from("user_roles").select("user_id,role"),
           supabase
             .from("clientes")
-            .select("id,nombre_empresa,sector,ciudad,plan_licencia,consultor_id,cliente_user_id,activo,created_at"),
+            .select("id,nombre_empresa,sector,ciudad,plan_licencia,consultor_id,cliente_user_id,activo,created_at,descripcion,fecha_inicio_relacion,estado"),
           supabase.from("app_settings").select("*").eq("id", "global").maybeSingle(),
         ]);
 
@@ -348,18 +348,32 @@ function AdminPanel() {
       }
 
       // Build empresa rows
+      const planModulos = (plan: string): string[] =>
+        ({
+          esencial: ["SIDE"],
+          avanzado: ["SIDE", "Coaching A360", "LEE"],
+          corporativo: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico"],
+          enterprise: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico", "BizOS"],
+        })[plan] ?? ["SIDE"];
+
       const empresaRows: AdminEmpresaRow[] = (clientes ?? []).map((c) => ({
         id: c.id,
         nombre_empresa: c.nombre_empresa,
         sector: c.sector ?? null,
         ciudad: c.ciudad ?? null,
         plan_licencia: c.plan_licencia ?? "esencial",
+        consultor_id: c.consultor_id ?? null,
         consultor_nombre: c.consultor_id
           ? (consultorMap.get(c.consultor_id) ?? null)
           : null,
-        usuarios_activos: 1,
-        modulos: ["SIDE"],
+        cliente_user_id: c.cliente_user_id ?? null,
+        usuarios_activos: [c.consultor_id, c.cliente_user_id].filter(Boolean).length || 1,
+        modulos: planModulos(c.plan_licencia ?? "esencial"),
         activo: c.activo ?? true,
+        estado: (c as { estado?: string | null }).estado ?? null,
+        descripcion: (c as { descripcion?: string | null }).descripcion ?? null,
+        fecha_inicio_relacion:
+          (c as { fecha_inicio_relacion?: string | null }).fecha_inicio_relacion ?? null,
         created_at: c.created_at,
       }));
       setEmpresas(empresaRows);
@@ -971,7 +985,13 @@ function AdminPanel() {
           )}
 
           {section === "empresas" && (
-            <AdminEmpresaTable empresas={dataLoaded ? empresas : []} />
+            <AdminEmpresaTable
+              empresas={dataLoaded ? empresas : []}
+              consultores={usuarios
+                .filter((u) => u.role === "consultor" || u.role === "admin")
+                .map((u) => ({ id: u.id, nombre: u.name ?? u.email }))}
+              onRefresh={() => setRefreshKey((k) => k + 1)}
+            />
           )}
 
           {section === "planes" && (
