@@ -9,7 +9,22 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  component: LoginPage,
+  head: () => ({
+    meta: [
+      { title: "Iniciar sesión | A360SGP Suite" },
+      { name: "description", content: "Accede a Aceleradora 360 SGP: panel de consultoría para PyMEs con Plan Estratégico, Coaching, programa LEE y diagnóstico SIDE." },
+      { property: "og:title", content: "Iniciar sesión | A360SGP Suite" },
+      { property: "og:description", content: "Acceso al portal de consultores y administradores de Aceleradora 360 SGP." },
+      { property: "og:url", content: "https://a360-suite-spark.lovable.app/login" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Iniciar sesión | A360SGP Suite" },
+      { name: "twitter:description", content: "Acceso al portal de Aceleradora 360 SGP." },
+    ],
+    links: [{ rel: "canonical", href: "https://a360-suite-spark.lovable.app/login" }],
+  }),
+});
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -68,7 +83,7 @@ function LoginPage() {
       <div className="relative w-full max-w-md a360-card a360-card-lg p-10 z-10">
         <div className="flex flex-col items-center text-center">
           <A360Logo size={56} withText={false} />
-          <h1 className="font-display text-2xl text-navy mt-4">Aceleradora 360 SGP</h1>
+          <h1 className="font-display text-2xl text-navy mt-4">Acceso a Aceleradora 360 SGP</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Sistema Integral de Transformación Empresarial
           </p>
