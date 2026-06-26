@@ -1083,7 +1083,7 @@ function AdminPanel() {
             <AdminModulosSection empresas={dataLoaded ? empresas : []} />
           )}
 
-          {section === "configuracion" && <AdminConfiguracion settings={settings} />}
+          {section === "configuracion" && <AdminConfiguracion />}
         </main>
       </div>
 
