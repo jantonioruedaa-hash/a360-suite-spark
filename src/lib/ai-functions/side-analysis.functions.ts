@@ -107,7 +107,7 @@ Responde en español, con formato Markdown legible (encabezados ##, listas, énf
 };
 
 export const generarAnalisisSide = createServerFn({ method: "POST" })
-  .inputValidator((d: SideAnalysisInput) => d)
+  .inputValidator((d: unknown) => SideAnalysisSchema.parse(d))
   .handler(async ({ data }) => {
     try {
       if (!data.accessToken) {
