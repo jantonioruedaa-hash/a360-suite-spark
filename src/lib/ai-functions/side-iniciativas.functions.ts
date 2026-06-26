@@ -1,12 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
-interface Input {
-  accessToken?: string;
-  empresa: { nombre: string; sector?: string | null; tamano?: string | null; pais?: string | null };
-  ime: number; ivee: number; idf: number; cof: number;
-  dimensiones: { key: string; nombre: string; score: number }[];
-}
+const InputSchema = z.object({
+  accessToken: z.string().min(10).max(4000).optional(),
+  empresa: z.object({
+    nombre: z.string().trim().min(1).max(200),
+    sector: z.string().trim().max(120).nullable().optional(),
+    tamano: z.string().trim().max(120).nullable().optional(),
+    pais: z.string().trim().max(120).nullable().optional(),
+  }),
+  ime: z.number().min(0).max(5),
+  ivee: z.number().min(0).max(5),
+  idf: z.number().min(0).max(5),
+  cof: z.number().min(0).max(5),
+  dimensiones: z.array(z.object({
+    key: z.string().trim().max(10),
+    nombre: z.string().trim().max(120),
+    score: z.number().min(0).max(5),
+  })).max(50),
+});
+
+type Input = z.infer<typeof InputSchema>;
 
 export interface IniciativaIA {
   key: string;
