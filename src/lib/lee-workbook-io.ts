@@ -81,7 +81,7 @@ function renderHTML(schema: WorkbookSchema, respuestas: Record<string, unknown>)
           input = `<input type="text" data-k="${k}" value="${escapeHTML((v as string) ?? "")}" placeholder="${escapeHTML(c.placeholder ?? "")}" />`;
           break;
         case "textarea":
-          input = `<div contenteditable="true" data-k="${k}" data-type="html" class="rt">${(v as string) ?? ""}</div>`;
+          input = `<div contenteditable="true" data-k="${k}" data-type="html" class="rt">${escapeHTML((v as string) ?? "")}</div>`;
           break;
         case "lista": {
           const items = ((v as string[]) ?? []).map((it) => `<li>${escapeHTML(it)}</li>`).join("");
