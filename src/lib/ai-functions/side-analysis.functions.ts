@@ -1,25 +1,45 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
 type AnalisisTipo = "ejecutivo" | "brechas" | "roadmap" | "propuesta" | "financiero";
 
-interface SideAnalysisInput {
-  accessToken?: string;
-  tipo: AnalisisTipo;
-  empresa: { nombre: string; sector?: string | null; tamano?: string | null; pais?: string | null };
-  ime: number;
-  ivee: number;
-  idf: number;
-  cof: number;
-  dimensiones: { nombre: string; score: number }[];
-  fortalezas: { nombre: string; score: number }[];
-  brechas: { nombre: string; score: number }[];
-  financiero?: {
-    ingresos_anuales?: number; margen_neto?: number; margen_ebitda?: number;
-    multiplo_actual?: number; multiplo_objetivo?: number;
-    ebitda?: number; valActual?: number; valObjetivo?: number; gap?: number; potencial?: number;
-  };
-}
+const DimSchema = z.object({
+  nombre: z.string().trim().max(120),
+  score: z.number().min(0).max(5),
+});
+
+const SideAnalysisSchema = z.object({
+  accessToken: z.string().min(10).max(4000).optional(),
+  tipo: z.enum(["ejecutivo", "brechas", "roadmap", "propuesta", "financiero"]),
+  empresa: z.object({
+    nombre: z.string().trim().min(1).max(200),
+    sector: z.string().trim().max(120).nullable().optional(),
+    tamano: z.string().trim().max(120).nullable().optional(),
+    pais: z.string().trim().max(120).nullable().optional(),
+  }),
+  ime: z.number().min(0).max(5),
+  ivee: z.number().min(0).max(5),
+  idf: z.number().min(0).max(5),
+  cof: z.number().min(0).max(5),
+  dimensiones: z.array(DimSchema).max(50),
+  fortalezas: z.array(DimSchema).max(20),
+  brechas: z.array(DimSchema).max(20),
+  financiero: z.object({
+    ingresos_anuales: z.number().nonnegative().optional(),
+    margen_neto: z.number().optional(),
+    margen_ebitda: z.number().optional(),
+    multiplo_actual: z.number().optional(),
+    multiplo_objetivo: z.number().optional(),
+    ebitda: z.number().optional(),
+    valActual: z.number().optional(),
+    valObjetivo: z.number().optional(),
+    gap: z.number().optional(),
+    potencial: z.number().optional(),
+  }).optional(),
+});
+
+type SideAnalysisInput = z.infer<typeof SideAnalysisSchema>;
 
 const PROMPTS: Record<AnalisisTipo, { titulo: string; instruccion: string }> = {
   ejecutivo: {
