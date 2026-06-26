@@ -9,9 +9,9 @@ import AdminUserTable, { type AdminUserRow } from "@/components/admin/AdminUserT
 import AdminEmpresaTable, { type AdminEmpresaRow } from "@/components/admin/AdminEmpresaTable";
 import AdminPlanCard, { type AdminPlanData } from "@/components/admin/AdminPlanCard";
 import AdminPermisosMatrix from "@/components/admin/AdminPermisosMatrix";
-import AdminModuloCard, { type AdminModuloData } from "@/components/admin/AdminModuloCard";
 import AdminConfiguracion from "@/components/admin/AdminConfiguracion";
 import AdminPlanEditor, { type PlanRecord } from "@/components/admin/AdminPlanEditor";
+import AdminModulosSection from "@/components/admin/AdminModulosSection";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/admin")({ component: AdminPanel });
@@ -133,60 +133,6 @@ const DEFAULT_PLAN_RECORDS: PlanRecord[] = [
   },
 ];
 
-// ─── static module data ───────────────────────────────────────────────────────
-
-const MODULOS: AdminModuloData[] = [
-  {
-    id: "coaching",
-    emoji: "🎯",
-    name: "Coaching A360",
-    description: "Suite de coaching ejecutivo · 12 herramientas · 4 etapas",
-    badge: "8 empresas activas",
-    defaultActive: true,
-  },
-  {
-    id: "side",
-    emoji: "🔍",
-    name: "SIDE Diagnóstico",
-    description: "Diagnóstico empresarial integral · IME + IVEE + IDF + COF",
-    badge: "8 empresas activas",
-    defaultActive: true,
-  },
-  {
-    id: "lee",
-    emoji: "📚",
-    name: "Programa LEE",
-    description: "Liderazgo Empresarial Evolutivo · 10 capítulos · 40 sesiones",
-    badge: "5 empresas activas",
-    defaultActive: true,
-  },
-  {
-    id: "plan",
-    emoji: "📋",
-    name: "Plan Estratégico",
-    description: "Planificación estratégica en 18 secciones",
-    badge: "6 empresas activas",
-    defaultActive: true,
-  },
-  {
-    id: "marketing",
-    emoji: "📱",
-    name: "Marketing Digital",
-    description: "Suite de marketing · Integración nativa pendiente",
-    badge: "En desarrollo",
-    pending: true,
-    defaultActive: false,
-  },
-  {
-    id: "bizos",
-    emoji: "⚙️",
-    name: "BizOS",
-    description: "Sistema de gestión de procesos empresariales",
-    badge: "En desarrollo",
-    pending: true,
-    defaultActive: false,
-  },
-];
 
 // ─── static activity items ────────────────────────────────────────────────────
 
@@ -1134,17 +1080,7 @@ function AdminPanel() {
           {section === "permisos" && <AdminPermisosMatrix />}
 
           {section === "modulos" && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "20px",
-              }}
-            >
-              {MODULOS.map((m) => (
-                <AdminModuloCard key={m.id} modulo={m} />
-              ))}
-            </div>
+            <AdminModulosSection empresas={dataLoaded ? empresas : []} />
           )}
 
           {section === "configuracion" && <AdminConfiguracion settings={settings} />}

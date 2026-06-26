@@ -15,12 +15,13 @@ import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { toast } from "sonner";
 
 type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean };
-type Section = { label: string; items: Item[]; consultorOnly?: boolean };
+type Section = { label: string; items: Item[]; consultorOnly?: boolean; moduleId?: string };
 
 const sections: Section[] = [
   {
     label: "Diagnóstico",
     consultorOnly: true,
+    moduleId: "side",
     items: [
       { title: "SIDE", url: "/app/side", icon: Activity },
       { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon },
@@ -29,6 +30,7 @@ const sections: Section[] = [
   {
     label: "Estrategia",
     consultorOnly: true,
+    moduleId: "plan",
     items: [
       { title: "Plan Estratégico", url: "/app/plan", icon: Target },
       { title: "Seguimiento KPIs", url: "/app/kpis", icon: LineChart },
@@ -37,6 +39,7 @@ const sections: Section[] = [
   {
     label: "Coaching A360",
     consultorOnly: true,
+    moduleId: "coaching",
     items: [
       { title: "Panel Coaching", url: "/app/coaching", icon: Users2 },
       { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen },
@@ -46,6 +49,7 @@ const sections: Section[] = [
   {
     label: "Desarrollo",
     consultorOnly: true,
+    moduleId: "lee",
     items: [
       { title: "Programa LEE", url: "/app/lee", icon: GraduationCap },
     ],
@@ -53,6 +57,7 @@ const sections: Section[] = [
   {
     label: "BizOS",
     consultorOnly: true,
+    moduleId: "bizos",
     items: [
       { title: "Procesos", url: "#", icon: Workflow, upcoming: true },
       { title: "SGC", url: "#", icon: ShieldCheck, upcoming: true },
@@ -63,6 +68,7 @@ const sections: Section[] = [
   {
     label: "Comercial & Ops",
     consultorOnly: true,
+    moduleId: "marketing",
     items: [
       { title: "CRM Comercial", url: "#", icon: ShoppingCart, upcoming: true },
       { title: "Marketing Digital", url: "/app/crecimiento", icon: Megaphone },
@@ -86,10 +92,27 @@ export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, role } = useAuth();
   const { alertas } = useAlertas();
-  const { getText } = useAppSettings();
+  const { settings, getText } = useAppSettings();
 
   const isConsultorOrAdmin = role === "admin" || role === "consultor";
-  const visibleSections = sections.filter((s) => !s.consultorOnly || isConsultorOrAdmin);
+
+  // Read module active state from app_settings.content_strings.modulos_activos
+  const modulosActivos = (() => {
+    const cs = settings.content_strings as unknown as Record<string, unknown>;
+    const stored = cs?.modulos_activos;
+    if (stored && typeof stored === "object" && !Array.isArray(stored)) {
+      return stored as Record<string, boolean>;
+    }
+    return null;
+  })();
+
+  const visibleSections = sections.filter((s) => {
+    if (s.consultorOnly && !isConsultorOrAdmin) return false;
+    if (s.moduleId && modulosActivos !== null) {
+      return modulosActivos[s.moduleId] !== false;
+    }
+    return true;
+  });
 
   const exactOnly = new Set(["/app/coaching", "/app/side"]);
   const isActive = (url: string) =>
