@@ -176,17 +176,25 @@ export const interpretarIME = (ime: number): ImeNivel => {
 export const ESCALA_LABELS = ["Sin responder", "Crítico", "Débil", "En desarrollo", "Sólido", "Avanzado"];
 
 export interface DatosFinancieros {
-  ingresos_anuales?: number;
-  margen_neto?: number;
+  // v2 — compatible con Suite Financiera A360SGP
+  sector?: string;
+  ingresos?: number;
+  ebitda?: number;
   margen_ebitda?: number;
+  margen_bruto?: number;
+  margen_neto?: number;
+  ingresos_recurrentes_pct?: number;
+  multiplo_base_manual?: number;
+  // v1 legacy — backward compatibility
+  ingresos_anuales?: number;
   multiplo_actual?: number;
   multiplo_objetivo?: number;
 }
 
 export const calcFinanciero = (d: DatosFinancieros) => {
-  const ingresos = d.ingresos_anuales ?? 0;
+  const ingresos = d.ingresos ?? d.ingresos_anuales ?? 0;
   const ebitdaPct = (d.margen_ebitda ?? 0) / 100;
-  const ebitda = ingresos * ebitdaPct;
+  const ebitda = d.ebitda ?? (ingresos * ebitdaPct);
   const valActual = ebitda * (d.multiplo_actual ?? 0);
   const valObjetivo = ebitda * (d.multiplo_objetivo ?? 0);
   const gap = valObjetivo - valActual;
