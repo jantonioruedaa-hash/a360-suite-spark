@@ -805,6 +805,63 @@ export type Database = {
           },
         ]
       }
+      marketing_sesiones: {
+        Row: {
+          cliente_id: string | null
+          completada: boolean
+          consultor_id: string | null
+          created_at: string
+          empresa: Json
+          id: string
+          modulos: Json
+          nombre_sesion: string
+          reporte_config: Json
+          score_total: number
+          updated_at: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          completada?: boolean
+          consultor_id?: string | null
+          created_at?: string
+          empresa?: Json
+          id?: string
+          modulos?: Json
+          nombre_sesion?: string
+          reporte_config?: Json
+          score_total?: number
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string | null
+          completada?: boolean
+          consultor_id?: string | null
+          created_at?: string
+          empresa?: Json
+          id?: string
+          modulos?: Json
+          nombre_sesion?: string
+          reporte_config?: Json
+          score_total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_sesiones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_sesiones_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planes_estrategicos: {
         Row: {
           cliente_id: string
