@@ -7,13 +7,21 @@ export const Route = createFileRoute("/app/crecimiento")({
 function CrecimientoPage() {
   return (
     <div
-      className="-m-6 lg:-m-8"
-      style={{ height: "calc(100vh - 4rem)" }}
+      style={{
+        margin: "-24px -32px",
+        height: "calc(100vh - 56px)",
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
       <iframe
-        src="/marketing-digital.html"
-        title="Sistema de Crecimiento Comercial Digital"
-        className="w-full h-full border-0"
+        src="/marketing-digital-v9.html"
+        title="Marketing Digital A360"
+        style={{
+          width: "100%",
+          flex: 1,
+          border: "none",
+        }}
         allow="clipboard-write"
       />
     </div>
