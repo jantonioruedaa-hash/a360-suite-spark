@@ -9,5 +9,5 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   // nitro: preset tells the Nitro deploy plugin which runtime to target at build time.
   // "vercel" → outputs to .vercel/output/ (picked up automatically by Vercel CI/CD).
-  nitro: { preset: "vercel" },
+  nitro: { preset: "node-server" },
 });
