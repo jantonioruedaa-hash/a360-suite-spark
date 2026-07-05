@@ -129,22 +129,25 @@ export const generarAnalisisSide = createServerFn({ method: "POST" })
         return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "No pudimos validar tu sesión. Vuelve a iniciar sesión e intenta nuevamente." };
       }
 
-      const apiKey = process.env.LOVABLE_API_KEY;
+      const apiKey = process.env.ANTHROPIC_API_KEY;
       if (!apiKey) {
-        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "LOVABLE_API_KEY no configurada" };
+        return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "ANTHROPIC_API_KEY no configurada" };
       }
 
       const prompt = buildPrompt(data);
 
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: "Eres un consultor senior de transformación empresarial para PyMEs latinoamericanas." },
-            { role: "user", content: prompt },
-          ],
+          model: "claude-sonnet-4-6",
+          max_tokens: 4096,
+          system: "Eres un consultor senior de transformación empresarial para PyMEs latinoamericanas.",
+          messages: [{ role: "user", content: prompt }],
         }),
       });
 
@@ -152,14 +155,13 @@ export const generarAnalisisSide = createServerFn({ method: "POST" })
         const txt = await resp.text().catch(() => "");
         let msg = `Error de IA (${resp.status})`;
         if (resp.status === 429) msg = "Límite de uso alcanzado. Intenta de nuevo en unos minutos.";
-        else if (resp.status === 402) msg = "Créditos de IA agotados. Agrega créditos en Lovable Cloud.";
         else if (txt) msg += `: ${txt.slice(0, 200)}`;
-        console.error("[SIDE] AI gateway error", resp.status, txt);
+        console.error("[SIDE] Anthropic API error", resp.status, txt);
         return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: msg };
       }
 
       const json = await resp.json();
-      const contenido = json?.choices?.[0]?.message?.content ?? "";
+      const contenido = json?.content?.[0]?.text ?? "";
       if (!contenido) {
         return { tipo: data.tipo, titulo: PROMPTS[data.tipo].titulo, contenido: "", error: "La IA no devolvió contenido. Intenta de nuevo." };
       }

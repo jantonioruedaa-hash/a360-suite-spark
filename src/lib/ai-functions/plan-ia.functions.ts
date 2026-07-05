@@ -9,25 +9,27 @@ import { consumirCreditoIAInline } from "@/lib/creditos-ia-helper.server";
 //  ÚNICO PUNTO DE CAMBIO DE PROVEEDOR
 // ════════════════════════════════════════════════════════
 async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("LOVABLE_API_KEY no configurada");
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY no configurada");
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
+      model: "claude-sonnet-4-6",
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
     }),
   });
   if (res.status === 429) throw new Error("Límite de uso de IA superado. Inténtalo más tarde.");
-  if (res.status === 402) throw new Error("Créditos de IA agotados. Agrega fondos a tu workspace.");
-  if (!res.ok) throw new Error(`AI Gateway error ${res.status}`);
+  if (!res.ok) throw new Error(`Anthropic API error ${res.status}`);
   const json = await res.json();
-  return json.choices?.[0]?.message?.content ?? "";
+  return json.content?.[0]?.text ?? "";
 }
 
 // ════════════════════════════════════════════════════════

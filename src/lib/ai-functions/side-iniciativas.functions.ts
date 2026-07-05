@@ -48,8 +48,8 @@ export const generarIniciativasSide = createServerFn({ method: "POST" })
       const { data: authData, error: authError } = await authClient.auth.getClaims(data.accessToken);
       if (authError || !authData?.claims?.sub) return { iniciativas: [], error: "Sesión inválida" };
 
-      const apiKey = process.env.LOVABLE_API_KEY;
-      if (!apiKey) return { iniciativas: [], error: "LOVABLE_API_KEY no configurada" };
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return { iniciativas: [], error: "ANTHROPIC_API_KEY no configurada" };
 
       const prompt = `Eres consultor senior de Aceleradora 360 SGP. Para la empresa "${data.empresa.nombre}" (sector: ${data.empresa.sector ?? "—"}, tamaño: ${data.empresa.tamano ?? "—"}), genera UNA iniciativa concreta y accionable para CADA UNA de las 12 dimensiones SIDE en función del score obtenido.
 
@@ -69,46 +69,46 @@ Reglas:
 
 Devuelve EXACTAMENTE las 12 dimensiones usando los keys: L, E, G, O, GE, F, C, M, OP, CU, T, ES.`;
 
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: "Consultor senior de transformación de PyMEs latinoamericanas. Respondes solo con la herramienta provista." },
-            { role: "user", content: prompt },
-          ],
+          model: "claude-sonnet-4-6",
+          max_tokens: 4096,
+          system: "Consultor senior de transformación de PyMEs latinoamericanas. Respondes solo con la herramienta provista.",
+          messages: [{ role: "user", content: prompt }],
           tools: [{
-            type: "function",
-            function: {
-              name: "registrar_iniciativas",
-              description: "Registra las 12 iniciativas recomendadas, una por dimensión.",
-              parameters: {
-                type: "object",
-                properties: {
-                  iniciativas: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        key: { type: "string", enum: ["L","E","G","O","GE","F","C","M","OP","CU","T","ES"] },
-                        titulo: { type: "string" },
-                        descripcion: { type: "string" },
-                        prioridad: { type: "string", enum: ["alta","media","baja"] },
-                        horizonte: { type: "string", enum: ["0-3m","3-6m","6-12m"] },
-                        impacto: { type: "string" },
-                      },
-                      required: ["key","titulo","descripcion","prioridad","horizonte","impacto"],
-                      additionalProperties: false,
+            name: "registrar_iniciativas",
+            description: "Registra las 12 iniciativas recomendadas, una por dimensión.",
+            input_schema: {
+              type: "object",
+              properties: {
+                iniciativas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      key: { type: "string", enum: ["L","E","G","O","GE","F","C","M","OP","CU","T","ES"] },
+                      titulo: { type: "string" },
+                      descripcion: { type: "string" },
+                      prioridad: { type: "string", enum: ["alta","media","baja"] },
+                      horizonte: { type: "string", enum: ["0-3m","3-6m","6-12m"] },
+                      impacto: { type: "string" },
                     },
+                    required: ["key","titulo","descripcion","prioridad","horizonte","impacto"],
+                    additionalProperties: false,
                   },
                 },
-                required: ["iniciativas"],
-                additionalProperties: false,
               },
+              required: ["iniciativas"],
+              additionalProperties: false,
             },
           }],
-          tool_choice: { type: "function", function: { name: "registrar_iniciativas" } },
+          tool_choice: { type: "tool", name: "registrar_iniciativas" },
         }),
       });
 
@@ -116,15 +116,16 @@ Devuelve EXACTAMENTE las 12 dimensiones usando los keys: L, E, G, O, GE, F, C, M
         const txt = await resp.text().catch(() => "");
         let msg = `Error de IA (${resp.status})`;
         if (resp.status === 429) msg = "Límite de uso alcanzado. Intenta en unos minutos.";
-        else if (resp.status === 402) msg = "Créditos de IA agotados.";
-        console.error("[SIDE-INIC] AI error", resp.status, txt);
+        else if (txt) msg += `: ${txt.slice(0, 200)}`;
+        console.error("[SIDE-INIC] Anthropic API error", resp.status, txt);
         return { iniciativas: [], error: msg };
       }
 
       const json = await resp.json();
-      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      const toolUse = json?.content?.find((b: { type: string }) => b.type === "tool_use");
+      const args = toolUse?.input;
       if (!args) return { iniciativas: [], error: "La IA no devolvió iniciativas estructuradas." };
-      const parsed = typeof args === "string" ? JSON.parse(args) : args;
+      const parsed = args ?? {};
       const iniciativas = (parsed?.iniciativas ?? []) as IniciativaIA[];
       return { iniciativas, error: null as string | null };
     } catch (e) {

@@ -39,8 +39,8 @@ export const generarAnalisisOnboarding = createServerFn({ method: "POST" })
       const { data: a, error: e } = await c.auth.getClaims(data.accessToken);
       if (e || !a?.claims?.sub) return { contenido: "", error: "Sesión inválida" };
 
-      const apiKey = process.env.LOVABLE_API_KEY;
-      if (!apiKey) return { contenido: "", error: "LOVABLE_API_KEY no configurada" };
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return { contenido: "", error: "ANTHROPIC_API_KEY no configurada" };
 
       const prompt = `Eres consultor senior de Aceleradora 360 SGP. Acabas de completar el onboarding de "${data.empresa.nombre}" (${data.empresa.sector ?? "—"}, ${[data.empresa.ciudad, data.empresa.pais].filter(Boolean).join(", ") || "—"}).
 
@@ -59,27 +59,29 @@ Genera un análisis ejecutivo en 5 secciones (usa encabezados ## en español):
 
 Tono consultivo, ejecutivo, sin relleno. Máximo 700 palabras.`;
 
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: "Consultor senior de transformación de PyMEs latinoamericanas." },
-            { role: "user", content: prompt },
-          ],
+          model: "claude-sonnet-4-6",
+          max_tokens: 4096,
+          system: "Consultor senior de transformación de PyMEs latinoamericanas.",
+          messages: [{ role: "user", content: prompt }],
         }),
       });
       if (!resp.ok) {
         const t = await resp.text().catch(() => "");
         let m = `Error de IA (${resp.status})`;
         if (resp.status === 429) m = "Límite de uso alcanzado. Intenta en unos minutos.";
-        else if (resp.status === 402) m = "Créditos de IA agotados.";
         console.error("[ONBOARDING-IA]", resp.status, t);
         return { contenido: "", error: m };
       }
       const j = await resp.json();
-      const contenido = j?.choices?.[0]?.message?.content ?? "";
+      const contenido = j?.content?.[0]?.text ?? "";
       if (!contenido) return { contenido: "", error: "La IA no devolvió contenido." };
       return { contenido, error: null as string | null };
     } catch (e) {
