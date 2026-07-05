@@ -175,18 +175,20 @@ export function AppSidebar() {
 
       <SidebarFooter className="bg-sidebar border-t border-sidebar-border/60">
         <SidebarMenu>
-          <SidebarMenuItem style={path.startsWith("/app/admin") ? { borderLeft: `3px solid ${moduleColor.accent}` } : { borderLeft: "3px solid transparent" }}>
-            <SidebarMenuButton
-              asChild
-              isActive={path.startsWith("/app/admin")}
-              className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-gold data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium"
-            >
-              <Link to="/app/admin">
-                <ShieldCheck className="w-4 h-4" style={path.startsWith("/app/admin") ? { color: moduleColor.accent } : undefined} />
-                <span>🛡️ Panel Admin</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {role === "admin" && (
+            <SidebarMenuItem style={path.startsWith("/app/admin") ? { borderLeft: `3px solid ${moduleColor.accent}` } : { borderLeft: "3px solid transparent" }}>
+              <SidebarMenuButton
+                asChild
+                isActive={path.startsWith("/app/admin")}
+                className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-gold data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium"
+              >
+                <Link to="/app/admin">
+                  <ShieldCheck className="w-4 h-4" style={path.startsWith("/app/admin") ? { color: moduleColor.accent } : undefined} />
+                  <span>🛡️ Panel Admin</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
               <Link to="/app/configuracion"><Settings className="w-4 h-4" /><span>Configuración</span></Link>

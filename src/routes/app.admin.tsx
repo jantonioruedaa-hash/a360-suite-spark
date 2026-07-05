@@ -227,7 +227,7 @@ function AdminPanel() {
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/login" }); return; }
-    if (role && role !== "admin") {
+    if (!role || role !== "admin") {
       navigate({ to: "/app/dashboard" });
     }
   }, [loading, user, role, navigate]);
@@ -428,7 +428,7 @@ function AdminPanel() {
     );
   }
 
-  if (role && role !== "admin") return null;
+  if (!role || role !== "admin") return null;
 
   const initials = (profile?.name ?? user.email ?? "?")
     .split(" ")
