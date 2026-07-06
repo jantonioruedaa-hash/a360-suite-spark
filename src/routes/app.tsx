@@ -62,6 +62,7 @@ function AppLayout() {
     .split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
 
   const isClienteRole = role === "cliente" || role === "participante";
+  const panelLabel = role === "admin" ? "Panel del admin" : isClienteRole ? "Portal del cliente" : "Panel del consultor";
 
   return (
     <SidebarProvider>
@@ -74,7 +75,7 @@ function AppLayout() {
               <div className="hidden md:block">
                 <div className="text-xs text-muted-foreground">A360SGP Suite</div>
                 <div className="font-display text-navy text-sm leading-tight">
-                  {isClienteRole ? "Portal del cliente" : "Panel del consultor"}
+                  {panelLabel}
                 </div>
               </div>
             </div>

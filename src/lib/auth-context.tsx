@@ -44,14 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setTimeout(() => loadExtras(s.user.id), 0);
+        // Keep loading=true until role is resolved so no flash of wrong panel label
+        setLoading(true);
+        loadExtras(s.user.id).finally(() => setLoading(false));
       } else {
         setProfile(null);
         setRole(null);
+        setLoading(false);
       }
     });
 
