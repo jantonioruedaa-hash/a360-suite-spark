@@ -182,7 +182,7 @@ export function AppSidebar() {
                 isActive={path.startsWith("/app/admin")}
                 className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-gold data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium"
               >
-                <Link to="/app/admin">
+                <Link to="/app/admin-simple">
                   <ShieldCheck className="w-4 h-4" style={path.startsWith("/app/admin") ? { color: moduleColor.accent } : undefined} />
                   <span>🛡️ Panel Admin</span>
                 </Link>
