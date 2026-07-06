@@ -33,14 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadExtras = async (uid: string) => {
-    const [{ data: p }, { data: r }] = await Promise.all([
+    console.log("[auth] loadExtras — uid:", uid);
+    const [{ data: p, error: pErr }, { data: r, error: rErr }] = await Promise.all([
       supabase.from("profiles").select("id,email,name,company,specialty,avatar_url").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
+    console.log("[auth] user_roles raw:", r, "error:", rErr);
+    console.log("[auth] profiles raw:", p, "error:", pErr);
     setProfile(p as Profile | null);
     const roles = (r ?? []).map((x: { role: AppRole }) => x.role);
     const priority: AppRole[] = ["admin", "consultor", "cliente", "participante"];
-    setRole(priority.find((x) => roles.includes(x)) ?? null);
+    const resolved = priority.find((x) => roles.includes(x)) ?? null;
+    console.log("[auth] roles array:", roles, "→ resolved role:", resolved);
+    setRole(resolved);
   };
 
   useEffect(() => {
