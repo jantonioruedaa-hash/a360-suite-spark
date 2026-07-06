@@ -237,7 +237,7 @@ function AdminPanel() {
     if (!user || role !== "admin") return;
 
     const load = async () => {
-      // Get session token for admin API calls
+      // Keep session token only for legacy child props; server admin calls validate the active session via middleware.
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token ?? null;
       setAccessToken(token);
@@ -255,9 +255,7 @@ function AdminPanel() {
 
       // Fetch auth extras (ban status + last sign-in) via server function
       type UserExtra = { id: string; banned_until: string | null; last_sign_in_at: string | null };
-      const extras: UserExtra[] = token
-        ? await adminListUsersExtra({ data: { accessToken: token } }).catch(() => [] as UserExtra[])
-        : [];
+      const extras: UserExtra[] = await adminListUsersExtra({ data: {} }).catch(() => [] as UserExtra[]);
       const extraMap = new Map<string, UserExtra>();
       for (const e of extras) extraMap.set(e.id, e);
 

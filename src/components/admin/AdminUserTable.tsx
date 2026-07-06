@@ -279,7 +279,6 @@ export default function AdminUserTable({ usuarios, accessToken, clientes, onRefr
   const closeModal = () => { if (!submitting) setModal(null); };
 
   const handleCreate = async () => {
-    if (!accessToken) { setModalError("Sesión no disponible. Recarga la página."); return; }
     if (!createForm.email) { setModalError("El email es obligatorio."); return; }
     if (createForm.password.length < 6) { setModalError("La contraseña debe tener al menos 6 caracteres."); return; }
     setSubmitting(true);
@@ -288,7 +287,7 @@ export default function AdminUserTable({ usuarios, accessToken, clientes, onRefr
       const sel = clientes.find(c => c.id === createForm.clienteId);
       await adminCreateUser({
         data: {
-          accessToken,
+          accessToken: accessToken ?? undefined,
           email: createForm.email.trim(),
           password: createForm.password,
           name: createForm.name.trim() || undefined,
@@ -309,14 +308,14 @@ export default function AdminUserTable({ usuarios, accessToken, clientes, onRefr
   };
 
   const handleEdit = async () => {
-    if (!accessToken || modal?.type !== "edit") return;
+    if (modal?.type !== "edit") return;
     setSubmitting(true);
     setModalError(null);
     try {
       const sel = clientes.find(c => c.id === editForm.clienteId);
       await adminUpdateProfile({
         data: {
-          accessToken,
+          accessToken: accessToken ?? undefined,
           userId: modal.user.id,
           name: editForm.name.trim() || null,
           company: sel?.nombre_empresa ?? null,
@@ -335,10 +334,9 @@ export default function AdminUserTable({ usuarios, accessToken, clientes, onRefr
   };
 
   const handleToggleBan = async (u: AdminUserRow) => {
-    if (!accessToken) { toast.error("Sesión no disponible"); return; }
     setLoadingId(u.id);
     try {
-      await adminToggleBan({ data: { accessToken, userId: u.id, block: u.activo } });
+      await adminToggleBan({ data: { accessToken: accessToken ?? undefined, userId: u.id, block: u.activo } });
       onRefresh();
       toast.success(u.activo ? "Usuario desactivado" : "Usuario activado");
     } catch (e) {
@@ -349,11 +347,10 @@ export default function AdminUserTable({ usuarios, accessToken, clientes, onRefr
   };
 
   const handleResetPassword = async (u: AdminUserRow) => {
-    if (!accessToken) { toast.error("Sesión no disponible"); return; }
     setLoadingId(u.id + "_pwd");
     try {
       await adminResetPassword({
-        data: { accessToken, userId: u.id, sendEmail: true, email: u.email },
+        data: { accessToken: accessToken ?? undefined, userId: u.id, sendEmail: true, email: u.email },
       });
       toast.success(`Email de restablecimiento enviado a ${u.email}`);
     } catch (e) {

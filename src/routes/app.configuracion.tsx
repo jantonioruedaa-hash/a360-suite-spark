@@ -309,9 +309,7 @@ function UsuariosAdmin() {
   const banFn = useServerFn(adminToggleBan);
 
   const getAccessToken = () => {
-    const accessToken = session?.access_token;
-    if (!accessToken) toast.error("Sesión expirada. Vuelve a iniciar sesión.");
-    return accessToken;
+    return session?.access_token ?? undefined;
   };
 
   const load = async () => {
@@ -321,9 +319,7 @@ function UsuariosAdmin() {
       supabase.from("profiles").select("id,email,name,company").order("email"),
       supabase.from("user_roles").select("user_id,role"),
       supabase.from("clientes").select("id,nombre_empresa,cliente_user_id,consultor_id").order("nombre_empresa"),
-      accessToken
-        ? listExtrasFn({ data: { accessToken } }).catch((err) => { console.error("adminListUsersExtra failed:", err); return []; })
-        : Promise.resolve([]),
+      listExtrasFn({ data: {} }).catch((err) => { console.error("adminListUsersExtra failed:", err); return []; }),
     ]);
     const extrasArr = Array.isArray(extras) ? extras : [];
     const priority: AppRole[] = ["admin", "consultor", "cliente", "participante"];
@@ -360,7 +356,6 @@ function UsuariosAdmin() {
 
   const cambiarRol = async (userId: string, nuevo: AppRole) => {
     const accessToken = getAccessToken();
-    if (!accessToken) return;
     try {
       await updateFn({ data: { accessToken, userId, role: nuevo } });
       toast.success("Rol actualizado");

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const RoleEnum = z.enum(["admin", "consultor", "cliente", "participante"]);
-export const AccessTokenSchema = z.string().min(10, "Sesión expirada. Vuelve a iniciar sesión.");
+export const AccessTokenSchema = z.string().min(10).optional().nullable();
 
 export const ListUsersExtraSchema = z.object({ accessToken: z.string().optional() });
 
