@@ -39,9 +39,9 @@ export function throwAdminError(e: unknown): never {
   throw new Error(translateAdminError(m));
 }
 
-export async function listAdminUsersExtra(accessToken?: string | null): Promise<AdminUserExtra[]> {
+export async function listAdminUsersExtra(adminUserId: string): Promise<AdminUserExtra[]> {
   try {
-    await ensureAdminFromToken(accessToken);
+    await ensureAdmin(adminUserId);
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (error) {
       console.error("adminListUsersExtra listUsers error:", error);
@@ -59,7 +59,7 @@ export async function listAdminUsersExtra(accessToken?: string | null): Promise<
 }
 
 export async function createAdminUser(data: {
-  accessToken: string;
+  accessToken?: string | null;
   email: string;
   password: string;
   name?: string;
@@ -67,8 +67,8 @@ export async function createAdminUser(data: {
   specialty?: string;
   role: AdminRole;
   clienteId?: string;
-}) {
-  await ensureAdminFromToken(data.accessToken);
+}, adminUserId: string) {
+  await ensureAdmin(adminUserId);
   const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
     email: data.email,
     password: data.password,
@@ -90,7 +90,7 @@ export async function createAdminUser(data: {
 }
 
 export async function inviteAdminUser(data: {
-  accessToken: string;
+  accessToken?: string | null;
   email: string;
   name?: string;
   company?: string;
@@ -98,8 +98,8 @@ export async function inviteAdminUser(data: {
   role: AdminRole;
   clienteId?: string;
   redirectTo?: string;
-}) {
-  await ensureAdminFromToken(data.accessToken);
+}, adminUserId: string) {
+  await ensureAdmin(adminUserId);
   const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
     redirectTo: data.redirectTo,
     data: { name: data.name ?? null },
@@ -119,7 +119,7 @@ export async function inviteAdminUser(data: {
 }
 
 export async function updateAdminProfile(data: {
-  accessToken: string;
+  accessToken?: string | null;
   userId: string;
   name?: string | null;
   company?: string | null;
@@ -127,8 +127,8 @@ export async function updateAdminProfile(data: {
   email?: string;
   role?: AdminRole;
   clienteId?: string | null;
-}) {
-  await ensureAdminFromToken(data.accessToken);
+}, adminUserId: string) {
+  await ensureAdmin(adminUserId);
   const { error: pErr } = await supabaseAdmin.from("profiles").update({
     name: data.name ?? null,
     company: data.company ?? null,
@@ -155,14 +155,14 @@ export async function updateAdminProfile(data: {
 }
 
 export async function resetAdminPassword(data: {
-  accessToken: string;
+  accessToken?: string | null;
   userId: string;
   newPassword?: string;
   sendEmail?: boolean;
   email?: string;
   redirectTo?: string;
-}) {
-  await ensureAdminFromToken(data.accessToken);
+}, adminUserId: string) {
+  await ensureAdmin(adminUserId);
   if (data.newPassword) {
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.newPassword });
     if (error) throwAdminError(error);
@@ -178,8 +178,8 @@ export async function resetAdminPassword(data: {
   throw new Error("Indica una nueva contraseña o envía correo de restablecimiento");
 }
 
-export async function toggleAdminBan(data: { accessToken: string; userId: string; block: boolean }) {
-  const adminUserId = await ensureAdminFromToken(data.accessToken);
+export async function toggleAdminBan(data: { accessToken?: string | null; userId: string; block: boolean }, adminUserId: string) {
+  await ensureAdmin(adminUserId);
   if (data.block && data.userId === adminUserId) throw new Error("No puedes bloquear tu propio usuario");
   const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
     ban_duration: data.block ? "876000h" : "none",
@@ -188,8 +188,8 @@ export async function toggleAdminBan(data: { accessToken: string; userId: string
   return { ok: true };
 }
 
-export async function deleteAdminUser(data: { accessToken: string; userId: string }) {
-  const adminUserId = await ensureAdminFromToken(data.accessToken);
+export async function deleteAdminUser(data: { accessToken?: string | null; userId: string }, adminUserId: string) {
+  await ensureAdmin(adminUserId);
   if (data.userId === adminUserId) throw new Error("No puedes eliminar tu propio usuario");
   const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
   if (error) throwAdminError(error);
