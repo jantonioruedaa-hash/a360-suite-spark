@@ -23,6 +23,7 @@ import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
+import { Route as AppAdminSimpleRouteImport } from './routes/app.admin-simple'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
@@ -109,6 +110,11 @@ const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
 const AppClientesRoute = AppClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminSimpleRoute = AppAdminSimpleRouteImport.update({
+  id: '/admin-simple',
+  path: '/admin-simple',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminRoute = AppAdminRouteImport.update({
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/admin': typeof AppAdminRoute
+  '/app/admin-simple': typeof AppAdminSimpleRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
@@ -247,6 +254,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/admin': typeof AppAdminRoute
+  '/app/admin-simple': typeof AppAdminSimpleRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app/admin': typeof AppAdminRoute
+  '/app/admin-simple': typeof AppAdminSimpleRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/app/admin'
+    | '/app/admin-simple'
     | '/app/clientes'
     | '/app/configuracion'
     | '/app/crecimiento'
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/app/admin'
+    | '/app/admin-simple'
     | '/app/clientes'
     | '/app/configuracion'
     | '/app/crecimiento'
@@ -382,6 +393,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/app/admin'
+    | '/app/admin-simple'
     | '/app/clientes'
     | '/app/configuracion'
     | '/app/crecimiento'
@@ -516,6 +528,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/app/clientes'
       preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin-simple': {
+      id: '/app/admin-simple'
+      path: '/admin-simple'
+      fullPath: '/app/admin-simple'
+      preLoaderRoute: typeof AppAdminSimpleRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/admin': {
@@ -685,6 +704,7 @@ const AppClientesRouteWithChildren = AppClientesRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
+  AppAdminSimpleRoute: typeof AppAdminSimpleRoute
   AppClientesRoute: typeof AppClientesRouteWithChildren
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppCrecimientoRoute: typeof AppCrecimientoRoute
@@ -701,6 +721,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
+  AppAdminSimpleRoute: AppAdminSimpleRoute,
   AppClientesRoute: AppClientesRouteWithChildren,
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppCrecimientoRoute: AppCrecimientoRoute,
