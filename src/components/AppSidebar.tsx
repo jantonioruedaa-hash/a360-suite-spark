@@ -85,11 +85,11 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const { signOut, role } = useAuth();
+  const { signOut, role, user } = useAuth();
   const { alertas } = useAlertas();
   const { getText } = useAppSettings();
 
-  const isConsultorOrAdmin = role === "admin" || role === "consultor";
+  const isConsultorOrAdmin = !user || role === "admin" || role === "consultor";
   const visibleSections = sections.filter((s) => !s.consultorOnly || isConsultorOrAdmin);
 
   const exactOnly = new Set(["/app/coaching", "/app/side"]);
@@ -189,16 +189,26 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
-              <Link to="/app/configuracion"><Settings className="w-4 h-4" /><span>Configuración</span></Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut} className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
-              <LogOut className="w-4 h-4" /><span>Cerrar sesión</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {user ? (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
+                  <Link to="/app/configuracion"><Settings className="w-4 h-4" /><span>Configuración</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={signOut} className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
+                  <LogOut className="w-4 h-4" /><span>Cerrar sesión</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
+          ) : (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="text-sidebar-foreground/85 hover:bg-sidebar-accent">
+                <Link to="/login"><LogOut className="w-4 h-4" /><span>Iniciar sesión</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

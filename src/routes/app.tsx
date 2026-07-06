@@ -21,10 +21,6 @@ function AppLayout() {
   const moduleColor = useModuleColor();
   const [redirecting, setRedirecting] = useState(false);
 
-  useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
-
   // Si el usuario es cliente/participante, restringir a su propia ficha
   useEffect(() => {
     if (loading || !user || !role) return;
@@ -54,7 +50,7 @@ function AppLayout() {
       });
   }, [loading, user, role, path, navigate]);
 
-  if (loading || !user || redirecting) {
+  if (loading || redirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="font-display text-navy text-xl animate-pulse">A360SGP</div>
@@ -62,7 +58,7 @@ function AppLayout() {
     );
   }
 
-  const initials = (profile?.name || user.email || "?")
+  const initials = (profile?.name || user?.email || "?")
     .split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
 
   const isClienteRole = role === "cliente" || role === "participante";
@@ -83,17 +79,23 @@ function AppLayout() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <HeaderUsoBadge />
-              <NotificacionesBell />
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                  <div className="text-sm font-medium text-navy leading-tight">{profile?.name ?? user.email}</div>
-                  <div className="text-[11px] uppercase tracking-wider text-gold font-semibold">{role ?? "—"}</div>
+              {user && <HeaderUsoBadge />}
+              {user && <NotificacionesBell />}
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden sm:block">
+                    <div className="text-sm font-medium text-navy leading-tight">{profile?.name ?? user.email}</div>
+                    <div className="text-[11px] uppercase tracking-wider text-gold font-semibold">{role ?? "—"}</div>
+                  </div>
+                  <Avatar className="h-9 w-9 border border-gold/30">
+                    <AvatarFallback className="bg-navy text-primary-foreground text-xs font-semibold">{initials}</AvatarFallback>
+                  </Avatar>
                 </div>
-                <Avatar className="h-9 w-9 border border-gold/30">
-                  <AvatarFallback className="bg-navy text-primary-foreground text-xs font-semibold">{initials}</AvatarFallback>
-                </Avatar>
-              </div>
+              ) : (
+                <a href="/login" className="text-sm font-semibold text-navy border border-gold/50 rounded px-3 py-1.5 hover:bg-gold/10 transition-colors">
+                  Iniciar sesión
+                </a>
+              )}
             </div>
           </header>
           <main className="flex-1 p-6 lg:p-8"><Outlet /></main>
