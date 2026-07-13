@@ -10,9 +10,6 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
-  beforeLoad: () => {
-    throw redirect({ to: "/app/dashboard" });
-  },
   component: LoginPage,
   head: () => ({
     meta: [
