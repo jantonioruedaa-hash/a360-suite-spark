@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth, type AppRole } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Loader2, ShieldCheck, RefreshCw, UserPlus, Send,
-  Pencil, KeyRound, Lock, Unlock, Trash2, Users, BarChart3, Briefcase,
+  Pencil, KeyRound, Lock, Unlock, Trash2, Users, BarChart3, Briefcase, ChevronDown,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -41,7 +41,16 @@ interface UsuarioRow {
 interface ClienteRow {
   id: string;
   nombre_empresa: string;
+  sector: string | null;
+  tamano: string | null;
+  pais: string | null;
+  ciudad: string | null;
+  web: string | null;
   consultor_id: string | null;
+  cliente_user_id: string | null;
+  plan_licencia: string;
+  activo: boolean;
+  created_at: string;
 }
 
 interface ConsultorOpt {
@@ -54,6 +63,13 @@ interface ConsultorOpt {
 
 const ROLES: AppRole[] = ["admin", "consultor", "cliente", "participante"];
 const PRIORITY: AppRole[] = ["admin", "consultor", "cliente", "participante"];
+
+const PLANES_LICENCIA = [
+  { value: "esencial",      label: "Esencial"      },
+  { value: "profesional",   label: "Profesional"   },
+  { value: "enterprise",    label: "Enterprise"    },
+  { value: "personalizado", label: "Personalizado" },
+] as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -839,63 +855,88 @@ function ResetPasswordDialog({ user, onClose, onSubmit }: {
 function TabClientes() {
   const [clientes, setClientes]       = useState<ClienteRow[]>([]);
   const [consultores, setConsultores] = useState<ConsultorOpt[]>([]);
+  const [profileMap, setProfileMap]   = useState<Map<string, { name: string | null; email: string }>>(new Map());
   const [loading, setLoading]         = useState(true);
-  const [selected, setSelected]       = useState<Record<string, string>>({});
-  const [saving, setSaving]           = useState<Record<string, boolean>>({});
+  const [search, setSearch]           = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | "activo" | "inactivo">("");
+  const [editing, setEditing]         = useState<ClienteRow | null>(null);
+  const [expanded, setExpanded]       = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const [{ data: clientesData }, { data: consultorRoles }] = await Promise.all([
-      supabase.from("clientes").select("id,nombre_empresa,consultor_id").eq("activo", true).order("nombre_empresa"),
+      supabase.from("clientes").select("*").order("nombre_empresa"),
       supabase.from("user_roles").select("user_id").in("role", ["consultor", "admin"]),
     ]);
-    const ids = (consultorRoles ?? []).map((r) => r.user_id as string);
-    const profiles = ids.length > 0
-      ? ((await supabase.from("profiles").select("id,email,name").in("id", ids)).data ?? [])
+
+    const allIds = new Set<string>();
+    (consultorRoles ?? []).forEach((r) => allIds.add(r.user_id as string));
+    (clientesData ?? []).forEach((c) => { if (c.cliente_user_id) allIds.add(c.cliente_user_id as string); });
+
+    const profiles = allIds.size > 0
+      ? ((await supabase.from("profiles").select("id,email,name").in("id", [...allIds])).data ?? [])
       : [];
-    setClientes(clientesData ?? []);
-    setConsultores(profiles as ConsultorOpt[]);
-    const init: Record<string, string> = {};
-    (clientesData ?? []).forEach((c) => { init[c.id] = c.consultor_id ?? ""; });
-    setSelected(init);
+
+    const pMap = new Map<string, { name: string | null; email: string }>();
+    profiles.forEach((p) => pMap.set(p.id, { name: p.name, email: p.email }));
+
+    const consultorIds = new Set((consultorRoles ?? []).map((r) => r.user_id as string));
+    setClientes((clientesData ?? []) as ClienteRow[]);
+    setConsultores(profiles.filter((p) => consultorIds.has(p.id)) as ConsultorOpt[]);
+    setProfileMap(pMap);
     setLoading(false);
   }, []);
 
   useEffect(() => { void load(); }, [load]);
 
-  const handleAssign = async (clienteId: string) => {
-    const consultorId = selected[clienteId] || null;
-    setSaving((s) => ({ ...s, [clienteId]: true }));
-    const { error } = await supabase
-      .from("clientes")
-      .update({ consultor_id: consultorId })
-      .eq("id", clienteId);
-    setSaving((s) => ({ ...s, [clienteId]: false }));
+  const filtered = useMemo(
+    () => clientes.filter((c) => {
+      if (statusFilter === "activo"   && !c.activo) return false;
+      if (statusFilter === "inactivo" &&  c.activo) return false;
+      if (search && !c.nombre_empresa.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    }),
+    [clientes, search, statusFilter],
+  );
+
+  const toggleActivo = async (c: ClienteRow) => {
+    const { error } = await supabase.from("clientes").update({ activo: !c.activo }).eq("id", c.id);
     if (error) { toast.error(error.message); return; }
-    toast.success("Consultor asignado");
+    toast.success(c.activo ? "Empresa desactivada" : "Empresa activada");
     void load();
   };
 
-  if (loading) return (
-    <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-navy" /></div>
-  );
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-navy" /></div>;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-3">
-        <p className="text-sm text-muted-foreground">
-          {clientes.length} empresa{clientes.length !== 1 ? "s" : ""} activa{clientes.length !== 1 ? "s" : ""}
-        </p>
-        <Button size="sm" variant="ghost" onClick={load} className="gap-1.5">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar empresa…"
+          className="max-w-xs"
+        />
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "" | "activo" | "inactivo")}>
+          <SelectTrigger className="w-36"><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="activo">Activos</SelectItem>
+            <SelectItem value="inactivo">Inactivos</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground">
+          {filtered.length} empresa{filtered.length !== 1 ? "s" : ""}
+        </span>
+        <Button size="sm" variant="ghost" onClick={load} className="ml-auto gap-1.5">
           <RefreshCw className="w-3.5 h-3.5" /> Actualizar
         </Button>
       </div>
 
-      {clientes.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="rounded-lg border border-border px-6 py-12 text-center">
-          <p className="text-sm text-muted-foreground">No hay clientes activos.</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Crea uno desde Mis clientes → Nuevo cliente.
+          <p className="text-sm text-muted-foreground">
+            {search || statusFilter ? "Sin resultados para esa búsqueda" : "No hay empresas registradas"}
           </p>
         </div>
       ) : (
@@ -903,62 +944,292 @@ function TabClientes() {
           <table className="w-full text-sm">
             <thead className="bg-muted/40 border-b border-border">
               <tr>
-                {["Empresa", "Consultor actual", "Asignar consultor", ""].map((h) => (
-                  <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {["Empresa", "Plan", "Consultor", "Usuario portal", "Estado", "Acciones"].map((h) => (
+                  <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {clientes.map((c) => {
-                const isDirty  = selected[c.id] !== (c.consultor_id ?? "");
-                const isSaving = saving[c.id];
-                const current  = consultores.find((x) => x.id === c.consultor_id);
+            <tbody>
+              {filtered.map((c) => {
+                const consultor  = c.consultor_id    ? profileMap.get(c.consultor_id)    : null;
+                const portalUser = c.cliente_user_id ? profileMap.get(c.cliente_user_id) : null;
+                const planLabel  = PLANES_LICENCIA.find((p) => p.value === c.plan_licencia)?.label ?? c.plan_licencia;
+                const isOpen     = expanded === c.id;
+
                 return (
-                  <tr key={c.id} className="hover:bg-muted/10 transition-colors">
-                    <td className="px-4 py-3 font-medium text-navy">{c.nombre_empresa}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {current
-                        ? <span>{current.name ?? current.email}</span>
-                        : <span className="italic text-xs">Sin asignar</span>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Select
-                        value={selected[c.id] ?? ""}
-                        onValueChange={(v) => setSelected((s) => ({ ...s, [c.id]: v }))}
-                      >
-                        <SelectTrigger className="h-8 text-xs w-48">
-                          <SelectValue placeholder="— Sin consultor —" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">— Sin consultor —</SelectItem>
-                          {consultores.map((con) => (
-                            <SelectItem key={con.id} value={con.id} className="text-xs">
-                              {con.name ?? con.email}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        size="sm"
-                        onClick={() => handleAssign(c.id)}
-                        disabled={!isDirty || isSaving}
-                        className="bg-navy hover:bg-navy/80 text-white"
-                      >
-                        {isSaving && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
-                        Guardar
-                      </Button>
-                    </td>
-                  </tr>
+                  <Fragment key={c.id}>
+                    <tr className={`border-b border-border hover:bg-muted/10 transition-colors ${!c.activo ? "opacity-60" : ""}`}>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-navy">{c.nombre_empresa}</div>
+                        {c.sector && <div className="text-xs text-muted-foreground">{c.sector}</div>}
+                        {(c.ciudad || c.pais) && (
+                          <div className="text-xs text-muted-foreground">
+                            {[c.ciudad, c.pais].filter(Boolean).join(", ")}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant="outline" className="text-[10px] font-medium capitalize">
+                          {planLabel}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        {consultor
+                          ? <span className="text-navy">{consultor.name ?? consultor.email}</span>
+                          : <span className="italic text-xs text-muted-foreground">Sin asignar</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {portalUser ? (
+                          <div>
+                            <div className="text-xs text-navy">{portalUser.name ?? "—"}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{portalUser.email}</div>
+                          </div>
+                        ) : (
+                          <span className="italic text-xs text-muted-foreground">Sin vincular</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {c.activo
+                          ? <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700">Activo</Badge>
+                          : <Badge variant="destructive" className="text-[10px]">Inactivo</Badge>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-0.5">
+                          <Button size="icon" variant="ghost" className="h-7 w-7" title="Editar" onClick={() => setEditing(c)}>
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            size="icon" variant="ghost" className="h-7 w-7"
+                            title={c.activo ? "Desactivar" : "Activar"}
+                            onClick={() => toggleActivo(c)}
+                          >
+                            {c.activo
+                              ? <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                              : <Unlock className="w-3.5 h-3.5 text-emerald-600" />}
+                          </Button>
+                          <Button
+                            size="icon" variant="ghost" className="h-7 w-7"
+                            title="Ver detalles"
+                            onClick={() => setExpanded(isOpen ? null : c.id)}
+                          >
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                    {isOpen && (
+                      <tr className="border-b border-border bg-muted/5">
+                        <td colSpan={6} className="px-6 py-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3 text-xs">
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Sector</p>
+                              <p className="text-navy">{c.sector ?? "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Tamaño</p>
+                              <p className="text-navy capitalize">{c.tamano ?? "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Ciudad / País</p>
+                              <p className="text-navy">{[c.ciudad, c.pais].filter(Boolean).join(", ") || "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Sitio web</p>
+                              {c.web
+                                ? <a href={c.web} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">{c.web}</a>
+                                : <p className="text-navy">—</p>}
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Miembro desde</p>
+                              <p className="text-navy">{fmtDate(c.created_at)}</p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 );
               })}
             </tbody>
           </table>
         </div>
       )}
+
+      <EditarClienteDialog
+        cliente={editing}
+        consultores={consultores}
+        onClose={() => setEditing(null)}
+        onSave={async (data) => {
+          const { error } = await supabase.from("clientes").update(data).eq("id", editing!.id);
+          if (error) throw new Error(error.message);
+          toast.success("Empresa actualizada");
+          setEditing(null);
+          void load();
+        }}
+      />
     </div>
+  );
+}
+
+// ─── Dialog: Editar cliente ───────────────────────────────────────────────────
+
+type ClienteUpdateData = {
+  nombre_empresa: string;
+  sector: string | null;
+  tamano: string | null;
+  ciudad: string | null;
+  pais: string | null;
+  web: string | null;
+  plan_licencia: string;
+  consultor_id: string | null;
+  activo: boolean;
+};
+
+function EditarClienteDialog({ cliente, consultores, onClose, onSave }: {
+  cliente: ClienteRow | null;
+  consultores: ConsultorOpt[];
+  onClose: () => void;
+  onSave: (data: ClienteUpdateData) => Promise<void>;
+}) {
+  const EMPTY = { nombre_empresa: "", sector: "", tamano: "", ciudad: "", pais: "", web: "", plan_licencia: "esencial", consultor_id: "", activo: true };
+  const [form, setForm]     = useState(EMPTY);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (cliente) {
+      setForm({
+        nombre_empresa: cliente.nombre_empresa,
+        sector:         cliente.sector         ?? "",
+        tamano:         cliente.tamano         ?? "",
+        ciudad:         cliente.ciudad         ?? "",
+        pais:           cliente.pais           ?? "",
+        web:            cliente.web            ?? "",
+        plan_licencia:  cliente.plan_licencia,
+        consultor_id:   cliente.consultor_id   ?? "",
+        activo:         cliente.activo,
+      });
+    }
+  }, [cliente]);
+
+  if (!cliente) return null;
+
+  const f = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((p) => ({ ...p, [k]: v }));
+
+  const save = async () => {
+    if (!form.nombre_empresa.trim()) { toast.error("El nombre de empresa es requerido"); return; }
+    setSaving(true);
+    try {
+      await onSave({
+        nombre_empresa: form.nombre_empresa.trim(),
+        sector:         form.sector        || null,
+        tamano:         form.tamano        || null,
+        ciudad:         form.ciudad        || null,
+        pais:           form.pais          || null,
+        web:            form.web           || null,
+        plan_licencia:  form.plan_licencia,
+        consultor_id:   form.consultor_id  || null,
+        activo:         form.activo,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!cliente} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Editar empresa</DialogTitle>
+          <p className="text-xs text-muted-foreground">{cliente.nombre_empresa}</p>
+        </DialogHeader>
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          <div>
+            <Label className="text-xs">Nombre de empresa *</Label>
+            <Input value={form.nombre_empresa} onChange={(e) => f("nombre_empresa", e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Sector</Label>
+              <Input value={form.sector} onChange={(e) => f("sector", e.target.value)} placeholder="Ej: Manufactura" />
+            </div>
+            <div>
+              <Label className="text-xs">Tamaño</Label>
+              <Select value={form.tamano} onValueChange={(v) => f("tamano", v)}>
+                <SelectTrigger><SelectValue placeholder="— Seleccionar —" /></SelectTrigger>
+                <SelectContent>
+                  {["micro", "pequeña", "mediana", "grande"].map((t) => (
+                    <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Ciudad</Label>
+              <Input value={form.ciudad} onChange={(e) => f("ciudad", e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">País</Label>
+              <Input value={form.pais} onChange={(e) => f("pais", e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Sitio web</Label>
+            <Input value={form.web} onChange={(e) => f("web", e.target.value)} placeholder="https://..." />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Plan</Label>
+              <Select value={form.plan_licencia} onValueChange={(v) => f("plan_licencia", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PLANES_LICENCIA.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Consultor asignado</Label>
+              <Select value={form.consultor_id} onValueChange={(v) => f("consultor_id", v)}>
+                <SelectTrigger><SelectValue placeholder="— Sin asignar —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— Sin asignar —</SelectItem>
+                  {consultores.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name ?? c.email}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="checkbox"
+              id="empresa-activa"
+              checked={form.activo}
+              onChange={(e) => f("activo", e.target.checked)}
+              className="h-4 w-4 rounded border-border"
+            />
+            <Label htmlFor="empresa-activa" className="text-xs cursor-pointer">Empresa activa</Label>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button
+            onClick={save}
+            disabled={saving || !form.nombre_empresa.trim()}
+            className="bg-navy hover:bg-navy/90 text-white"
+          >
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Guardar cambios
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
