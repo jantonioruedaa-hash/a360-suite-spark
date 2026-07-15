@@ -234,7 +234,7 @@ function TabUsuarios() {
       supabase.from("profiles").select("id,email,name,company,created_at").order("email"),
       supabase.from("user_roles").select("user_id,role"),
       supabase.from("clientes").select("id,nombre_empresa,cliente_user_id,consultor_id").order("nombre_empresa"),
-      listExtrasFn({ data: {} }).catch(() => [] as { id: string; banned_until: string | null; last_sign_in_at: string | null }[]),
+      listExtrasFn({ data: { accessToken: token() } }).catch(() => [] as { id: string; banned_until: string | null; last_sign_in_at: string | null }[]),
     ]);
 
     const extrasArr = Array.isArray(extras) ? extras : [];
