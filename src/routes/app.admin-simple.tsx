@@ -21,7 +21,10 @@ import {
 import {
   Loader2, ShieldCheck, RefreshCw, UserPlus, Send,
   Pencil, KeyRound, Lock, Unlock, Trash2, Users, BarChart3, Briefcase, ChevronDown,
+  CreditCard, Plus,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,6 +62,17 @@ interface ConsultorOpt {
   name: string | null;
 }
 
+interface PlanRow {
+  id: string;
+  nombre: string;
+  precio: number | null;
+  descripcion: string | null;
+  activo: boolean;
+  created_at: string;
+  modulos: string[];
+  empresas_count: number;
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ROLES: AppRole[] = ["admin", "consultor", "cliente", "participante"];
@@ -70,6 +84,22 @@ const PLANES_LICENCIA = [
   { value: "enterprise",    label: "Enterprise"    },
   { value: "personalizado", label: "Personalizado" },
 ] as const;
+
+const MODULOS = [
+  { slug: "side",              label: "Diagnóstico SIDE"    },
+  { slug: "plan_estrategico",  label: "Plan Estratégico"    },
+  { slug: "coaching",          label: "Coaching A360"       },
+  { slug: "lee",               label: "Programa LEE"        },
+  { slug: "kpis",              label: "Seguimiento KPIs"    },
+  { slug: "marketing_digital", label: "Marketing Digital"   },
+  { slug: "manual_funciones",  label: "Manual de Funciones" },
+] as const;
+
+type ModuloSlug = (typeof MODULOS)[number]["slug"];
+
+function moduloLabel(slug: string): string {
+  return MODULOS.find((m) => m.slug === slug)?.label ?? slug;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -103,9 +133,10 @@ export const Route = createFileRoute("/app/admin-simple")({
 });
 
 const TABS = [
-  { id: "resumen",  label: "Resumen",  icon: BarChart3  },
-  { id: "usuarios", label: "Usuarios", icon: Users      },
-  { id: "clientes", label: "Clientes", icon: Briefcase  },
+  { id: "resumen",  label: "Resumen",  icon: BarChart3   },
+  { id: "usuarios", label: "Usuarios", icon: Users       },
+  { id: "clientes", label: "Clientes", icon: Briefcase   },
+  { id: "planes",   label: "Planes",   icon: CreditCard  },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -154,6 +185,7 @@ function AdminPage() {
       {tab === "resumen"  && <TabResumen />}
       {tab === "usuarios" && <TabUsuarios />}
       {tab === "clientes" && <TabClientes />}
+      {tab === "planes"   && <TabPlanes />}
     </div>
   );
 }
@@ -1070,6 +1102,343 @@ function TabClientes() {
         }}
       />
     </div>
+  );
+}
+
+// ─── Tab: Planes ─────────────────────────────────────────────────────────────
+
+function TabPlanes() {
+  const [planes, setPlanes]     = useState<PlanRow[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing]   = useState<PlanRow | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [{ data: planesData }, { data: modulosData }, { data: epData }] = await Promise.all([
+      supabase.from("planes").select("*").order("precio"),
+      supabase.from("plan_modulos").select("plan_id,modulo_slug"),
+      supabase.from("empresa_plan").select("plan_id").eq("activo", true),
+    ]);
+
+    const modulosMap = new Map<string, string[]>();
+    (modulosData ?? []).forEach(({ plan_id, modulo_slug }: { plan_id: string; modulo_slug: string }) => {
+      if (!modulosMap.has(plan_id)) modulosMap.set(plan_id, []);
+      modulosMap.get(plan_id)!.push(modulo_slug);
+    });
+
+    const empresasCount = new Map<string, number>();
+    (epData ?? []).forEach(({ plan_id }: { plan_id: string }) => {
+      empresasCount.set(plan_id, (empresasCount.get(plan_id) ?? 0) + 1);
+    });
+
+    setPlanes((planesData ?? []).map((p) => ({
+      id:             p.id,
+      nombre:         p.nombre,
+      precio:         p.precio,
+      descripcion:    p.descripcion,
+      activo:         p.activo,
+      created_at:     p.created_at,
+      modulos:        modulosMap.get(p.id) ?? [],
+      empresas_count: empresasCount.get(p.id) ?? 0,
+    })));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const toggleActivo = async (p: PlanRow) => {
+    const { error } = await supabase.from("planes").update({ activo: !p.activo }).eq("id", p.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(p.activo ? "Plan desactivado" : "Plan activado");
+    void load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground flex-1">
+          {planes.length} plan{planes.length !== 1 ? "es" : ""}
+        </span>
+        <Button size="sm" variant="ghost" onClick={load} className="gap-1.5">
+          <RefreshCw className="w-3.5 h-3.5" /> Actualizar
+        </Button>
+        <Button
+          size="sm"
+          className="bg-navy hover:bg-navy/90 text-white"
+          onClick={() => { setEditing(null); setDialogOpen(true); }}
+        >
+          <Plus className="w-3.5 h-3.5 mr-1.5" /> Nuevo plan
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-navy" /></div>
+      ) : planes.length === 0 ? (
+        <div className="rounded-lg border border-border px-6 py-12 text-center">
+          <p className="text-sm text-muted-foreground">No hay planes configurados</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {planes.map((p) => (
+            <div
+              key={p.id}
+              className={`rounded-xl border border-border bg-background p-5 shadow-sm flex flex-col gap-3 ${!p.activo ? "opacity-60" : ""}`}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-base text-navy font-semibold truncate">{p.nombre}</h3>
+                    {p.activo
+                      ? <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 shrink-0">Activo</Badge>
+                      : <Badge variant="destructive" className="text-[10px] shrink-0">Inactivo</Badge>}
+                  </div>
+                  {p.descripcion && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{p.descripcion}</p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  {p.precio !== null ? (
+                    <>
+                      <span className="text-xl font-bold text-navy font-display">${p.precio}</span>
+                      <span className="text-xs text-muted-foreground">/mes</span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">Sin precio</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Módulos */}
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Módulos incluidos
+                </p>
+                {p.modulos.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Sin módulos asignados</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1">
+                    {p.modulos.map((slug) => (
+                      <Badge key={slug} variant="secondary" className="text-[10px] font-normal">
+                        {moduloLabel(slug)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/60">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Briefcase className="w-3 h-3" />
+                  <span>{p.empresas_count} empresa{p.empresas_count !== 1 ? "s" : ""}</span>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    size="icon" variant="ghost" className="h-7 w-7" title="Editar plan"
+                    onClick={() => { setEditing(p); setDialogOpen(true); }}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    size="icon" variant="ghost" className="h-7 w-7"
+                    title={p.activo ? "Desactivar plan" : "Activar plan"}
+                    onClick={() => toggleActivo(p)}
+                  >
+                    {p.activo
+                      ? <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                      : <Unlock className="w-3.5 h-3.5 text-emerald-600" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <PlanDialog
+        open={dialogOpen}
+        plan={editing}
+        onOpenChange={(v) => { setDialogOpen(v); if (!v) setEditing(null); }}
+        onSave={async () => { setDialogOpen(false); setEditing(null); await load(); }}
+      />
+    </div>
+  );
+}
+
+// ─── Dialog: Crear / Editar plan ──────────────────────────────────────────────
+
+const EMPTY_PLAN = {
+  nombre: "",
+  precio: "",
+  descripcion: "",
+  modulos: [] as ModuloSlug[],
+  activo: true,
+};
+
+function PlanDialog({ open, plan, onOpenChange, onSave }: {
+  open: boolean;
+  plan: PlanRow | null;
+  onOpenChange: (v: boolean) => void;
+  onSave: () => Promise<void>;
+}) {
+  const isEdit = !!plan;
+  const [form, setForm]     = useState(EMPTY_PLAN);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (plan) {
+        setForm({
+          nombre:      plan.nombre,
+          precio:      plan.precio !== null ? String(plan.precio) : "",
+          descripcion: plan.descripcion ?? "",
+          modulos:     plan.modulos as ModuloSlug[],
+          activo:      plan.activo,
+        });
+      } else {
+        setForm(EMPTY_PLAN);
+      }
+    }
+  }, [open, plan]);
+
+  const toggleModulo = (slug: ModuloSlug) => {
+    setForm((prev) => ({
+      ...prev,
+      modulos: prev.modulos.includes(slug)
+        ? prev.modulos.filter((s) => s !== slug)
+        : [...prev.modulos, slug],
+    }));
+  };
+
+  const save = async () => {
+    if (!form.nombre.trim()) { toast.error("El nombre del plan es requerido"); return; }
+    setSaving(true);
+    try {
+      const payload = {
+        nombre:      form.nombre.trim(),
+        precio:      form.precio !== "" ? Number(form.precio) : null,
+        descripcion: form.descripcion.trim() || null,
+        activo:      form.activo,
+      };
+
+      if (isEdit) {
+        const { error } = await supabase.from("planes").update(payload).eq("id", plan!.id);
+        if (error) throw new Error(error.message);
+
+        const { error: delErr } = await supabase.from("plan_modulos").delete().eq("plan_id", plan!.id);
+        if (delErr) throw new Error(delErr.message);
+
+        if (form.modulos.length > 0) {
+          const { error: insErr } = await supabase.from("plan_modulos").insert(
+            form.modulos.map((slug) => ({ plan_id: plan!.id, modulo_slug: slug })),
+          );
+          if (insErr) throw new Error(insErr.message);
+        }
+        toast.success("Plan actualizado");
+      } else {
+        const { data: created, error } = await supabase.from("planes").insert(payload).select("id").single();
+        if (error || !created) throw new Error(error?.message ?? "Error al crear plan");
+
+        if (form.modulos.length > 0) {
+          const { error: insErr } = await supabase.from("plan_modulos").insert(
+            form.modulos.map((slug) => ({ plan_id: created.id, modulo_slug: slug })),
+          );
+          if (insErr) throw new Error(insErr.message);
+        }
+        toast.success("Plan creado");
+      }
+
+      await onSave();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Editar plan" : "Nuevo plan"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 md:col-span-1">
+              <Label className="text-xs">Nombre del plan *</Label>
+              <Input
+                value={form.nombre}
+                onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+                placeholder="Ej: Enterprise"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Precio mensual (USD)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.precio}
+                onChange={(e) => setForm((p) => ({ ...p, precio: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Descripción</Label>
+            <Textarea
+              value={form.descripcion}
+              onChange={(e) => setForm((p) => ({ ...p, descripcion: e.target.value }))}
+              placeholder="Descripción breve del plan…"
+              rows={2}
+              className="resize-none"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs block mb-2">Módulos incluidos</Label>
+            <div className="grid grid-cols-1 gap-2">
+              {MODULOS.map(({ slug, label }) => (
+                <div key={slug} className="flex items-center gap-2.5">
+                  <Checkbox
+                    id={`mod-${slug}`}
+                    checked={form.modulos.includes(slug as ModuloSlug)}
+                    onCheckedChange={() => toggleModulo(slug as ModuloSlug)}
+                  />
+                  <label htmlFor={`mod-${slug}`} className="text-sm cursor-pointer select-none">
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1 border-t border-border/60">
+            <Checkbox
+              id="plan-activo"
+              checked={form.activo}
+              onCheckedChange={(v) => setForm((p) => ({ ...p, activo: !!v }))}
+            />
+            <label htmlFor="plan-activo" className="text-xs cursor-pointer select-none">Plan activo</label>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
+          <Button
+            onClick={save}
+            disabled={saving || !form.nombre.trim()}
+            className="bg-navy hover:bg-navy/90 text-white"
+          >
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isEdit ? "Guardar cambios" : "Crear plan"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
