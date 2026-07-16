@@ -24,7 +24,6 @@ import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppClientesRouteImport } from './routes/app.clientes'
 import { Route as AppAdminSimpleRouteImport } from './routes/app.admin-simple'
-import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
 import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
@@ -115,11 +114,6 @@ const AppClientesRoute = AppClientesRouteImport.update({
 const AppAdminSimpleRoute = AppAdminSimpleRouteImport.update({
   id: '/admin-simple',
   path: '/admin-simple',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAdminRoute = AppAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCoachingIndexRoute = AppCoachingIndexRouteImport.update({
@@ -219,7 +213,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/app/admin': typeof AppAdminRoute
   '/app/admin-simple': typeof AppAdminSimpleRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
@@ -253,7 +246,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/app/admin': typeof AppAdminRoute
   '/app/admin-simple': typeof AppAdminSimpleRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
@@ -288,7 +280,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/app/admin': typeof AppAdminRoute
   '/app/admin-simple': typeof AppAdminSimpleRoute
   '/app/clientes': typeof AppClientesRouteWithChildren
   '/app/configuracion': typeof AppConfiguracionRoute
@@ -324,7 +315,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/app/admin'
     | '/app/admin-simple'
     | '/app/clientes'
     | '/app/configuracion'
@@ -358,7 +348,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/app/admin'
     | '/app/admin-simple'
     | '/app/clientes'
     | '/app/configuracion'
@@ -392,7 +381,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/app/admin'
     | '/app/admin-simple'
     | '/app/clientes'
     | '/app/configuracion'
@@ -535,13 +523,6 @@ declare module '@tanstack/react-router' {
       path: '/admin-simple'
       fullPath: '/app/admin-simple'
       preLoaderRoute: typeof AppAdminSimpleRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/admin': {
-      id: '/app/admin'
-      path: '/admin'
-      fullPath: '/app/admin'
-      preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/coaching/': {
@@ -703,7 +684,6 @@ const AppClientesRouteWithChildren = AppClientesRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppAdminRoute: typeof AppAdminRoute
   AppAdminSimpleRoute: typeof AppAdminSimpleRoute
   AppClientesRoute: typeof AppClientesRouteWithChildren
   AppConfiguracionRoute: typeof AppConfiguracionRoute
@@ -720,7 +700,6 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAdminRoute: AppAdminRoute,
   AppAdminSimpleRoute: AppAdminSimpleRoute,
   AppClientesRoute: AppClientesRouteWithChildren,
   AppConfiguracionRoute: AppConfiguracionRoute,
@@ -751,11 +730,10 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }
