@@ -21,8 +21,10 @@ import {
 import {
   Loader2, ShieldCheck, RefreshCw, UserPlus, Send,
   Pencil, KeyRound, Lock, Unlock, Trash2, Users, BarChart3, Briefcase, ChevronDown,
-  CreditCard, Plus,
+  CreditCard, Plus, Layers, ScanSearch, Compass, HeartHandshake,
+  GraduationCap, TrendingUp, Megaphone, ClipboardList,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -85,17 +87,22 @@ const PLANES_LICENCIA = [
   { value: "personalizado", label: "Personalizado" },
 ] as const;
 
-const MODULOS = [
-  { slug: "side",              label: "Diagnóstico SIDE"    },
-  { slug: "plan_estrategico",  label: "Plan Estratégico"    },
-  { slug: "coaching",          label: "Coaching A360"       },
-  { slug: "lee",               label: "Programa LEE"        },
-  { slug: "kpis",              label: "Seguimiento KPIs"    },
-  { slug: "marketing_digital", label: "Marketing Digital"   },
-  { slug: "manual_funciones",  label: "Manual de Funciones" },
-] as const;
+const MODULOS: {
+  slug: string;
+  label: string;
+  descripcion: string;
+  icon: LucideIcon;
+}[] = [
+  { slug: "side",              label: "Diagnóstico SIDE",    descripcion: "Diagnóstico integral empresarial",          icon: ScanSearch      },
+  { slug: "plan_estrategico",  label: "Plan Estratégico",    descripcion: "Planeación estratégica con BSC",            icon: Compass         },
+  { slug: "coaching",          label: "Coaching A360",       descripcion: "Acompañamiento ejecutivo",                  icon: HeartHandshake  },
+  { slug: "lee",               label: "Programa LEE",        descripcion: "Liderazgo Empresarial Evolutivo",           icon: GraduationCap   },
+  { slug: "kpis",              label: "Seguimiento KPIs",    descripcion: "Tablero de indicadores y BSC",              icon: TrendingUp      },
+  { slug: "marketing_digital", label: "Marketing Digital",   descripcion: "Estrategia de crecimiento digital",         icon: Megaphone       },
+  { slug: "manual_funciones",  label: "Manual de Funciones", descripcion: "Descripción de cargos y competencias",      icon: ClipboardList   },
+];
 
-type ModuloSlug = (typeof MODULOS)[number]["slug"];
+type ModuloSlug = string;
 
 function moduloLabel(slug: string): string {
   return MODULOS.find((m) => m.slug === slug)?.label ?? slug;
@@ -137,6 +144,7 @@ const TABS = [
   { id: "usuarios", label: "Usuarios", icon: Users       },
   { id: "clientes", label: "Clientes", icon: Briefcase   },
   { id: "planes",   label: "Planes",   icon: CreditCard  },
+  { id: "modulos",  label: "Módulos",  icon: Layers      },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -186,6 +194,7 @@ function AdminPage() {
       {tab === "usuarios" && <TabUsuarios />}
       {tab === "clientes" && <TabClientes />}
       {tab === "planes"   && <TabPlanes />}
+      {tab === "modulos"  && <TabModulos />}
     </div>
   );
 }
@@ -1439,6 +1448,176 @@ function PlanDialog({ open, plan, onOpenChange, onSave }: {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ─── Tab: Módulos ────────────────────────────────────────────────────────────
+
+type ModuloConPlanes = {
+  slug: string;
+  label: string;
+  descripcion: string;
+  icon: LucideIcon;
+  planes: { id: string; nombre: string; incluido: boolean; activo: boolean }[];
+};
+
+function TabModulos() {
+  const [modulos, setModulos]   = useState<ModuloConPlanes[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [toggling, setToggling] = useState<string | null>(null); // "slug:plan_id"
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [{ data: planesData }, { data: modulosData }] = await Promise.all([
+      supabase.from("planes").select("id,nombre,activo").order("precio"),
+      supabase.from("plan_modulos").select("plan_id,modulo_slug"),
+    ]);
+
+    const incluidoSet = new Set<string>(
+      (modulosData ?? []).map(({ plan_id, modulo_slug }: { plan_id: string; modulo_slug: string }) =>
+        `${modulo_slug}:${plan_id}`,
+      ),
+    );
+
+    const allPlanes = (planesData ?? []) as { id: string; nombre: string; activo: boolean }[];
+
+    setModulos(
+      MODULOS.map((m) => ({
+        slug:       m.slug,
+        label:      m.label,
+        descripcion: m.descripcion,
+        icon:       m.icon,
+        planes:     allPlanes.map((p) => ({
+          id:       p.id,
+          nombre:   p.nombre,
+          activo:   p.activo,
+          incluido: incluidoSet.has(`${m.slug}:${p.id}`),
+        })),
+      })),
+    );
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const toggle = async (slug: string, planId: string, actualmente: boolean) => {
+    const key = `${slug}:${planId}`;
+    setToggling(key);
+    try {
+      if (actualmente) {
+        const { error } = await supabase
+          .from("plan_modulos")
+          .delete()
+          .eq("plan_id", planId)
+          .eq("modulo_slug", slug);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await supabase
+          .from("plan_modulos")
+          .insert({ plan_id: planId, modulo_slug: slug });
+        if (error) throw new Error(error.message);
+      }
+      setModulos((prev) =>
+        prev.map((m) =>
+          m.slug !== slug ? m : {
+            ...m,
+            planes: m.planes.map((p) =>
+              p.id !== planId ? p : { ...p, incluido: !actualmente },
+            ),
+          },
+        ),
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al actualizar módulo");
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  if (loading) {
+    return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-navy" /></div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <p className="text-xs text-muted-foreground flex-1">
+          {MODULOS.length} módulos disponibles en la plataforma
+        </p>
+        <Button size="sm" variant="ghost" onClick={load} className="gap-1.5">
+          <RefreshCw className="w-3.5 h-3.5" /> Actualizar
+        </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {modulos.map((m) => {
+          const Icon = m.icon;
+          const planesCount = m.planes.filter((p) => p.incluido).length;
+
+          return (
+            <div key={m.slug} className="rounded-xl border border-border bg-background p-5 shadow-sm flex flex-col gap-4">
+              {/* Header */}
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center">
+                  <Icon className="w-4.5 h-4.5 text-navy" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-navy text-sm">{m.label}</h3>
+                    <Badge variant="secondary" className="text-[10px] font-normal">
+                      {planesCount} plan{planesCount !== 1 ? "es" : ""}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{m.descripcion}</p>
+                </div>
+              </div>
+
+              {/* Plan toggles */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Incluido en
+                </p>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {m.planes.map((p) => {
+                    const key = `${m.slug}:${p.id}`;
+                    const isToggling = toggling === key;
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 bg-muted/30 hover:bg-muted/50 transition-colors"
+                      >
+                        <span className={`text-xs ${!p.activo ? "text-muted-foreground" : "text-navy"}`}>
+                          {p.nombre}
+                          {!p.activo && <span className="ml-1 text-[10px] italic">(inactivo)</span>}
+                        </span>
+                        <button
+                          onClick={() => toggle(m.slug, p.id, p.incluido)}
+                          disabled={isToggling}
+                          title={p.incluido ? "Quitar de este plan" : "Agregar a este plan"}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-50 ${
+                            p.incluido ? "bg-navy" : "bg-muted-foreground/25"
+                          }`}
+                        >
+                          {isToggling ? (
+                            <Loader2 className="w-3 h-3 animate-spin text-white mx-auto" />
+                          ) : (
+                            <span
+                              className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
+                                p.incluido ? "translate-x-4" : "translate-x-0.5"
+                              }`}
+                            />
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
