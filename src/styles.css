@@ -73,6 +73,14 @@
   --aurora-violet: #A855F7;
   --aurora-sky-lt: #38BDF8;
 
+  /* ── Aurora V2 header/accent system (usadas en panel admin y componentes) ── */
+  --h-from:  #0C4A6E;   /* gradiente inicio — navy profundo          */
+  --h-to:    #1E3A8A;   /* gradiente fin   — azul índigo             */
+  --h-third: #312E81;   /* tercer tono     — índigo más oscuro        */
+  --h-acc:   #38BDF8;   /* acento brillante — sky-lt                 */
+  --acc:     #0EA5E9;   /* acento principal — sky                    */
+  --acc2:    #E0F2FE;   /* fondo suave de acento — sky-50            */
+
   /* Legacy aliases — remap a Aurora para que text-navy/text-gold hereden el nuevo tema */
   --navy: #0C4A6E;
   --gold: #0EA5E9;
@@ -141,6 +149,14 @@
   --navy: #312E81;
   --gold: #6366F1;
   --border: #C7D2FE;
+
+  /* header/accent — índigo profundo */
+  --h-from:  #312E81;
+  --h-to:    #1E1B4B;
+  --h-third: #4338CA;
+  --h-acc:   #818CF8;
+  --acc:     #6366F1;
+  --acc2:    #EEF2FF;
 }
 
 /* Tema: Editorial Premium  (aplicado por ThemeProvider) */
@@ -159,6 +175,14 @@
   --navy: #1a1a1a;
   --gold: #C9A84C;
   --border: #DDD6CC;
+
+  /* header/accent — tierra cálida y dorado editorial */
+  --h-from:  #2D2416;
+  --h-to:    #1a1a1a;
+  --h-third: #3D3120;
+  --h-acc:   #C9A84C;
+  --acc:     #B8972E;
+  --acc2:    #F5F0E8;
 }
 
 .dark {
@@ -176,6 +200,14 @@
   --muted-foreground: #64748B;
   --border: #1E3A5F;
   --input: #1E3A5F;
+
+  /* header/accent — tonos brillantes que destacan sobre fondo oscuro */
+  --h-from:  #0369A1;
+  --h-to:    #4338CA;
+  --h-third: #7E22CE;
+  --h-acc:   #38BDF8;
+  --acc:     #0EA5E9;
+  --acc2:    #1E3A5F;
 }
 
 @layer base {
