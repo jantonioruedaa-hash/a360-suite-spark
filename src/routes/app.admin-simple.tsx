@@ -167,22 +167,36 @@ function AdminPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <ShieldCheck className="w-6 h-6 text-gold" />
+      {/* ── Aurora V2 Header ─────────────────────────────────────────────────── */}
+      <div
+        className="rounded-xl px-6 py-5 mb-6 flex items-center gap-4 shadow-md"
+        style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+      >
+        <ShieldCheck className="w-7 h-7 shrink-0" style={{ color: "rgba(255,255,255,0.85)" }} />
         <div>
-          <h1 className="font-display text-2xl text-navy">Panel Admin</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">A360SP — Gestión completa de usuarios y plataforma</p>
+          <h1 className="font-display text-2xl text-white font-semibold">Panel de Administración</h1>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+            A360SP — Gestión completa de usuarios y plataforma
+          </p>
         </div>
       </div>
 
+      {/* ── Aurora V2 Tabs ────────────────────────────────────────────────────── */}
       <div className="flex gap-1 mb-6 border-b border-border">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === t.id ? "border-gold text-navy" : "border-transparent text-muted-foreground hover:text-navy"
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-all rounded-t-lg border-b-[3px] -mb-px ${
+              tab === t.id
+                ? "text-white"
+                : "border-transparent text-muted-foreground hover:bg-[var(--acc2)] hover:text-navy"
             }`}
+            style={
+              tab === t.id
+                ? { background: "var(--h-from)", borderBottomColor: "var(--h-acc)" }
+                : undefined
+            }
           >
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
@@ -234,9 +248,15 @@ function TabResumen() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {cards.map((c) => (
-        <div key={c.label} className="rounded-xl border border-border bg-background p-5 shadow-sm">
+        <div
+          key={c.label}
+          className="rounded-xl border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md"
+          style={{ borderLeft: "4px solid var(--h-acc)" }}
+        >
           <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">{c.label}</p>
-          <p className={`text-4xl font-bold font-display leading-none ${c.accent}`}>{c.value}</p>
+          <p className="text-4xl font-bold font-display leading-none" style={{ color: "var(--h-from)" }}>
+            {c.value}
+          </p>
         </div>
       ))}
     </div>
@@ -355,10 +375,20 @@ function TabUsuarios() {
           <Button size="sm" variant="ghost" onClick={load} className="gap-1.5">
             <RefreshCw className="w-3.5 h-3.5" /> Actualizar
           </Button>
-          <Button size="sm" variant="outline" onClick={() => { setCreateMode("invite"); setCreateOpen(true); }}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { setCreateMode("invite"); setCreateOpen(true); }}
+            style={{ borderColor: "var(--h-acc)", color: "var(--h-from)" }}
+          >
             <Send className="w-3.5 h-3.5 mr-1.5" />Invitar
           </Button>
-          <Button size="sm" className="bg-navy hover:bg-navy/90 text-white" onClick={() => { setCreateMode("create"); setCreateOpen(true); }}>
+          <Button
+            size="sm"
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
+            onClick={() => { setCreateMode("create"); setCreateOpen(true); }}
+          >
             <UserPlus className="w-3.5 h-3.5 mr-1.5" />Nuevo usuario
           </Button>
         </div>
@@ -370,10 +400,10 @@ function TabUsuarios() {
       ) : (
         <div className="rounded-lg border border-border overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 border-b border-border">
-              <tr>
+            <thead>
+              <tr style={{ background: "var(--h-from)" }}>
                 {["Usuario", "Empresa", "Rol", "Último acceso", "Estado", "Acciones"].map((h) => (
-                  <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                  <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "rgba(255,255,255,0.85)" }}>
                     {h}
                   </th>
                 ))}
@@ -387,8 +417,14 @@ function TabUsuarios() {
                   </td>
                 </tr>
               )}
-              {filtered.map((u) => (
-                <tr key={u.id} className="border-b border-border hover:bg-muted/10 transition-colors">
+              {filtered.map((u, idx) => (
+                <tr
+                  key={u.id}
+                  className="border-b border-border transition-colors"
+                  style={{ background: idx % 2 === 1 ? "var(--acc2)" : undefined }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--acc2)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = idx % 2 === 1 ? "var(--acc2)" : ""; }}
+                >
                   <td className="px-4 py-3">
                     <div className="font-medium text-navy text-sm">
                       {u.name ?? <span className="text-muted-foreground italic">Sin nombre</span>}
@@ -594,11 +630,14 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isInvite ? "Invitar usuario por correo" : "Crear nuevo usuario"}</DialogTitle>
+      <DialogContent className="overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">{isInvite ? "Invitar usuario por correo" : "Crear nuevo usuario"}</DialogTitle>
           {isInvite && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.75)" }}>
               El usuario recibirá un enlace para establecer su contraseña.
             </p>
           )}
@@ -686,7 +725,8 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
           <Button
             onClick={submit}
             disabled={saving || !canSubmit}
-            className="bg-navy hover:bg-navy/90 text-white"
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
           >
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {isInvite ? "Enviar invitación" : "Crear usuario"}
@@ -743,10 +783,13 @@ function EditarDialog({ user, clientes, onClose, onSave }: {
 
   return (
     <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar usuario</DialogTitle>
-          <p className="text-xs text-muted-foreground font-mono">{user.email}</p>
+      <DialogContent className="overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">Editar usuario</DialogTitle>
+          <p className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.75)" }}>{user.email}</p>
         </DialogHeader>
         <div className="space-y-3">
           <div>
@@ -781,7 +824,12 @@ function EditarDialog({ user, clientes, onClose, onSave }: {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-          <Button onClick={save} disabled={saving} className="bg-navy hover:bg-navy/90 text-white">
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
+          >
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Guardar cambios
           </Button>
@@ -830,10 +878,13 @@ function ResetPasswordDialog({ user, onClose, onSubmit }: {
 
   return (
     <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Restablecer contraseña</DialogTitle>
-          <p className="text-xs text-muted-foreground font-mono">{user.email}</p>
+      <DialogContent className="overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">Restablecer contraseña</DialogTitle>
+          <p className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.75)" }}>{user.email}</p>
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex rounded-lg border border-border overflow-hidden">
@@ -845,8 +896,9 @@ function ResetPasswordDialog({ user, onClose, onSubmit }: {
                 key={id}
                 onClick={() => setMode(id)}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                  mode === id ? "bg-navy text-white" : "text-muted-foreground hover:text-navy"
+                  mode === id ? "text-white" : "text-muted-foreground hover:bg-[var(--acc2)]"
                 }`}
+                style={mode === id ? { background: "var(--h-from)" } : undefined}
               >
                 {label}
               </button>
@@ -881,7 +933,12 @@ function ResetPasswordDialog({ user, onClose, onSubmit }: {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-          <Button onClick={submit} disabled={saving} className="bg-navy hover:bg-navy/90 text-white">
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
+          >
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {mode === "set" ? "Actualizar contraseña" : "Enviar correo"}
           </Button>
@@ -983,17 +1040,17 @@ function TabClientes() {
       ) : (
         <div className="rounded-lg border border-border overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 border-b border-border">
-              <tr>
+            <thead>
+              <tr style={{ background: "var(--h-from)" }}>
                 {["Empresa", "Plan", "Consultor", "Usuario portal", "Estado", "Acciones"].map((h) => (
-                  <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                  <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "rgba(255,255,255,0.85)" }}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => {
+              {filtered.map((c, idx) => {
                 const consultor  = c.consultor_id    ? profileMap.get(c.consultor_id)    : null;
                 const portalUser = c.cliente_user_id ? profileMap.get(c.cliente_user_id) : null;
                 const planLabel  = PLANES_LICENCIA.find((p) => p.value === c.plan_licencia)?.label ?? c.plan_licencia;
@@ -1001,7 +1058,12 @@ function TabClientes() {
 
                 return (
                   <Fragment key={c.id}>
-                    <tr className={`border-b border-border hover:bg-muted/10 transition-colors ${!c.activo ? "opacity-60" : ""}`}>
+                    <tr
+                      className={`border-b border-border transition-colors ${!c.activo ? "opacity-60" : ""}`}
+                      style={{ background: idx % 2 === 1 ? "var(--acc2)" : undefined }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--acc2)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = idx % 2 === 1 ? "var(--acc2)" : ""; }}
+                    >
                       <td className="px-4 py-3">
                         <div className="font-medium text-navy">{c.nombre_empresa}</div>
                         {c.sector && <div className="text-xs text-muted-foreground">{c.sector}</div>}
@@ -1174,7 +1236,8 @@ function TabPlanes() {
         </Button>
         <Button
           size="sm"
-          className="bg-navy hover:bg-navy/90 text-white"
+          className="text-white hover:opacity-90 transition-opacity"
+          style={{ background: "var(--h-from)" }}
           onClick={() => { setEditing(null); setDialogOpen(true); }}
         >
           <Plus className="w-3.5 h-3.5 mr-1.5" /> Nuevo plan
@@ -1193,12 +1256,13 @@ function TabPlanes() {
             <div
               key={p.id}
               className={`rounded-xl border border-border bg-background p-5 shadow-sm flex flex-col gap-3 ${!p.activo ? "opacity-60" : ""}`}
+              style={{ borderTop: "4px solid var(--h-acc)" }}
             >
               {/* Header */}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display text-base text-navy font-semibold truncate">{p.nombre}</h3>
+                    <h3 className="font-display text-base font-semibold truncate" style={{ color: "var(--h-from)" }}>{p.nombre}</h3>
                     {p.activo
                       ? <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 shrink-0">Activo</Badge>
                       : <Badge variant="destructive" className="text-[10px] shrink-0">Inactivo</Badge>}
@@ -1210,7 +1274,12 @@ function TabPlanes() {
                 <div className="text-right shrink-0">
                   {p.precio !== null ? (
                     <>
-                      <span className="text-xl font-bold text-navy font-display">${p.precio}</span>
+                      <span
+                        className="text-xl font-bold font-display"
+                        style={{ background: "linear-gradient(to right, var(--h-from), var(--h-to))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                      >
+                        ${p.precio}
+                      </span>
                       <span className="text-xs text-muted-foreground">/mes</span>
                     </>
                   ) : (
@@ -1229,7 +1298,11 @@ function TabPlanes() {
                 ) : (
                   <div className="flex flex-wrap gap-1">
                     {p.modulos.map((slug) => (
-                      <Badge key={slug} variant="secondary" className="text-[10px] font-normal">
+                      <Badge
+                        key={slug}
+                        className="text-[10px] font-normal border-0"
+                        style={{ background: "var(--acc2)", color: "var(--h-from)" }}
+                      >
                         {moduloLabel(slug)}
                       </Badge>
                     ))}
@@ -1369,9 +1442,12 @@ function PlanDialog({ open, plan, onOpenChange, onSave }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar plan" : "Nuevo plan"}</DialogTitle>
+      <DialogContent className="max-w-lg overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">{isEdit ? "Editar plan" : "Nuevo plan"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
           <div className="grid grid-cols-2 gap-3">
@@ -1440,7 +1516,8 @@ function PlanDialog({ open, plan, onOpenChange, onSave }: {
           <Button
             onClick={save}
             disabled={saving || !form.nombre.trim()}
-            className="bg-navy hover:bg-navy/90 text-white"
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
           >
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {isEdit ? "Guardar cambios" : "Crear plan"}
@@ -1558,13 +1635,16 @@ function TabModulos() {
             <div key={m.slug} className="rounded-xl border border-border bg-background p-5 shadow-sm flex flex-col gap-4">
               {/* Header */}
               <div className="flex items-start gap-3">
-                <div className="shrink-0 w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center">
-                  <Icon className="w-4.5 h-4.5 text-navy" />
+                <div className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "var(--acc2)" }}>
+                  <Icon className="w-4.5 h-4.5" style={{ color: "var(--h-acc)" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-navy text-sm">{m.label}</h3>
-                    <Badge variant="secondary" className="text-[10px] font-normal">
+                    <h3 className="font-semibold text-sm" style={{ color: "var(--h-from)" }}>{m.label}</h3>
+                    <Badge
+                      className="text-[10px] font-normal border-0"
+                      style={{ background: "var(--acc2)", color: "var(--h-from)" }}
+                    >
                       {planesCount} plan{planesCount !== 1 ? "es" : ""}
                     </Badge>
                   </div>
@@ -1594,9 +1674,12 @@ function TabModulos() {
                           onClick={() => toggle(m.slug, p.id, p.incluido)}
                           disabled={isToggling}
                           title={p.incluido ? "Quitar de este plan" : "Agregar a este plan"}
-                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-50 ${
-                            p.incluido ? "bg-navy" : "bg-muted-foreground/25"
-                          }`}
+                          className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{
+                            background: p.incluido ? "var(--h-from)" : "rgba(0,0,0,0.15)",
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            ["--tw-ring-color" as any]: "var(--h-acc)",
+                          }}
                         >
                           {isToggling ? (
                             <Loader2 className="w-3 h-3 animate-spin text-white mx-auto" />
@@ -1689,10 +1772,13 @@ function EditarClienteDialog({ cliente, consultores, onClose, onSave }: {
 
   return (
     <Dialog open={!!cliente} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Editar empresa</DialogTitle>
-          <p className="text-xs text-muted-foreground">{cliente.nombre_empresa}</p>
+      <DialogContent className="max-w-lg overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">Editar empresa</DialogTitle>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.75)" }}>{cliente.nombre_empresa}</p>
         </DialogHeader>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           <div>
@@ -1771,7 +1857,8 @@ function EditarClienteDialog({ cliente, consultores, onClose, onSave }: {
           <Button
             onClick={save}
             disabled={saving || !form.nombre_empresa.trim()}
-            className="bg-navy hover:bg-navy/90 text-white"
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
           >
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Guardar cambios
