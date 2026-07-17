@@ -10,6 +10,7 @@ import {
 import { listarSesionesGlobal, type SesionCoaching } from "@/lib/coaching-helpers";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, TrendingUp } from "lucide-react";
+import { PreviewGate } from "@/components/PreviewGate";
 
 export const Route = createFileRoute("/app/coaching/")({
   component: CoachingHome,
@@ -181,7 +182,7 @@ const HERRAMIENTAS_VISTA = [
 ];
 
 // ── Main component ─────────────────────────────────────────────────────────────
-function CoachingHome() {
+function CoachingFull() {
   const [tab, setTab] = useState<TabId>("inicio");
   const [sesiones, setSesiones] = useState<SesionCoaching[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -866,5 +867,96 @@ function CoachingHome() {
       {tab === "plan90"      && renderPlan90()}
       {tab === "preguntas"   && renderPreguntas()}
     </div>
+  );
+}
+
+// ── Preview (sin datos reales, solo contenido estático) ───────────────────────
+function CoachingPreview() {
+  const etapaIcons = ["📡", "⚡", "💓", "🔚"];
+
+  return (
+    <div style={{ background: "#F5F7FF" }}>
+      {/* Overview */}
+      <div style={{ background: "white", padding: "48px 64px", borderBottom: "1px solid #E0E7FF" }}>
+        <div style={{ display: "flex", gap: "48px", alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: "240px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#0EA5E9", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "12px" }}>
+              Coaching Ejecutivo A360
+            </div>
+            <h2 style={{ fontSize: "clamp(20px, 3vw, 30px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", marginBottom: "14px" }}>
+              Acompañamiento que produce<br />transformación real
+            </h2>
+            <p style={{ fontSize: "16px", color: "#64748B", lineHeight: 1.8, maxWidth: "480px", margin: 0 }}>
+              Sesiones estructuradas de 90 minutos con metodología probada en más de 200 empresas latinoamericanas. Análisis con inteligencia artificial incluido en cada sesión.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", flexShrink: 0 }}>
+            {[
+              { icon: "⏱", val: "90 min", lbl: "por sesión" },
+              { icon: "🛠️", val: "12",    lbl: "herramientas" },
+              { icon: "📈", val: "4",     lbl: "etapas" },
+              { icon: "✅", val: "200+",  lbl: "empresas LatAm" },
+            ].map((s) => (
+              <div key={s.lbl} style={{ background: "#F5F7FF", border: "1px solid #E0E7FF", borderRadius: "12px", padding: "16px 18px", textAlign: "center" }}>
+                <div style={{ fontSize: "22px", marginBottom: "6px" }}>{s.icon}</div>
+                <div style={{ fontSize: "20px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.02em" }}>{s.val}</div>
+                <div style={{ fontSize: "10px", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "3px" }}>{s.lbl}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Las 4 etapas */}
+      <div style={{ padding: "56px 64px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#0EA5E9", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "8px" }}>
+          Proceso estructurado
+        </div>
+        <h2 style={{ fontSize: "clamp(20px, 3vw, 30px)", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.03em", marginBottom: "32px" }}>
+          Las 4 etapas del programa
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "20px" }}>
+          {ETAPAS_A360.map((et, i) => (
+            <div
+              key={et.id}
+              style={{
+                background: "white", borderRadius: "16px",
+                border: `1.5px solid ${et.color}25`,
+                borderTop: `4px solid ${et.color}`,
+                padding: "28px 24px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: `${et.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>
+                  {etapaIcons[i]}
+                </div>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: et.color, textTransform: "uppercase", letterSpacing: "0.1em" }}>Etapa {i + 1}</div>
+                  <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E" }}>{et.id}</div>
+                </div>
+              </div>
+              <p style={{ fontSize: "14px", color: "#64748B", lineHeight: 1.7, margin: "0 0 12px" }}>
+                {et.descripcion.split("—")[0].trim()}
+              </p>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: et.color }}>{et.duracionTipica}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Route entry point (auth-gated) ────────────────────────────────────────────
+function CoachingHome() {
+  return (
+    <PreviewGate
+      moduleName="Coaching A360"
+      moduleDescription="Acompañamiento ejecutivo personalizado para líderes que quieren desarrollar equipos de alto rendimiento y transformar su organización con metodología probada en más de 200 empresas de LATAM."
+      moduleIcon={<span style={{ fontSize: "1.6rem" }}>🤝</span>}
+      previewContent={<CoachingPreview />}
+    >
+      <CoachingFull />
+    </PreviewGate>
   );
 }
