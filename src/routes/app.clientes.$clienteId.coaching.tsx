@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  ETAPAS_A360, HERRAMIENTAS_A360,
+  ETAPAS_A360, HERRAMIENTAS_A360, RADAR_DIMENSIONES, PLAN_CONTINUIDAD_FASES, PREGUNTAS_POR_DIMENSION,
   type HerramientaA360,
 } from "@/lib/coaching-catalogo";
 import {
-  listarSesionesCliente, crearSesion, actualizarSesion,
+  listarSesionesCliente, crearSesion, actualizarSesion, progresoPorEtapa,
   type SesionCoaching,
 } from "@/lib/coaching-helpers";
 import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
@@ -55,6 +55,8 @@ function CoachingClienteWorkspace() {
   const [clienteNombre, setClienteNombre]     = useState("Cliente");
   const [herramientaIndex, setHerramientaIndex] = useState(0);
   const [visible, setVisible]                 = useState(true);
+  const [resumenAbierto, setResumenAbierto]   = useState(false);
+  const [etapaMenuAbierta, setEtapaMenuAbierta] = useState<string | null>(null);
   const initialSetDone                        = useRef(false);
   const mainRef                               = useRef<HTMLDivElement>(null);
 
@@ -87,11 +89,14 @@ function CoachingClienteWorkspace() {
     }
   }, [sesiones]);
 
-  const completadasSet = new Set(
-    sesiones.filter((s) => s.completada).map((s) => s.herramienta_id)
+  const completadasSet = useMemo(
+    () => new Set(sesiones.filter((s) => s.completada).map((s) => s.herramienta_id)),
+    [sesiones]
   );
+  const progreso = useMemo(() => progresoPorEtapa(sesiones), [sesiones]);
 
   const navegarA = (newIdx: number) => {
+    setEtapaMenuAbierta(null);
     setVisible(false);
     setTimeout(() => {
       setHerramientaIndex(newIdx);
@@ -106,120 +111,268 @@ function CoachingClienteWorkspace() {
     : undefined;
 
   return (
-    <>
-      <style>{`
-        @keyframes coachingPulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.55; transform: scale(1.4); }
-        }
-      `}</style>
-      <div
-        className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8"
-        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-      >
-        {/* ═══ STICKY HEADER ═══════════════════════════════════════════════════ */}
-        <header style={{
-          position: "sticky", top: 0, zIndex: 20, flexShrink: 0,
-          background: "#0C4A6E",
-          height: "56px", padding: "0 28px",
-          display: "grid", gridTemplateColumns: "1fr auto 1fr",
-          alignItems: "center", gap: "16px",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-        }}>
-          {/* Left: breadcrumb */}
-          <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-            <Link
-              to="/app/coaching"
-              style={{
-                fontSize: "13px", fontWeight: 600,
-                color: "rgba(255,255,255,0.55)", textDecoration: "none",
-                whiteSpace: "nowrap", transition: "color 0.15s",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "white"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.55)"; }}
-            >
-              ← Mis clientes
-            </Link>
-            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", margin: "0 6px" }}>·</span>
-            <span style={{
-              fontSize: "13px", fontWeight: 700, color: "white",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px",
-            }}>
-              {clienteNombre}
-            </span>
-          </div>
+    <div
+      className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8"
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
+      {/* ─ Dropdown overlay (closes stage menus on outside click) ─────────── */}
+      {etapaMenuAbierta && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 25 }}
+          onClick={() => setEtapaMenuAbierta(null)}
+        />
+      )}
 
-          {/* Center: 12 animated progress dots */}
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            {HERRAMIENTAS_A360.map((h, i) => {
-              const isCompleta = completadasSet.has(h.id);
-              const isActual   = i === herramientaIndex;
-              return (
+      {/* ═══ STICKY HEADER ═══════════════════════════════════════════════════ */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 26, flexShrink: 0,
+        background: "#0C4A6E",
+        height: "60px", padding: "0 24px",
+        display: "flex", alignItems: "center", gap: "16px",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+      }}>
+
+        {/* Left: breadcrumb + resumen button */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+          <Link
+            to="/app/coaching"
+            style={{
+              fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap",
+              color: "rgba(255,255,255,0.55)", textDecoration: "none", transition: "color 0.15s",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "white"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.55)"; }}
+          >
+            ← Mis clientes
+          </Link>
+          <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>·</span>
+          <span style={{
+            fontSize: "13px", fontWeight: 700, color: "white",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px",
+          }}>
+            {clienteNombre}
+          </span>
+
+          {/* Separator */}
+          <div style={{ width: "1px", height: "18px", background: "rgba(255,255,255,0.12)", margin: "0 4px" }} />
+
+          {/* Resumen button */}
+          <button
+            onClick={() => setResumenAbierto(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              padding: "5px 11px", borderRadius: "7px",
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "rgba(255,255,255,0.75)",
+              fontSize: "12px", fontWeight: 600,
+              cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              const b = e.currentTarget as HTMLButtonElement;
+              b.style.background = "rgba(255,255,255,0.14)";
+              b.style.color = "white";
+            }}
+            onMouseLeave={(e) => {
+              const b = e.currentTarget as HTMLButtonElement;
+              b.style.background = "rgba(255,255,255,0.08)";
+              b.style.color = "rgba(255,255,255,0.75)";
+            }}
+          >
+            📊 Resumen
+          </button>
+        </div>
+
+        {/* Center: 4-stage navigation */}
+        <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: "4px" }}>
+          {ETAPAS_A360.map((et) => {
+            const herrsDeEtapa = HERRAMIENTAS_A360.filter((h) => h.etapa === et.id);
+            const completadasDeEtapa = herrsDeEtapa.filter((h) => completadasSet.has(h.id)).length;
+            const isActiva = herramientaActual?.etapa === et.id;
+            const isOpen = etapaMenuAbierta === et.id;
+
+            return (
+              <div key={et.id} style={{ position: "relative" }}>
                 <button
-                  key={h.id}
-                  onClick={() => navegarA(i)}
-                  title={`${i + 1}. ${h.nombre}`}
+                  onClick={() => setEtapaMenuAbierta(isOpen ? null : et.id)}
                   style={{
-                    width: isActual ? "10px" : "8px",
-                    height: isActual ? "10px" : "8px",
-                    borderRadius: "50%", border: "none", padding: 0,
-                    cursor: "pointer", flexShrink: 0,
-                    background: isCompleta
-                      ? "#38BDF8"
-                      : isActual
-                      ? "white"
-                      : "rgba(255,255,255,0.22)",
-                    animation: isActual ? "coachingPulse 1.8s ease-in-out infinite" : "none",
-                    transition: "background 0.2s, width 0.2s, height 0.2s",
+                    padding: "5px 14px", borderRadius: "7px",
+                    background: isActiva ? `${et.color}28` : "transparent",
+                    border: `1px solid ${isActiva ? et.color + "55" : "transparent"}`,
+                    cursor: "pointer",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: "2px",
+                    transition: "all 0.15s",
                   }}
-                />
-              );
-            })}
-          </div>
+                  onMouseEnter={(e) => {
+                    if (!isActiva) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.07)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActiva) (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                  }}
+                >
+                  <span style={{
+                    fontSize: "11px", fontWeight: 700, whiteSpace: "nowrap",
+                    color: isActiva ? et.color : "rgba(255,255,255,0.55)",
+                  }}>
+                    {et.id}
+                  </span>
+                  <span style={{
+                    fontSize: "10px", whiteSpace: "nowrap",
+                    color: isActiva ? et.color : "rgba(255,255,255,0.3)",
+                    fontWeight: 600,
+                  }}>
+                    {completadasDeEtapa}/{herrsDeEtapa.length}
+                  </span>
+                </button>
 
-          {/* Right: X / 12 counter */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <span style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>
-              {herramientaIndex + 1}
-              <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.35)" }}>
-                {" "}/ {HERRAMIENTAS_A360.length}
-              </span>
+                {/* Stage dropdown */}
+                {isOpen && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 6px)", left: "50%",
+                    transform: "translateX(-50%)",
+                    background: "white", borderRadius: "10px",
+                    border: "1px solid #E2E8F0",
+                    boxShadow: "0 8px 28px rgba(0,0,0,0.13)",
+                    minWidth: "210px", padding: "6px",
+                    zIndex: 30,
+                  }}>
+                    <div style={{
+                      fontSize: "10px", fontWeight: 700, color: et.color,
+                      textTransform: "uppercase", letterSpacing: "0.1em",
+                      padding: "4px 8px 6px",
+                    }}>
+                      {et.id}
+                    </div>
+                    {herrsDeEtapa.map((h) => {
+                      const globalIdx = HERRAMIENTAS_A360.findIndex((x) => x.id === h.id);
+                      const isCompleta = completadasSet.has(h.id);
+                      const isActual   = herramientaIndex === globalIdx;
+                      return (
+                        <button
+                          key={h.id}
+                          onClick={() => navegarA(globalIdx)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: "9px",
+                            padding: "8px 10px", borderRadius: "7px", width: "100%",
+                            background: isActual ? `${et.color}10` : "transparent",
+                            border: "none", cursor: "pointer", textAlign: "left",
+                            transition: "background 0.1s",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActual)
+                              (e.currentTarget as HTMLButtonElement).style.background = "#F8FAFF";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActual)
+                              (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                          }}
+                        >
+                          <span style={{
+                            width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: "9px", fontWeight: 900, color: "white",
+                            background: isCompleta ? et.color : "transparent",
+                            border: isCompleta ? "none" : isActual ? `2px solid ${et.color}` : "1.5px solid #CBD5E1",
+                          }}>
+                            {isCompleta ? "✓" : ""}
+                          </span>
+                          <span style={{
+                            fontSize: "13px", flex: 1,
+                            fontWeight: isActual ? 700 : 400,
+                            color: isCompleta ? "#94A3B8" : isActual ? "#0C4A6E" : "#374151",
+                          }}>
+                            {h.nombre}
+                          </span>
+                          {isActual && (
+                            <span style={{
+                              fontSize: "10px", color: et.color,
+                              fontWeight: 700, flexShrink: 0,
+                            }}>
+                              actual
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right: X/12 counter */}
+        <div style={{ flexShrink: 0 }}>
+          <span style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>
+            {herramientaIndex + 1}
+            <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.35)" }}>
+              {" "}/ {HERRAMIENTAS_A360.length}
             </span>
-          </div>
-        </header>
+          </span>
+        </div>
+      </header>
 
-        {/* ═══ MAIN SCROLLABLE AREA ════════════════════════════════════════════ */}
-        <main
-          ref={mainRef}
-          style={{ flex: 1, overflowY: "auto", background: "#F5F7FF" }}
-        >
-          {loading ? (
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              minHeight: "60vh", flexDirection: "column", gap: "16px",
-            }}>
-              <div style={{ fontSize: "40px" }}>⏳</div>
-              <p style={{ fontSize: "15px", color: "#64748B" }}>Cargando programa…</p>
-            </div>
-          ) : herramientaActual ? (
-            <div style={{ opacity: visible ? 1 : 0, transition: "opacity 0.2s ease" }}>
-              <WizardHerramienta
-                key={herramientaIndex}
-                clienteId={clienteId}
-                herramienta={herramientaActual}
-                herramientaIndex={herramientaIndex}
-                existingSesion={sesionActual}
-                onSaved={cargar}
-                onPrev={() => navegarA(Math.max(herramientaIndex - 1, 0))}
-                onNext={() => navegarA(Math.min(herramientaIndex + 1, HERRAMIENTAS_A360.length - 1))}
-                isFirst={herramientaIndex === 0}
-                isLast={herramientaIndex === HERRAMIENTAS_A360.length - 1}
-              />
-            </div>
-          ) : null}
-        </main>
+      {/* ═══ MAIN SCROLLABLE AREA ════════════════════════════════════════════ */}
+      <main
+        ref={mainRef}
+        style={{ flex: 1, overflowY: "auto", background: "#F5F7FF" }}
+      >
+        {loading ? (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            minHeight: "60vh", flexDirection: "column", gap: "16px",
+          }}>
+            <div style={{ fontSize: "40px" }}>⏳</div>
+            <p style={{ fontSize: "15px", color: "#64748B" }}>Cargando programa…</p>
+          </div>
+        ) : herramientaActual ? (
+          <div style={{ opacity: visible ? 1 : 0, transition: "opacity 0.2s ease" }}>
+            <WizardHerramienta
+              key={herramientaIndex}
+              clienteId={clienteId}
+              herramienta={herramientaActual}
+              herramientaIndex={herramientaIndex}
+              existingSesion={sesionActual}
+              onSaved={cargar}
+              onPrev={() => navegarA(Math.max(herramientaIndex - 1, 0))}
+              onNext={() => navegarA(Math.min(herramientaIndex + 1, HERRAMIENTAS_A360.length - 1))}
+              isFirst={herramientaIndex === 0}
+              isLast={herramientaIndex === HERRAMIENTAS_A360.length - 1}
+            />
+          </div>
+        ) : null}
+      </main>
+
+      {/* ═══ SLIDE-OVER: RESUMEN DEL PROGRAMA ═══════════════════════════════ */}
+      {/* Backdrop */}
+      {resumenAbierto && (
+        <div
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+            zIndex: 40, transition: "opacity 0.25s",
+          }}
+          onClick={() => setResumenAbierto(false)}
+        />
+      )}
+      {/* Panel */}
+      <div style={{
+        position: "fixed", top: 0, right: 0, bottom: 0,
+        width: "min(480px, 96vw)",
+        background: "white", zIndex: 41,
+        transform: resumenAbierto ? "translateX(0)" : "translateX(100%)",
+        transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+        boxShadow: "-4px 0 32px rgba(0,0,0,0.14)",
+        display: "flex", flexDirection: "column",
+      }}>
+        {resumenAbierto && (
+          <PanelResumen
+            progreso={progreso}
+            sesiones={sesiones}
+            onClose={() => setResumenAbierto(false)}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -286,7 +439,7 @@ function WizardHerramienta({
         </div>
         <h2 style={{
           fontSize: "28px", fontWeight: 700, color: "#0C4A6E",
-          letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: "10px", margin: "0 0 10px",
+          letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 10px",
         }}>
           {herramienta.nombre}
         </h2>
@@ -298,24 +451,22 @@ function WizardHerramienta({
         </p>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <span style={{
-            fontSize: "11px", fontWeight: 700, padding: "3px 12px",
-            borderRadius: "999px", background: `${etapaColor}15`,
-            color: etapaColor, border: `1px solid ${etapaColor}35`,
+            fontSize: "11px", fontWeight: 700, padding: "3px 12px", borderRadius: "999px",
+            background: `${etapaColor}15`, color: etapaColor, border: `1px solid ${etapaColor}35`,
           }}>
             {herramienta.etapa}
           </span>
           <span style={{
-            fontSize: "11px", fontWeight: 600, padding: "3px 12px",
-            borderRadius: "999px", background: "#F1F5F9",
-            color: "#64748B", border: "1px solid #E2E8F0",
+            fontSize: "11px", fontWeight: 600, padding: "3px 12px", borderRadius: "999px",
+            background: "#F1F5F9", color: "#64748B", border: "1px solid #E2E8F0",
           }}>
             ⏱ {herramienta.duracion}
           </span>
           {completada && (
             <span style={{
-              fontSize: "11px", fontWeight: 700, padding: "3px 12px",
-              borderRadius: "999px", background: "rgba(5,150,105,0.1)",
-              color: "#059669", border: "1px solid rgba(5,150,105,0.25)",
+              fontSize: "11px", fontWeight: 700, padding: "3px 12px", borderRadius: "999px",
+              background: "rgba(5,150,105,0.1)", color: "#059669",
+              border: "1px solid rgba(5,150,105,0.25)",
             }}>
               ✅ Completada
             </span>
@@ -439,7 +590,6 @@ function WizardHerramienta({
         display: "grid", gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center", gap: "16px",
       }}>
-        {/* Left: ← Anterior */}
         <div>
           <button
             onClick={onPrev}
@@ -451,15 +601,12 @@ function WizardHerramienta({
               background: isFirst ? "#F8FAFC" : "white",
               color: isFirst ? "#CBD5E1" : "#374151",
               fontSize: "14px", fontWeight: 600,
-              cursor: isFirst ? "not-allowed" : "pointer",
-              transition: "all 0.15s",
+              cursor: isFirst ? "not-allowed" : "pointer", transition: "all 0.15s",
             }}
           >
             ← Anterior
           </button>
         </div>
-
-        {/* Center: tool name */}
         <span style={{
           fontSize: "13px", color: "#94A3B8", fontWeight: 500,
           textAlign: "center", whiteSpace: "nowrap",
@@ -467,8 +614,6 @@ function WizardHerramienta({
         }}>
           {herramienta.nombre}
         </span>
-
-        {/* Right: save + complete */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", alignItems: "center" }}>
           <button
             onClick={() => guardar()}
@@ -502,6 +647,261 @@ function WizardHerramienta({
             {saving ? "Guardando…" : isLast ? "Ver resumen del programa ✓" : "Completar y continuar →"}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Slide-over: Resumen del programa
+// ────────────────────────────────────────────────────────────────────────────────
+type PanelTab = "etapas" | "radar" | "plan" | "preguntas";
+
+const PANEL_TABS: { id: PanelTab; label: string }[] = [
+  { id: "etapas",    label: "4 Etapas" },
+  { id: "radar",     label: "Radar" },
+  { id: "plan",      label: "Plan 90d" },
+  { id: "preguntas", label: "Preguntas" },
+];
+
+function PanelResumen({
+  progreso, sesiones, onClose,
+}: {
+  progreso: ReturnType<typeof progresoPorEtapa>;
+  sesiones: SesionCoaching[];
+  onClose: () => void;
+}) {
+  const [tab, setTab] = useState<PanelTab>("etapas");
+
+  const radarInicial = sesiones
+    .filter((s) => s.herramienta_id === "radar-lider" && s.completada)
+    .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at))[0];
+  const radarCierre = sesiones
+    .filter((s) => s.herramienta_id === "radar-cierre" && s.completada)
+    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))[0];
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+
+      {/* Panel header */}
+      <div style={{ padding: "20px 24px 0", borderBottom: "1px solid #E0E7FF", flexShrink: 0, background: "white" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <div>
+            <h2 style={{ fontSize: "17px", fontWeight: 800, color: "#0C4A6E", margin: 0 }}>Resumen del programa</h2>
+            <p style={{ fontSize: "12px", color: "#94A3B8", margin: "3px 0 0" }}>Contenido de referencia · no interrumpe el wizard</p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "#F1F5F9", border: "none", borderRadius: "8px",
+              padding: "7px 11px", cursor: "pointer", fontSize: "14px", color: "#64748B",
+              transition: "background 0.1s",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#E2E8F0"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F1F5F9"; }}
+          >
+            ✕
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: "2px" }}>
+          {PANEL_TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                flex: 1, padding: "8px 4px", cursor: "pointer",
+                border: "none", borderBottom: `2.5px solid ${tab === t.id ? "#0C4A6E" : "transparent"}`,
+                background: "transparent",
+                color: tab === t.id ? "#0C4A6E" : "#94A3B8",
+                fontSize: "12px", fontWeight: tab === t.id ? 800 : 600,
+                transition: "all 0.15s",
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Panel content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", background: "#F8FAFF" }}>
+
+        {/* ─ Tab: 4 Etapas ─ */}
+        {tab === "etapas" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {progreso.map((p, i) => {
+              const roman = (["I", "II", "III", "IV"] as const)[i] ?? String(i + 1);
+              return (
+                <div key={p.etapa.id} style={{
+                  background: "white", borderRadius: "12px",
+                  border: `1.5px solid ${p.etapa.color}30`, padding: "16px",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                    <span style={{
+                      fontSize: "11px", fontWeight: 800, color: "white",
+                      background: p.etapa.color, padding: "3px 8px", borderRadius: "5px",
+                    }}>
+                      {roman}
+                    </span>
+                    <span style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E", flex: 1 }}>
+                      {p.etapa.id}
+                    </span>
+                    <span style={{ fontSize: "20px", fontWeight: 900, color: p.etapa.color }}>
+                      {p.pct}%
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#64748B", lineHeight: 1.5, margin: "0 0 10px" }}>
+                    {p.etapa.descripcion}
+                  </p>
+                  <div style={{ height: "5px", background: "#F0F4FF", borderRadius: "999px", overflow: "hidden", marginBottom: "5px" }}>
+                    <div style={{
+                      height: "100%", background: p.etapa.color,
+                      borderRadius: "999px", width: `${p.pct}%`, transition: "width 0.5s",
+                    }} />
+                  </div>
+                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>
+                    {p.completadas}/{p.total} herramientas
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ─ Tab: Radar ─ */}
+        {tab === "radar" && (
+          <div>
+            <p style={{ fontSize: "13px", color: "#64748B", lineHeight: 1.6, margin: "0 0 14px" }}>
+              Calibración conductual 1–10. Se aplica al inicio (Radar del líder) y al cierre del programa.
+            </p>
+            {!radarInicial && (
+              <div style={{
+                background: "#FEF3C7", border: "1px solid #FCD34D",
+                borderRadius: "10px", padding: "11px 14px", marginBottom: "14px",
+                fontSize: "12px", color: "#92400E", lineHeight: 1.5,
+              }}>
+                El Radar del líder aún no se ha aplicado (herramienta 1 del programa).
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {RADAR_DIMENSIONES.map((d) => {
+                const respIni = (radarInicial?.datos as Record<string, unknown>)?.respuestas as Record<string, unknown> | undefined;
+                const respCie = (radarCierre?.datos as Record<string, unknown>)?.respuestas as Record<string, unknown> | undefined;
+                const ini = respIni ? Number(respIni[d.id]) || 0 : null;
+                const cie = respCie ? Number(respCie[d.id]) || 0 : null;
+                const delta = ini !== null && cie !== null ? cie - ini : null;
+                return (
+                  <div key={d.id} style={{
+                    background: "white", borderRadius: "10px",
+                    border: "1px solid #E0E7FF", padding: "13px 14px",
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: "13px", fontWeight: 700, color: "#0C4A6E" }}>{d.nombre}</div>
+                        <div style={{ fontSize: "11px", color: "#94A3B8", marginTop: "2px", lineHeight: 1.4 }}>{d.descripcion}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
+                        {ini !== null && (
+                          <span style={{ fontSize: "12px", color: "#64748B" }}>
+                            <span style={{ color: "#94A3B8" }}>Ini:</span> <b>{ini}</b>
+                          </span>
+                        )}
+                        {cie !== null && (
+                          <span style={{ fontSize: "12px", color: "#64748B" }}>
+                            <span style={{ color: "#94A3B8" }}>Cie:</span> <b>{cie}</b>
+                          </span>
+                        )}
+                        {delta !== null && (
+                          <span style={{
+                            fontSize: "11px", fontWeight: 700, padding: "2px 7px", borderRadius: "6px",
+                            background: delta > 0 ? "#ECFDF5" : delta < 0 ? "#FEF3C7" : "#F1F5F9",
+                            color: delta > 0 ? "#059669" : delta < 0 ? "#D97706" : "#94A3B8",
+                          }}>
+                            {delta > 0 ? "+" : ""}{delta}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {ini !== null && (
+                      <div style={{ height: "4px", background: "#F0F4FF", borderRadius: "999px", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", borderRadius: "999px",
+                          background: "linear-gradient(90deg, #0EA5E9, #6366F1)",
+                          width: `${(ini / 10) * 100}%`,
+                        }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ─ Tab: Plan 90 días ─ */}
+        {tab === "plan" && (
+          <div>
+            <p style={{ fontSize: "13px", color: "#64748B", lineHeight: 1.6, margin: "0 0 14px" }}>
+              El programa formal termina, pero la transformación real ocurre en estos 90 días. Cada fase tiene un hito verificable.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {PLAN_CONTINUIDAD_FASES.map((f, i) => (
+                <div key={f.id} style={{
+                  background: "white", borderRadius: "12px",
+                  border: "1px solid #E0E7FF", padding: "16px",
+                  display: "flex", gap: "14px",
+                }}>
+                  <div style={{
+                    width: "32px", height: "32px", borderRadius: "10px", flexShrink: 0,
+                    background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)",
+                    color: "white", fontSize: "14px", fontWeight: 900,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {i + 1}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "10px", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "3px" }}>
+                      {f.label}
+                    </div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E", marginBottom: "5px" }}>
+                      {f.titulo}
+                    </div>
+                    <div style={{ fontSize: "13px", color: "#64748B", lineHeight: 1.6 }}>{f.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─ Tab: Preguntas poderosas ─ */}
+        {tab === "preguntas" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {RADAR_DIMENSIONES.map((d) => (
+              <div key={d.id} style={{
+                background: "white", borderRadius: "12px",
+                border: "1px solid #E0E7FF", overflow: "hidden",
+              }}>
+                <div style={{
+                  padding: "11px 16px",
+                  background: "linear-gradient(90deg, #EFF6FF, #F5F3FF)",
+                  borderBottom: "1px solid #E0E7FF",
+                  fontSize: "13px", fontWeight: 700, color: "#0C4A6E",
+                }}>
+                  {d.nombre}
+                </div>
+                <ul style={{ padding: "10px 16px", margin: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {(PREGUNTAS_POR_DIMENSION[d.id] ?? []).map((p, i) => (
+                    <li key={i} style={{ display: "flex", gap: "8px", fontSize: "13px", color: "#475569", lineHeight: 1.5 }}>
+                      <span style={{ color: "#0EA5E9", flexShrink: 0, fontWeight: 700 }}>›</span>
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
