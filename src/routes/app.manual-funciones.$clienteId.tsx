@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Plus, Pencil, Trash2, ChevronDown, ChevronUp, FileText, X, Check } from "lucide-react";
+import {
+  ArrowLeft, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
+  FileText, X, Check, Eye, Printer, Target, ListChecks,
+  Users, Cpu, BarChart3, Rocket,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/manual-funciones/$clienteId")({
@@ -46,11 +50,11 @@ const FORM_BLANK: FormDatos = {
   plan_carrera: "",
 };
 
-const ESTADOS = ["vigente", "en_revision", "obsoleto"];
-const NIVELES = ["Básico", "Intermedio", "Avanzado", "Experto"];
+const ESTADOS    = ["vigente", "en_revision", "obsoleto"];
+const NIVELES    = ["Básico", "Intermedio", "Avanzado", "Experto"];
 const FRECUENCIAS = ["Diario", "Semanal", "Mensual", "Trimestral", "Anual"];
 
-// ── Style helpers ──────────────────────────────────────────────────────────────
+// ── Style constants ────────────────────────────────────────────────────────────
 const LABEL: React.CSSProperties = {
   fontSize: "11px", fontWeight: 700, color: "#64748B",
   textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "5px",
@@ -58,8 +62,7 @@ const LABEL: React.CSSProperties = {
 const INPUT: React.CSSProperties = {
   width: "100%", padding: "8px 12px", fontSize: "14px",
   border: "1.5px solid #E2E8F0", borderRadius: "8px",
-  background: "white", color: "#0C4A6E", outline: "none",
-  boxSizing: "border-box",
+  background: "white", color: "#0C4A6E", outline: "none", boxSizing: "border-box",
 };
 const PILL = (estado: string | null) => {
   const m: Record<string, { bg: string; color: string }> = {
@@ -69,6 +72,12 @@ const PILL = (estado: string | null) => {
   };
   const s = m[estado ?? ""] ?? { bg: "#F1F5F9", color: "#64748B" };
   return { ...s, fontSize: "11px", fontWeight: 700, padding: "2px 9px", borderRadius: "99px" };
+};
+const NIVEL_COLOR: Record<string, { bg: string; color: string }> = {
+  "Básico":      { bg: "#F1F5F9", color: "#64748B" },
+  "Intermedio":  { bg: "#DBEAFE", color: "#1D4ED8" },
+  "Avanzado":    { bg: "#D1FAE5", color: "#065F46" },
+  "Experto":     { bg: "#EDE9FE", color: "#5B21B6" },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -102,7 +111,320 @@ function parseCargo(row: Record<string, unknown>): Cargo {
   };
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
+function fmtDate(iso: string | null) {
+  if (!iso) return "—";
+  try { return new Date(iso).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" }); }
+  catch { return iso; }
+}
+
+// ── PreviewPanel ───────────────────────────────────────────────────────────────
+function PreviewPanel({
+  cargo, clienteNombre, onClose, onEdit,
+}: {
+  cargo: Cargo;
+  clienteNombre: string;
+  onClose: () => void;
+  onEdit: () => void;
+}) {
+  // Inject print CSS on mount
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.id = "mf-preview-print-css";
+    style.textContent = `
+      @media print {
+        body > * { visibility: hidden !important; }
+        .mf-preview, .mf-preview * { visibility: visible !important; }
+        .mf-preview {
+          position: fixed !important; inset: 0 !important;
+          overflow: visible !important; background: white !important;
+          z-index: 9999 !important; padding: 0 !important;
+        }
+        .mf-preview .no-print { display: none !important; }
+        .mf-preview .preview-body {
+          padding: 0 !important; max-width: 100% !important;
+          overflow: visible !important; height: auto !important;
+        }
+        .mf-preview .preview-section { break-inside: avoid; }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => { document.getElementById("mf-preview-print-css")?.remove(); };
+  }, []);
+
+  const hasContent = (arr: unknown[]) => arr.length > 0;
+
+  const SectionBlock = ({
+    icon: Icon, title, color, children,
+  }: { icon: React.ElementType; title: string; color: string; children: React.ReactNode }) => (
+    <div className="preview-section" style={{ background: "white", borderRadius: "12px", border: "1.5px solid #E2E8F0", overflow: "hidden", marginBottom: "14px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 18px", borderBottom: "1.5px solid #E2E8F0", background: `${color}08` }}>
+        <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: `${color}20`, border: `1.5px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon style={{ width: "15px", height: "15px", color }} />
+        </div>
+        <span style={{ fontSize: "13px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em" }}>{title}</span>
+      </div>
+      <div style={{ padding: "18px" }}>{children}</div>
+    </div>
+  );
+
+  return (
+    <div
+      className="mf-preview"
+      style={{
+        position: "fixed", inset: 0, zIndex: 100,
+        background: "#F8FAFF", overflowY: "auto",
+        display: "flex", flexDirection: "column",
+      }}
+    >
+      {/* ── Sticky action bar ── */}
+      <div
+        className="no-print"
+        style={{
+          position: "sticky", top: 0, zIndex: 10,
+          background: "white", borderBottom: "1px solid #E2E8F0",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 24px", gap: "12px",
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}
+        >
+          <ArrowLeft style={{ width: "13px", height: "13px" }} /> Volver a la lista
+        </button>
+
+        <span style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E", flex: 1, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {cargo.cargo}
+        </span>
+
+        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+          <button
+            onClick={onEdit}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 600, color: "#0C4A6E", background: "white", border: "1.5px solid #E2E8F0", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}
+          >
+            <Pencil style={{ width: "13px", height: "13px" }} /> Editar
+          </button>
+          <button
+            onClick={() => window.print()}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", border: "none", borderRadius: "8px", padding: "7px 16px", cursor: "pointer" }}
+          >
+            <Printer style={{ width: "13px", height: "13px" }} /> Exportar PDF
+          </button>
+        </div>
+      </div>
+
+      {/* ── Document body ── */}
+      <div
+        className="preview-body"
+        style={{ maxWidth: "760px", width: "100%", margin: "0 auto", padding: "28px 24px 60px" }}
+      >
+
+        {/* ── Hero header ── */}
+        <div style={{
+          background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 100%)",
+          borderRadius: "16px", padding: "32px 36px", marginBottom: "14px",
+          position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 70% at 90% 10%, rgba(14,165,233,0.18), transparent)", pointerEvents: "none" }} />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {/* Company tag */}
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#38BDF8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "14px" }}>
+              {clienteNombre} · Manual de Funciones
+            </div>
+
+            {/* Cargo name + avatar */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "18px", marginBottom: "18px" }}>
+              <div style={{ width: "60px", height: "60px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", fontWeight: 900, color: "white", flexShrink: 0 }}>
+                {cargo.cargo[0]?.toUpperCase()}
+              </div>
+              <div>
+                <h1 style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 900, color: "white", margin: "0 0 6px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                  {cargo.cargo}
+                </h1>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>{cargo.area}</span>
+                  {cargo.jefe_inmediato && (
+                    <>
+                      <span style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
+                      <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>Reporta a: {cargo.jefe_inmediato}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Badges row */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <span style={{ ...PILL(cargo.estado), fontSize: "12px" }}>
+                {(cargo.estado ?? "—").replace("_", " ")}
+              </span>
+              {cargo.vacante && (
+                <span style={{ background: "#EDE9FE", color: "#5B21B6", fontSize: "12px", fontWeight: 700, padding: "2px 9px", borderRadius: "99px" }}>
+                  Vacante
+                </span>
+              )}
+              {cargo.codigo && (
+                <span style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", fontSize: "11px", fontWeight: 700, padding: "2px 10px", borderRadius: "99px", border: "1px solid rgba(255,255,255,0.2)" }}>
+                  {cargo.codigo}
+                </span>
+              )}
+              {cargo.version && (
+                <span style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", fontSize: "11px", fontWeight: 600, padding: "2px 10px", borderRadius: "99px", border: "1px solid rgba(255,255,255,0.15)" }}>
+                  v{cargo.version}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Elaboración meta row ── */}
+        {(cargo.elaborado_por || cargo.aprobado_por || cargo.fecha_elaboracion || cargo.fecha_revision) && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "10px", marginBottom: "14px" }}>
+            {[
+              { lbl: "Elaborado por",      val: cargo.elaborado_por },
+              { lbl: "Aprobado por",       val: cargo.aprobado_por },
+              { lbl: "Fecha elaboración",  val: fmtDate(cargo.fecha_elaboracion) },
+              { lbl: "Fecha revisión",     val: fmtDate(cargo.fecha_revision) },
+            ].filter((r) => r.val && r.val !== "—").map((r) => (
+              <div key={r.lbl} style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "10px", padding: "10px 14px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "3px" }}>{r.lbl}</div>
+                <div style={{ fontSize: "13px", fontWeight: 600, color: "#0C4A6E" }}>{r.val}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Objetivo ── */}
+        {cargo.objetivo && (
+          <SectionBlock icon={Target} title="Objetivo del Cargo" color="#0EA5E9">
+            <p style={{ fontSize: "14px", color: "#334155", lineHeight: 1.75, margin: 0 }}>{cargo.objetivo}</p>
+          </SectionBlock>
+        )}
+
+        {/* ── Funciones ── */}
+        {hasContent(cargo.funciones) && (
+          <SectionBlock icon={ListChecks} title="Funciones Principales" color="#6366F1">
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {cargo.funciones.map((fn, i) => (
+                <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                  <div style={{ width: "26px", height: "26px", borderRadius: "7px", background: "#EEF2FF", border: "1.5px solid #C7D2FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: "#6366F1", flexShrink: 0, marginTop: "1px" }}>
+                    {i + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: "14px", color: "#334155", margin: "0 0 6px", lineHeight: 1.6 }}>{fn.descripcion}</p>
+                    {fn.porcentaje_tiempo > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ flex: 1, height: "4px", background: "#EEF2FF", borderRadius: "99px", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${Math.min(fn.porcentaje_tiempo, 100)}%`, background: "linear-gradient(90deg, #6366F1, #818CF8)", borderRadius: "99px" }} />
+                        </div>
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: "#6366F1", flexShrink: 0 }}>{fn.porcentaje_tiempo}%</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionBlock>
+        )}
+
+        {/* ── Competencias ── */}
+        {(hasContent(cargo.competencias_blandas) || hasContent(cargo.competencias_tecnicas)) && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+            {hasContent(cargo.competencias_blandas) && (
+              <div style={{ background: "white", borderRadius: "12px", border: "1.5px solid #E2E8F0", overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", borderBottom: "1.5px solid #E2E8F0", background: "#1D9E7508" }}>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: "#1D9E7520", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Users style={{ width: "13px", height: "13px", color: "#1D9E75" }} />
+                  </div>
+                  <span style={{ fontSize: "12px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em" }}>Comp. Blandas</span>
+                </div>
+                <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {cargo.competencias_blandas.map((c, i) => {
+                    const nc = NIVEL_COLOR[c.nivel] ?? NIVEL_COLOR["Básico"];
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                        <span style={{ fontSize: "13px", color: "#334155", flex: 1 }}>{c.nombre}</span>
+                        <span style={{ ...nc, fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "99px", flexShrink: 0 }}>{c.nivel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {hasContent(cargo.competencias_tecnicas) && (
+              <div style={{ background: "white", borderRadius: "12px", border: "1.5px solid #E2E8F0", overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", borderBottom: "1.5px solid #E2E8F0", background: "#7F77DD08" }}>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: "#7F77DD20", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Cpu style={{ width: "13px", height: "13px", color: "#7F77DD" }} />
+                  </div>
+                  <span style={{ fontSize: "12px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em" }}>Comp. Técnicas</span>
+                </div>
+                <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {cargo.competencias_tecnicas.map((c, i) => {
+                    const nc = NIVEL_COLOR[c.nivel] ?? NIVEL_COLOR["Básico"];
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                        <span style={{ fontSize: "13px", color: "#334155", flex: 1 }}>{c.nombre}</span>
+                        <span style={{ ...nc, fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "99px", flexShrink: 0 }}>{c.nivel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── KPIs ── */}
+        {hasContent(cargo.kpis) && (
+          <SectionBlock icon={BarChart3} title="KPIs" color="#BA7517">
+            <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", background: "#0C4A6E", padding: "9px 14px", gap: "12px" }}>
+                {["Indicador", "Meta", "Frecuencia"].map((h) => (
+                  <span key={h} style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{h}</span>
+                ))}
+              </div>
+              {cargo.kpis.map((k, i) => (
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "12px", padding: "10px 14px", background: i % 2 === 0 ? "white" : "#F8FAFF", borderTop: "1px solid #E2E8F0" }}>
+                  <span style={{ fontSize: "13px", color: "#0C4A6E", fontWeight: 600 }}>{k.nombre}</span>
+                  <span style={{ fontSize: "13px", color: "#334155" }}>{k.meta}</span>
+                  <span style={{ fontSize: "12px", color: "#64748B", whiteSpace: "nowrap" }}>{k.frecuencia}</span>
+                </div>
+              ))}
+            </div>
+          </SectionBlock>
+        )}
+
+        {/* ── Plan de Carrera ── */}
+        {cargo.plan_carrera && (
+          <SectionBlock icon={Rocket} title="Plan de Carrera" color="#D85A30">
+            <p style={{ fontSize: "14px", color: "#334155", lineHeight: 1.75, margin: 0 }}>{cargo.plan_carrera}</p>
+          </SectionBlock>
+        )}
+
+        {/* Empty state if absolutely nothing to show */}
+        {!cargo.objetivo && !hasContent(cargo.funciones) && !hasContent(cargo.competencias_blandas) && !hasContent(cargo.competencias_tecnicas) && !hasContent(cargo.kpis) && !cargo.plan_carrera && (
+          <div style={{ textAlign: "center", padding: "40px 24px", background: "white", borderRadius: "12px", border: "1.5px dashed #E0E7FF" }}>
+            <FileText style={{ width: "32px", height: "32px", color: "#CBD5E1", margin: "0 auto 10px" }} />
+            <p style={{ fontSize: "14px", color: "#94A3B8", margin: 0 }}>Este cargo aún no tiene contenido detallado. Edítalo para agregar funciones, competencias y KPIs.</p>
+          </div>
+        )}
+
+        {/* ── Footer stamp (printed only) ── */}
+        <div style={{ marginTop: "32px", paddingTop: "16px", borderTop: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: "11px", color: "#94A3B8" }}>
+            A360 Suite · Manual de Funciones
+          </span>
+          <span style={{ fontSize: "11px", color: "#94A3B8" }}>
+            {clienteNombre} · {new Date().toLocaleDateString("es-CO")}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Form sub-components ────────────────────────────────────────────────────────
 function DynList<T extends Record<string, unknown>>({
   items, onChange, schema, labels,
 }: {
@@ -124,51 +446,36 @@ function DynList<T extends Record<string, unknown>>({
             <div key={String(l.field)} style={{ flex: l.type === "number" ? "0 0 90px" : 1, minWidth: "120px" }}>
               <div style={LABEL}>{l.label}</div>
               {l.type === "select" ? (
-                <select
-                  value={String(row[l.field] ?? "")}
-                  onChange={(e) => set(i, l.field, e.target.value)}
-                  style={INPUT}
-                >
+                <select value={String(row[l.field] ?? "")} onChange={(e) => set(i, l.field, e.target.value)} style={INPUT}>
                   {(l.options ?? []).map((o) => <option key={o}>{o}</option>)}
                 </select>
               ) : (
                 <input
                   type={l.type ?? "text"}
                   value={String(row[l.field] ?? "")}
-                  onChange={(e) =>
-                    set(i, l.field, l.type === "number" ? Number(e.target.value) : e.target.value)
-                  }
+                  onChange={(e) => set(i, l.field, l.type === "number" ? Number(e.target.value) : e.target.value)}
                   style={INPUT}
                 />
               )}
             </div>
           ))}
-          <button
-            onClick={() => remove(i)}
-            style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}
-          >
+          <button onClick={() => remove(i)} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
             <Trash2 style={{ width: "13px", height: "13px" }} />
           </button>
         </div>
       ))}
-      <button
-        onClick={add}
-        style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}
-      >
+      <button onClick={add} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
         <Plus style={{ width: "12px", height: "12px" }} /> Agregar
       </button>
     </div>
   );
 }
 
-function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function FormSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ border: "1.5px solid #E2E8F0", borderRadius: "12px", overflow: "hidden" }}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: "#F8FAFF", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 700, color: "#0C4A6E" }}
-      >
+      <button onClick={() => setOpen((o) => !o)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: "#F8FAFF", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 700, color: "#0C4A6E" }}>
         {title}
         {open ? <ChevronUp style={{ width: "14px", height: "14px" }} /> : <ChevronDown style={{ width: "14px", height: "14px" }} />}
       </button>
@@ -191,27 +498,25 @@ function ManualFuncionesWorkspace() {
   const { clienteId } = Route.useParams();
 
   const [clienteNombre, setClienteNombre] = useState("");
-  const [areas, setAreas]       = useState<Area[]>([]);
-  const [cargos, setCargos]     = useState<Cargo[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [areas, setAreas]   = useState<Area[]>([]);
+  const [cargos, setCargos] = useState<Cargo[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [areaActiva, setAreaActiva] = useState<"todas" | string>("todas");
-  const [vista, setVista]           = useState<"lista" | "form">("lista");
+  const [areaActiva, setAreaActiva]       = useState<"todas" | string>("todas");
+  const [vista, setVista]                 = useState<"lista" | "form" | "preview">("lista");
   const [cargoEditando, setCargoEditando] = useState<Cargo | null>(null);
-  const [form, setForm]               = useState<FormDatos>({ ...FORM_BLANK });
-  const [saving, setSaving]           = useState(false);
+  const [cargoPreview, setCargoPreview]   = useState<Cargo | null>(null);
+  const [form, setForm]                   = useState<FormDatos>({ ...FORM_BLANK });
+  const [saving, setSaving]               = useState(false);
 
-  // area modal
-  const [modalArea, setModalArea]       = useState(false);
-  const [nuevaAreaNombre, setNuevaAreaNombre] = useState("");
-  const [savingArea, setSavingArea]     = useState(false);
-
-  // delete confirm
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [modalArea, setModalArea]               = useState(false);
+  const [nuevaAreaNombre, setNuevaAreaNombre]   = useState("");
+  const [savingArea, setSavingArea]             = useState(false);
+  const [deletingId, setDeletingId]             = useState<string | null>(null);
 
   const toastShown = useRef(false);
 
-  // ── Load data ──────────────────────────────────────────────────────────────
+  // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
       supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).single(),
@@ -258,6 +563,11 @@ function ManualFuncionesWorkspace() {
     setVista("form");
   }
 
+  function abrirPreview(c: Cargo) {
+    setCargoPreview(c);
+    setVista("preview");
+  }
+
   async function guardar() {
     if (!form.cargo.trim() || !form.area.trim()) {
       toast.error("Cargo y área son obligatorios");
@@ -287,25 +597,19 @@ function ManualFuncionesWorkspace() {
 
     if (cargoEditando) {
       const { data, error } = await supabase
-        .from("manual_funciones_cargos")
-        .update(payload)
-        .eq("id", cargoEditando.id)
-        .select()
-        .single();
+        .from("manual_funciones_cargos").update(payload).eq("id", cargoEditando.id).select().single();
       if (error) { toast.error("Error al guardar"); setSaving(false); return; }
-      setCargos((prev) => prev.map((c) => (c.id === cargoEditando.id ? parseCargo(data as Record<string, unknown>) : c)));
+      const updated = parseCargo(data as Record<string, unknown>);
+      setCargos((prev) => prev.map((c) => (c.id === cargoEditando.id ? updated : c)));
+      if (cargoPreview?.id === cargoEditando.id) setCargoPreview(updated);
       toast.success("Cargo actualizado");
     } else {
       const { data, error } = await supabase
-        .from("manual_funciones_cargos")
-        .insert(payload)
-        .select()
-        .single();
+        .from("manual_funciones_cargos").insert(payload).select().single();
       if (error) { toast.error("Error al guardar"); setSaving(false); return; }
       setCargos((prev) => [...prev, parseCargo(data as Record<string, unknown>)]);
       toast.success("Cargo creado");
     }
-
     setSaving(false);
     setVista("lista");
   }
@@ -325,8 +629,7 @@ function ManualFuncionesWorkspace() {
     const { data, error } = await (supabase as any)
       .from("manual_areas")
       .insert({ cliente_id: clienteId, nombre: nuevaAreaNombre.trim(), orden: maxOrden })
-      .select()
-      .single();
+      .select().single();
     if (error) { toast.error("Error al crear área"); setSavingArea(false); return; }
     setAreas((prev) => [...prev, data as Area]);
     setNuevaAreaNombre("");
@@ -335,7 +638,18 @@ function ManualFuncionesWorkspace() {
     toast.success("Área creada");
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render: preview (full-screen overlay) ──────────────────────────────────
+  if (vista === "preview" && cargoPreview) {
+    return (
+      <PreviewPanel
+        cargo={cargoPreview}
+        clienteNombre={clienteNombre}
+        onClose={() => setVista("lista")}
+        onEdit={() => abrirEdicion(cargoPreview)}
+      />
+    );
+  }
+
   const f = form;
   const setF = <K extends keyof FormDatos>(k: K, v: FormDatos[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -358,6 +672,7 @@ function ManualFuncionesWorkspace() {
       {loading ? (
         <p style={{ color: "#64748B", fontSize: "14px" }}>Cargando…</p>
       ) : vista === "form" ? (
+
         /* ── FORM VIEW ── */
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
@@ -367,17 +682,13 @@ function ManualFuncionesWorkspace() {
               </h2>
               <p style={{ fontSize: "13px", color: "#94A3B8", margin: "3px 0 0" }}>{clienteNombre}</p>
             </div>
-            <button
-              onClick={() => setVista("lista")}
-              style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: "8px", padding: "8px 14px", cursor: "pointer" }}
-            >
+            <button onClick={() => setVista("lista")} style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: "8px", padding: "8px 14px", cursor: "pointer" }}>
               <X style={{ width: "13px", height: "13px" }} /> Cancelar
             </button>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-
-            <Section title="Identificación del Cargo">
+            <FormSection title="Identificación del Cargo">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <Field label="Cargo *">
                   <input value={f.cargo} onChange={(e) => setF("cargo", e.target.value)} style={INPUT} placeholder="Ej: Gerente de Ventas" />
@@ -411,9 +722,9 @@ function ManualFuncionesWorkspace() {
                 <input type="checkbox" checked={f.vacante ?? false} onChange={(e) => setF("vacante", e.target.checked)} />
                 Vacante
               </label>
-            </Section>
+            </FormSection>
 
-            <Section title="Elaboración y Aprobación" defaultOpen={false}>
+            <FormSection title="Elaboración y Aprobación" defaultOpen={false}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <Field label="Elaborado por">
                   <input value={f.elaborado_por ?? ""} onChange={(e) => setF("elaborado_por", e.target.value)} style={INPUT} />
@@ -428,122 +739,77 @@ function ManualFuncionesWorkspace() {
                   <input type="date" value={f.fecha_revision ?? ""} onChange={(e) => setF("fecha_revision", e.target.value)} style={INPUT} />
                 </Field>
               </div>
-            </Section>
+            </FormSection>
 
-            <Section title="Objetivo del Cargo">
-              <textarea
-                value={f.objetivo ?? ""}
-                onChange={(e) => setF("objetivo", e.target.value)}
-                rows={3}
-                style={{ ...INPUT, resize: "vertical" }}
-                placeholder="Describa el propósito principal del cargo…"
-              />
-            </Section>
+            <FormSection title="Objetivo del Cargo">
+              <textarea value={f.objetivo ?? ""} onChange={(e) => setF("objetivo", e.target.value)} rows={3} style={{ ...INPUT, resize: "vertical" }} placeholder="Describa el propósito principal del cargo…" />
+            </FormSection>
 
-            <Section title="Funciones Principales" defaultOpen={false}>
+            <FormSection title="Funciones Principales" defaultOpen={false}>
               <DynList<Funcion>
-                items={f.funciones}
-                onChange={(v) => setF("funciones", v)}
+                items={f.funciones} onChange={(v) => setF("funciones", v)}
                 schema={{ descripcion: "", porcentaje_tiempo: 0 }}
-                labels={[
-                  { field: "descripcion", label: "Descripción" },
-                  { field: "porcentaje_tiempo", label: "% Tiempo", type: "number" },
-                ]}
+                labels={[{ field: "descripcion", label: "Descripción" }, { field: "porcentaje_tiempo", label: "% Tiempo", type: "number" }]}
               />
-            </Section>
+            </FormSection>
 
-            <Section title="Competencias Blandas" defaultOpen={false}>
+            <FormSection title="Competencias Blandas" defaultOpen={false}>
               <DynList<Competencia>
-                items={f.competencias_blandas}
-                onChange={(v) => setF("competencias_blandas", v)}
+                items={f.competencias_blandas} onChange={(v) => setF("competencias_blandas", v)}
                 schema={{ nombre: "", nivel: "Básico" }}
-                labels={[
-                  { field: "nombre", label: "Competencia" },
-                  { field: "nivel", label: "Nivel", type: "select", options: NIVELES },
-                ]}
+                labels={[{ field: "nombre", label: "Competencia" }, { field: "nivel", label: "Nivel", type: "select", options: NIVELES }]}
               />
-            </Section>
+            </FormSection>
 
-            <Section title="Competencias Técnicas" defaultOpen={false}>
+            <FormSection title="Competencias Técnicas" defaultOpen={false}>
               <DynList<Competencia>
-                items={f.competencias_tecnicas}
-                onChange={(v) => setF("competencias_tecnicas", v)}
+                items={f.competencias_tecnicas} onChange={(v) => setF("competencias_tecnicas", v)}
                 schema={{ nombre: "", nivel: "Básico" }}
-                labels={[
-                  { field: "nombre", label: "Competencia" },
-                  { field: "nivel", label: "Nivel", type: "select", options: NIVELES },
-                ]}
+                labels={[{ field: "nombre", label: "Competencia" }, { field: "nivel", label: "Nivel", type: "select", options: NIVELES }]}
               />
-            </Section>
+            </FormSection>
 
-            <Section title="KPIs" defaultOpen={false}>
+            <FormSection title="KPIs" defaultOpen={false}>
               <DynList<KPI>
-                items={f.kpis}
-                onChange={(v) => setF("kpis", v)}
+                items={f.kpis} onChange={(v) => setF("kpis", v)}
                 schema={{ nombre: "", meta: "", frecuencia: "Mensual" }}
-                labels={[
-                  { field: "nombre", label: "Indicador" },
-                  { field: "meta", label: "Meta" },
-                  { field: "frecuencia", label: "Frecuencia", type: "select", options: FRECUENCIAS },
-                ]}
+                labels={[{ field: "nombre", label: "Indicador" }, { field: "meta", label: "Meta" }, { field: "frecuencia", label: "Frecuencia", type: "select", options: FRECUENCIAS }]}
               />
-            </Section>
+            </FormSection>
 
-            <Section title="Plan de Carrera" defaultOpen={false}>
-              <textarea
-                value={f.plan_carrera ?? ""}
-                onChange={(e) => setF("plan_carrera", e.target.value)}
-                rows={3}
-                style={{ ...INPUT, resize: "vertical" }}
-                placeholder="Posibles trayectorias de crecimiento para este cargo…"
-              />
-            </Section>
-
+            <FormSection title="Plan de Carrera" defaultOpen={false}>
+              <textarea value={f.plan_carrera ?? ""} onChange={(e) => setF("plan_carrera", e.target.value)} rows={3} style={{ ...INPUT, resize: "vertical" }} placeholder="Posibles trayectorias de crecimiento para este cargo…" />
+            </FormSection>
           </div>
 
-          {/* ── Save bar ── */}
           <div style={{ marginTop: "20px", display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-            <button
-              onClick={() => setVista("lista")}
-              style={{ padding: "10px 20px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "14px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}
-            >
+            <button onClick={() => setVista("lista")} style={{ padding: "10px 20px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "14px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}>
               Cancelar
             </button>
-            <button
-              onClick={guardar}
-              disabled={saving}
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "14px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}
-            >
+            <button onClick={guardar} disabled={saving} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "14px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
               <Check style={{ width: "14px", height: "14px" }} />
               {saving ? "Guardando…" : cargoEditando ? "Actualizar cargo" : "Crear cargo"}
             </button>
           </div>
         </div>
+
       ) : (
+
         /* ── LIST VIEW ── */
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-          {/* Header row */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
             <div>
-              <h1 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", margin: "0 0 4px", letterSpacing: "-0.02em" }}>
-                {clienteNombre}
-              </h1>
+              <h1 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", margin: "0 0 4px", letterSpacing: "-0.02em" }}>{clienteNombre}</h1>
               <p style={{ fontSize: "13px", color: "#94A3B8", margin: 0 }}>
                 {cargos.length} cargo{cargos.length !== 1 ? "s" : ""} documentado{cargos.length !== 1 ? "s" : ""}
               </p>
             </div>
             <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-              <button
-                onClick={() => setModalArea(true)}
-                style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "8px 14px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "13px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}
-              >
+              <button onClick={() => setModalArea(true)} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "8px 14px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "13px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}>
                 <Plus style={{ width: "13px", height: "13px" }} /> Nueva área
               </button>
-              <button
-                onClick={abrirNuevo}
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 16px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}
-              >
+              <button onClick={abrirNuevo} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 16px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
                 <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
               </button>
             </div>
@@ -552,21 +818,12 @@ function ManualFuncionesWorkspace() {
           {/* Area tabs */}
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             {(["todas", ...areas.map((a) => a.id)] as ("todas" | string)[]).map((key) => {
-              const label = key === "todas" ? `Todas (${cargos.length})` : (areas.find((a) => a.id === key)?.nombre ?? "");
-              const count = key === "todas" ? cargos.length : cargos.filter((c) => c.area === areas.find((a) => a.id === key)?.nombre).length;
+              const areaNombre = key === "todas" ? "" : (areas.find((a) => a.id === key)?.nombre ?? "");
+              const count = key === "todas" ? cargos.length : cargos.filter((c) => c.area === areaNombre).length;
               const active = areaActiva === key;
               return (
-                <button
-                  key={key}
-                  onClick={() => setAreaActiva(key)}
-                  style={{
-                    padding: "6px 14px", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", border: "1.5px solid",
-                    background: active ? "#0C4A6E" : "white",
-                    color: active ? "white" : "#64748B",
-                    borderColor: active ? "#0C4A6E" : "#E2E8F0",
-                  }}
-                >
-                  {key === "todas" ? `Todas (${cargos.length})` : `${label} (${count})`}
+                <button key={key} onClick={() => setAreaActiva(key)} style={{ padding: "6px 14px", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", border: "1.5px solid", background: active ? "#0C4A6E" : "white", color: active ? "white" : "#64748B", borderColor: active ? "#0C4A6E" : "#E2E8F0" }}>
+                  {key === "todas" ? `Todas (${cargos.length})` : `${areaNombre} (${count})`}
                 </button>
               );
             })}
@@ -580,19 +837,15 @@ function ManualFuncionesWorkspace() {
               <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "16px" }}>
                 {areaActiva === "todas" ? "Crea el primer cargo para esta empresa." : "No hay cargos en esta área todavía."}
               </p>
-              <button
-                onClick={abrirNuevo}
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}
-              >
+              <button onClick={abrirNuevo} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
                 <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
               </button>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {cargosFiltrados.map((c) => (
-                <div key={c.id}
-                  style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "12px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px" }}
-                >
+                <div key={c.id} style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "12px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
+
                   {/* Avatar */}
                   <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #0EA5E9, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: 900, color: "white", flexShrink: 0 }}>
                     {c.cargo[0]?.toUpperCase()}
@@ -606,17 +859,13 @@ function ManualFuncionesWorkspace() {
                       {c.vacante && <span style={{ ...PILL("en_revision"), background: "#EDE9FE", color: "#5B21B6" }}>Vacante</span>}
                     </div>
                     <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>
-                      {c.area}{c.jefe_inmediato ? ` · Reporta a: ${c.jefe_inmediato}` : ""}
-                      {c.codigo ? ` · ${c.codigo}` : ""}
+                      {c.area}{c.jefe_inmediato ? ` · Reporta a: ${c.jefe_inmediato}` : ""}{c.codigo ? ` · ${c.codigo}` : ""}
                     </div>
                   </div>
 
                   {/* Stats */}
                   <div style={{ display: "flex", gap: "16px", flexShrink: 0 }}>
-                    {[
-                      { val: c.funciones.length,       lbl: "func." },
-                      { val: c.kpis.length,             lbl: "KPIs" },
-                    ].map((s) => (
+                    {[{ val: c.funciones.length, lbl: "func." }, { val: c.kpis.length, lbl: "KPIs" }].map((s) => (
                       <div key={s.lbl} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: "16px", fontWeight: 900, color: "#0C4A6E" }}>{s.val}</div>
                         <div style={{ fontSize: "10px", color: "#94A3B8" }}>{s.lbl}</div>
@@ -627,6 +876,12 @@ function ManualFuncionesWorkspace() {
                   {/* Actions */}
                   <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                     <button
+                      onClick={() => abrirPreview(c)}
+                      style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E0E7FF", background: "#F0F4FF", color: "#6366F1", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}
+                    >
+                      <Eye style={{ width: "12px", height: "12px" }} /> Ver manual
+                    </button>
+                    <button
                       onClick={() => abrirEdicion(c)}
                       style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#0C4A6E", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}
                     >
@@ -634,18 +889,11 @@ function ManualFuncionesWorkspace() {
                     </button>
                     {deletingId === c.id ? (
                       <div style={{ display: "flex", gap: "4px" }}>
-                        <button onClick={() => eliminar(c.id)} style={{ padding: "7px 10px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>
-                          Confirmar
-                        </button>
-                        <button onClick={() => setDeletingId(null)} style={{ padding: "7px 10px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>
-                          No
-                        </button>
+                        <button onClick={() => eliminar(c.id)} style={{ padding: "7px 10px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>Confirmar</button>
+                        <button onClick={() => setDeletingId(null)} style={{ padding: "7px 10px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>No</button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => setDeletingId(c.id)}
-                        style={{ padding: "7px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer" }}
-                      >
+                      <button onClick={() => setDeletingId(c.id)} style={{ padding: "7px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer" }}>
                         <Trash2 style={{ width: "13px", height: "13px" }} />
                       </button>
                     )}
