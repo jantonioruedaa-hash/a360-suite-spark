@@ -145,23 +145,44 @@ function PreviewPanel({
     style.id = "mf-preview-print-css";
     style.textContent = `
       @media print {
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body * { visibility: hidden; margin: 0; padding: 0; }
-        body { margin: 0 !important; padding: 0 !important; }
-        #preview-panel {
-          visibility: visible !important;
-          position: static !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          margin: 0 !important;
-          padding: 15mm !important;
-          left: 0 !important;
-          top: 0 !important;
+        @page {
+          margin: 15mm;
+          size: A4;
         }
-        #preview-panel * { visibility: visible !important; }
-        .no-print { display: none !important; }
-        .print-only { display: flex !important; }
-        .preview-section { page-break-inside: avoid; break-inside: avoid; }
+        html, body {
+          background: white !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+        }
+        body > * {
+          display: none !important;
+        }
+        #preview-panel {
+          display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: auto !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          z-index: 99999 !important;
+        }
+        #preview-panel * {
+          visibility: visible !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+        .print-only {
+          display: flex !important;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
       }
       .print-only { display: none; }
     `;
