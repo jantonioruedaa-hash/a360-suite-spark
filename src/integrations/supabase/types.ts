@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       app_settings: {
@@ -754,51 +729,6 @@ export type Database = {
           },
         ]
       }
-      empresa_plan: {
-        Row: {
-          activo: boolean
-          created_at: string
-          empresa_id: string
-          fecha_fin: string | null
-          fecha_inicio: string | null
-          id: string
-          plan_id: string
-        }
-        Insert: {
-          activo?: boolean
-          created_at?: string
-          empresa_id: string
-          fecha_fin?: string | null
-          fecha_inicio?: string | null
-          id?: string
-          plan_id: string
-        }
-        Update: {
-          activo?: boolean
-          created_at?: string
-          empresa_id?: string
-          fecha_fin?: string | null
-          fecha_inicio?: string | null
-          id?: string
-          plan_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "empresa_plan_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "empresa_plan_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "planes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lee_programas: {
         Row: {
           capitulos_desbloqueados: number[]
@@ -875,207 +805,45 @@ export type Database = {
           },
         ]
       }
-      manual_funciones_cargos: {
-        Row: {
-          aprobado_por: string | null
-          area: string
-          cargo: string
-          cliente_id: string
-          codigo: string | null
-          competencias_blandas: Json | null
-          competencias_tecnicas: Json | null
-          condiciones: Json | null
-          consultor_id: string | null
-          created_at: string | null
-          elaborado_por: string | null
-          estado: string | null
-          fecha_elaboracion: string | null
-          fecha_revision: string | null
-          funciones: Json | null
-          id: string
-          jefe_inmediato: string | null
-          kpis: Json | null
-          logo_url: string | null
-          objetivo: string | null
-          plan_carrera: string | null
-          relaciones_externas: Json | null
-          relaciones_internas: Json | null
-          requisitos: Json | null
-          supervisa_a: Json | null
-          updated_at: string | null
-          vacante: boolean | null
-          version: string | null
-        }
-        Insert: {
-          aprobado_por?: string | null
-          area: string
-          cargo: string
-          cliente_id: string
-          codigo?: string | null
-          competencias_blandas?: Json | null
-          competencias_tecnicas?: Json | null
-          condiciones?: Json | null
-          consultor_id?: string | null
-          created_at?: string | null
-          elaborado_por?: string | null
-          estado?: string | null
-          fecha_elaboracion?: string | null
-          fecha_revision?: string | null
-          funciones?: Json | null
-          id?: string
-          jefe_inmediato?: string | null
-          kpis?: Json | null
-          logo_url?: string | null
-          objetivo?: string | null
-          plan_carrera?: string | null
-          relaciones_externas?: Json | null
-          relaciones_internas?: Json | null
-          requisitos?: Json | null
-          supervisa_a?: Json | null
-          updated_at?: string | null
-          vacante?: boolean | null
-          version?: string | null
-        }
-        Update: {
-          aprobado_por?: string | null
-          area?: string
-          cargo?: string
-          cliente_id?: string
-          codigo?: string | null
-          competencias_blandas?: Json | null
-          competencias_tecnicas?: Json | null
-          condiciones?: Json | null
-          consultor_id?: string | null
-          created_at?: string | null
-          elaborado_por?: string | null
-          estado?: string | null
-          fecha_elaboracion?: string | null
-          fecha_revision?: string | null
-          funciones?: Json | null
-          id?: string
-          jefe_inmediato?: string | null
-          kpis?: Json | null
-          logo_url?: string | null
-          objetivo?: string | null
-          plan_carrera?: string | null
-          relaciones_externas?: Json | null
-          relaciones_internas?: Json | null
-          requisitos?: Json | null
-          supervisa_a?: Json | null
-          updated_at?: string | null
-          vacante?: boolean | null
-          version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "manual_funciones_cargos_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "manual_funciones_cargos_consultor_id_fkey"
-            columns: ["consultor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      manual_funciones_evaluaciones: {
-        Row: {
-          cargo_id: string
-          competencias_evaluadas: Json | null
-          consultor_id: string | null
-          created_at: string | null
-          fecha_evaluacion: string | null
-          id: string
-          indice_global: number | null
-          nombre_evaluado: string | null
-          plan_desarrollo: Json | null
-          semaforo: string | null
-        }
-        Insert: {
-          cargo_id: string
-          competencias_evaluadas?: Json | null
-          consultor_id?: string | null
-          created_at?: string | null
-          fecha_evaluacion?: string | null
-          id?: string
-          indice_global?: number | null
-          nombre_evaluado?: string | null
-          plan_desarrollo?: Json | null
-          semaforo?: string | null
-        }
-        Update: {
-          cargo_id?: string
-          competencias_evaluadas?: Json | null
-          consultor_id?: string | null
-          created_at?: string | null
-          fecha_evaluacion?: string | null
-          id?: string
-          indice_global?: number | null
-          nombre_evaluado?: string | null
-          plan_desarrollo?: Json | null
-          semaforo?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "manual_funciones_evaluaciones_cargo_id_fkey"
-            columns: ["cargo_id"]
-            isOneToOne: false
-            referencedRelation: "manual_funciones_cargos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "manual_funciones_evaluaciones_consultor_id_fkey"
-            columns: ["consultor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       marketing_sesiones: {
         Row: {
           cliente_id: string | null
-          completada: boolean | null
+          completada: boolean
           consultor_id: string | null
-          created_at: string | null
-          empresa: Json | null
+          created_at: string
+          empresa: Json
           id: string
-          modulos: Json | null
+          modulos: Json
           nombre_sesion: string
-          reporte_config: Json | null
-          score_total: number | null
-          updated_at: string | null
+          reporte_config: Json
+          score_total: number
+          updated_at: string
         }
         Insert: {
           cliente_id?: string | null
-          completada?: boolean | null
+          completada?: boolean
           consultor_id?: string | null
-          created_at?: string | null
-          empresa?: Json | null
+          created_at?: string
+          empresa?: Json
           id?: string
-          modulos?: Json | null
+          modulos?: Json
           nombre_sesion?: string
-          reporte_config?: Json | null
-          score_total?: number | null
-          updated_at?: string | null
+          reporte_config?: Json
+          score_total?: number
+          updated_at?: string
         }
         Update: {
           cliente_id?: string | null
-          completada?: boolean | null
+          completada?: boolean
           consultor_id?: string | null
-          created_at?: string | null
-          empresa?: Json | null
+          created_at?: string
+          empresa?: Json
           id?: string
-          modulos?: Json | null
+          modulos?: Json
           nombre_sesion?: string
-          reporte_config?: Json | null
-          score_total?: number | null
-          updated_at?: string | null
+          reporte_config?: Json
+          score_total?: number
+          updated_at?: string
         }
         Relationships: [
           {
@@ -1093,59 +861,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      plan_modulos: {
-        Row: {
-          activo: boolean
-          modulo_slug: string
-          plan_id: string
-        }
-        Insert: {
-          activo?: boolean
-          modulo_slug: string
-          plan_id: string
-        }
-        Update: {
-          activo?: boolean
-          modulo_slug?: string
-          plan_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "plan_modulos_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "planes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      planes: {
-        Row: {
-          activo: boolean
-          created_at: string
-          descripcion: string | null
-          id: string
-          nombre: string
-          precio: number | null
-        }
-        Insert: {
-          activo?: boolean
-          created_at?: string
-          descripcion?: string | null
-          id?: string
-          nombre: string
-          precio?: number | null
-        }
-        Update: {
-          activo?: boolean
-          created_at?: string
-          descripcion?: string | null
-          id?: string
-          nombre?: string
-          precio?: number | null
-        }
-        Relationships: []
       }
       planes_estrategicos: {
         Row: {
@@ -1534,9 +1249,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["admin", "consultor", "cliente", "participante"],
