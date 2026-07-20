@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
   FileText, X, Check, Eye, Printer, Target, ListChecks,
-  Users, Cpu, BarChart3, Rocket,
+  Users, Cpu, BarChart3, Rocket, Network, Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ type Area = { id: string; nombre: string; orden: number };
 type Funcion     = { descripcion: string; porcentaje_tiempo: number };
 type Competencia = { nombre: string; nivel: string };
 type KPI         = { nombre: string; meta: string; frecuencia: string };
+type Condiciones = { horario?: string; modalidad?: string; viajes?: string; esfuerzo?: string };
 
 type Cargo = {
   id: string;
@@ -38,9 +39,11 @@ type Cargo = {
   fecha_elaboracion: string | null;
   fecha_revision: string | null;
   plan_carrera: string | null;
+  supervisa_a: string[];
+  condiciones: Condiciones | null;
 };
 
-type FormDatos = Omit<Cargo, "id">;
+type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "condiciones">;
 
 const FORM_BLANK: FormDatos = {
   cargo: "", area: "", jefe_inmediato: "", codigo: "", version: "1.0",
@@ -108,6 +111,8 @@ function parseCargo(row: Record<string, unknown>): Cargo {
     fecha_elaboracion: (row.fecha_elaboracion as string) ?? null,
     fecha_revision: (row.fecha_revision as string) ?? null,
     plan_carrera: (row.plan_carrera as string) ?? null,
+    supervisa_a: parseJsonb<string>(row.supervisa_a, []),
+    condiciones: (row.condiciones as Condiciones) ?? null,
   };
 }
 
@@ -145,7 +150,9 @@ function PreviewPanel({
           overflow: visible !important; height: auto !important;
         }
         .mf-preview .preview-section { break-inside: avoid; }
+        .mf-preview .print-only { display: flex !important; }
       }
+      .mf-preview .print-only { display: none; }
     `;
     document.head.appendChild(style);
     return () => { document.getElementById("mf-preview-print-css")?.remove(); };
@@ -395,6 +402,41 @@ function PreviewPanel({
           </SectionBlock>
         )}
 
+        {/* ── Supervisados Directos ── */}
+        {hasContent(cargo.supervisa_a) && (
+          <SectionBlock icon={Network} title="Supervisados Directos" color="#0EA5E9">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {cargo.supervisa_a.map((nombre, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px" }}>
+                  <div style={{ width: "22px", height: "22px", borderRadius: "6px", background: "linear-gradient(135deg, #0EA5E9, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 900, color: "white", flexShrink: 0 }}>
+                    {nombre[0]?.toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: "13px", color: "#0C4A6E", fontWeight: 500 }}>{nombre}</span>
+                </div>
+              ))}
+            </div>
+          </SectionBlock>
+        )}
+
+        {/* ── Condiciones de Trabajo ── */}
+        {cargo.condiciones && Object.values(cargo.condiciones).some(Boolean) && (
+          <SectionBlock icon={Clock} title="Condiciones de Trabajo" color="#7F77DD">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
+              {[
+                { lbl: "Horario",            val: cargo.condiciones.horario },
+                { lbl: "Modalidad",          val: cargo.condiciones.modalidad },
+                { lbl: "Viajes requeridos",  val: cargo.condiciones.viajes },
+                { lbl: "Esfuerzo",           val: cargo.condiciones.esfuerzo },
+              ].filter((r) => r.val).map((r) => (
+                <div key={r.lbl} style={{ background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 14px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#7F77DD", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>{r.lbl}</div>
+                  <div style={{ fontSize: "13px", color: "#1E1B4B", lineHeight: 1.5 }}>{r.val}</div>
+                </div>
+              ))}
+            </div>
+          </SectionBlock>
+        )}
+
         {/* ── Plan de Carrera ── */}
         {cargo.plan_carrera && (
           <SectionBlock icon={Rocket} title="Plan de Carrera" color="#D85A30">
@@ -403,15 +445,35 @@ function PreviewPanel({
         )}
 
         {/* Empty state if absolutely nothing to show */}
-        {!cargo.objetivo && !hasContent(cargo.funciones) && !hasContent(cargo.competencias_blandas) && !hasContent(cargo.competencias_tecnicas) && !hasContent(cargo.kpis) && !cargo.plan_carrera && (
+        {!cargo.objetivo && !hasContent(cargo.funciones) && !hasContent(cargo.competencias_blandas) && !hasContent(cargo.competencias_tecnicas) && !hasContent(cargo.kpis) && !cargo.plan_carrera && !hasContent(cargo.supervisa_a) && !cargo.condiciones && (
           <div style={{ textAlign: "center", padding: "40px 24px", background: "white", borderRadius: "12px", border: "1.5px dashed #E0E7FF" }}>
             <FileText style={{ width: "32px", height: "32px", color: "#CBD5E1", margin: "0 auto 10px" }} />
             <p style={{ fontSize: "14px", color: "#94A3B8", margin: 0 }}>Este cargo aún no tiene contenido detallado. Edítalo para agregar funciones, competencias y KPIs.</p>
           </div>
         )}
 
-        {/* ── Footer stamp (printed only) ── */}
-        <div style={{ marginTop: "32px", paddingTop: "16px", borderTop: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {/* ── Sección de Firmas (solo impresión) ── */}
+        <div className="print-only" style={{ marginTop: "40px", paddingTop: "24px", borderTop: "2px solid #E2E8F0", gap: "0", flexDirection: "column" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "32px", textAlign: "center" }}>
+            Firmas de Aprobación
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
+            {[
+              { titulo: "Elaborado por", nombre: cargo.elaborado_por },
+              { titulo: "Revisado por",  nombre: null },
+              { titulo: "Aprobado por",  nombre: cargo.aprobado_por },
+            ].map((f) => (
+              <div key={f.titulo} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                <div style={{ width: "100%", height: "1px", background: "#94A3B8", marginBottom: "4px" }} />
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#0C4A6E" }}>{f.nombre || "________________________"}</div>
+                <div style={{ fontSize: "10px", color: "#64748B", textTransform: "uppercase", letterSpacing: "0.1em" }}>{f.titulo}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Footer stamp ── */}
+        <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: "11px", color: "#94A3B8" }}>
             A360 Suite · Manual de Funciones
           </span>
