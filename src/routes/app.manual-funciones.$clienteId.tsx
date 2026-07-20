@@ -149,39 +149,38 @@ function PreviewPanel({
           margin: 15mm;
           size: A4;
         }
-        html, body {
-          background: white !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
-        body > * {
-          display: none !important;
-        }
-        #preview-panel {
-          display: block !important;
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          width: 100% !important;
-          height: auto !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: white !important;
-          z-index: 99999 !important;
-        }
-        #preview-panel * {
-          visibility: visible !important;
-        }
+        aside, nav, header,
+        [class*="sidebar"],
+        [class*="Sidebar"],
+        [data-sidebar],
         .no-print {
           display: none !important;
+        }
+        main, [role="main"],
+        [class*="main-content"],
+        [class*="content"] {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+        }
+        #preview-panel {
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          box-shadow: none !important;
         }
         .print-only {
           display: flex !important;
         }
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
+        .preview-section {
+          page-break-inside: avoid;
+          break-inside: avoid;
         }
       }
       .print-only { display: none; }
