@@ -41,9 +41,12 @@ type Cargo = {
   plan_carrera: string | null;
   supervisa_a: string[];
   condiciones: Condiciones | null;
+  relaciones_internas: string[];
+  relaciones_externas: string[];
+  requisitos: Record<string, string> | null;
 };
 
-type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "condiciones">;
+type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "condiciones" | "relaciones_internas" | "relaciones_externas" | "requisitos">;
 
 const FORM_BLANK: FormDatos = {
   cargo: "", area: "", jefe_inmediato: "", codigo: "", version: "1.0",
@@ -113,6 +116,9 @@ function parseCargo(row: Record<string, unknown>): Cargo {
     plan_carrera: (row.plan_carrera as string) ?? null,
     supervisa_a: parseJsonb<string>(row.supervisa_a, []),
     condiciones: (row.condiciones as Condiciones) ?? null,
+    relaciones_internas: parseJsonb<string>(row.relaciones_internas, []),
+    relaciones_externas: parseJsonb<string>(row.relaciones_externas, []),
+    requisitos: (row.requisitos as Record<string, string>) ?? null,
   };
 }
 
@@ -140,16 +146,23 @@ function PreviewPanel({
         body > * { visibility: hidden !important; }
         .mf-preview, .mf-preview * { visibility: visible !important; }
         .mf-preview {
-          position: fixed !important; inset: 0 !important;
-          overflow: visible !important; background: white !important;
-          z-index: 9999 !important; padding: 0 !important;
+          position: static !important;
+          overflow: visible !important;
+          height: auto !important;
+          background: white !important;
+          z-index: auto !important;
+          padding: 0 !important;
+          display: block !important;
         }
         .mf-preview .no-print { display: none !important; }
         .mf-preview .preview-body {
-          padding: 0 !important; max-width: 100% !important;
-          overflow: visible !important; height: auto !important;
+          padding: 0 !important;
+          max-width: 100% !important;
+          overflow: visible !important;
+          height: auto !important;
         }
-        .mf-preview .preview-section { break-inside: avoid; }
+        .mf-preview .preview-section,
+        .mf-preview .preview-body > * { page-break-inside: avoid; break-inside: avoid; }
         .mf-preview .print-only { display: flex !important; }
       }
       .mf-preview .print-only { display: none; }
