@@ -18,7 +18,7 @@ type Area = { id: string; nombre: string; orden: number };
 type Funcion     = { descripcion: string; porcentaje_tiempo: number };
 type Competencia = { nombre: string; nivel: string };
 type KPI         = { nombre: string; meta: string; frecuencia: string };
-type Condiciones = { horario?: string; modalidad?: string; viajes?: string; esfuerzo?: string };
+type Condiciones = { horario?: string; modalidad?: string; viajes?: string; esfuerzo?: string; riesgos?: string };
 
 type Cargo = {
   id: string;
@@ -46,7 +46,7 @@ type Cargo = {
   requisitos: Record<string, string> | null;
 };
 
-type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "condiciones" | "relaciones_internas" | "relaciones_externas" | "requisitos">;
+type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "requisitos">;
 
 const FORM_BLANK: FormDatos = {
   cargo: "", area: "", jefe_inmediato: "", codigo: "", version: "1.0",
@@ -54,6 +54,8 @@ const FORM_BLANK: FormDatos = {
   funciones: [], competencias_blandas: [], competencias_tecnicas: [], kpis: [],
   elaborado_por: "", aprobado_por: "", fecha_elaboracion: "", fecha_revision: "",
   plan_carrera: "",
+  relaciones_internas: [], relaciones_externas: [],
+  condiciones: {},
 };
 
 const ESTADOS    = ["vigente", "en_revision", "obsoleto"];
@@ -143,6 +145,7 @@ function PreviewPanel({
     style.id = "mf-preview-print-css";
     style.textContent = `
       @media print {
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         body > * { visibility: hidden !important; }
         .mf-preview, .mf-preview * { visibility: visible !important; }
         .mf-preview {
@@ -415,6 +418,38 @@ function PreviewPanel({
           </SectionBlock>
         )}
 
+        {/* ── Relaciones de Trabajo ── */}
+        {(hasContent(cargo.relaciones_internas) || hasContent(cargo.relaciones_externas)) && (
+          <div className="preview-section" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+            {hasContent(cargo.relaciones_internas) && (
+              <div style={{ background: "#F5F7FF", borderLeft: "4px solid #0C4A6E", borderRadius: "0 10px 10px 0", padding: "14px 16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>Relaciones Internas</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {cargo.relaciones_internas.map((r, i) => (
+                    <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                      <span style={{ color: "#0C4A6E", fontWeight: 900, fontSize: "10px", marginTop: "4px", flexShrink: 0 }}>◆</span>
+                      <span style={{ fontSize: "13px", color: "#334155", lineHeight: 1.5 }}>{r}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {hasContent(cargo.relaciones_externas) && (
+              <div style={{ background: "#F5F7FF", borderLeft: "4px solid #1E3A8A", borderRadius: "0 10px 10px 0", padding: "14px 16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 800, color: "#1E3A8A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>Relaciones Externas</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {cargo.relaciones_externas.map((r, i) => (
+                    <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                      <span style={{ color: "#1E3A8A", fontWeight: 900, fontSize: "10px", marginTop: "4px", flexShrink: 0 }}>◆</span>
+                      <span style={{ fontSize: "13px", color: "#334155", lineHeight: 1.5 }}>{r}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── Supervisados Directos ── */}
         {hasContent(cargo.supervisa_a) && (
           <SectionBlock icon={Network} title="Supervisados Directos" color="#0EA5E9">
@@ -500,6 +535,31 @@ function PreviewPanel({
 }
 
 // ── Form sub-components ────────────────────────────────────────────────────────
+function DynStringList({ items, onChange, placeholder }: {
+  items: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const add = () => onChange([...items, ""]);
+  const remove = (i: number) => onChange(items.filter((_, j) => j !== i));
+  const set = (i: number, val: string) => onChange(items.map((v, j) => (j === i ? val : v)));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {items.map((val, i) => (
+        <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <input value={val} onChange={(e) => set(i, e.target.value)} style={INPUT} placeholder={placeholder} />
+          <button onClick={() => remove(i)} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
+            <Trash2 style={{ width: "13px", height: "13px" }} />
+          </button>
+        </div>
+      ))}
+      <button onClick={add} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
+        <Plus style={{ width: "12px", height: "12px" }} /> Agregar
+      </button>
+    </div>
+  );
+}
+
 function DynList<T extends Record<string, unknown>>({
   items, onChange, schema, labels,
 }: {
@@ -634,6 +694,9 @@ function ManualFuncionesWorkspace() {
       elaborado_por: c.elaborado_por ?? "", aprobado_por: c.aprobado_por ?? "",
       fecha_elaboracion: c.fecha_elaboracion ?? "", fecha_revision: c.fecha_revision ?? "",
       plan_carrera: c.plan_carrera ?? "",
+      relaciones_internas: c.relaciones_internas ?? [],
+      relaciones_externas: c.relaciones_externas ?? [],
+      condiciones: c.condiciones ?? {},
     });
     setVista("form");
   }
@@ -668,6 +731,9 @@ function ManualFuncionesWorkspace() {
       fecha_elaboracion: form.fecha_elaboracion || null,
       fecha_revision: form.fecha_revision || null,
       plan_carrera: form.plan_carrera || null,
+      relaciones_internas: form.relaciones_internas.length ? form.relaciones_internas : null,
+      relaciones_externas: form.relaciones_externas.length ? form.relaciones_externas : null,
+      condiciones: Object.values(form.condiciones ?? {}).some(Boolean) ? form.condiciones : null,
     };
 
     if (cargoEditando) {
@@ -854,6 +920,45 @@ function ManualFuncionesWorkspace() {
 
             <FormSection title="Plan de Carrera" defaultOpen={false}>
               <textarea value={f.plan_carrera ?? ""} onChange={(e) => setF("plan_carrera", e.target.value)} rows={3} style={{ ...INPUT, resize: "vertical" }} placeholder="Posibles trayectorias de crecimiento para este cargo…" />
+            </FormSection>
+
+            <FormSection title="Relaciones de Trabajo" defaultOpen={false}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                <div>
+                  <div style={LABEL}>Relaciones Internas</div>
+                  <DynStringList
+                    items={f.relaciones_internas}
+                    onChange={(v) => setF("relaciones_internas", v)}
+                    placeholder="Ej: Gerente Financiero — Para X propósito"
+                  />
+                </div>
+                <div>
+                  <div style={LABEL}>Relaciones Externas</div>
+                  <DynStringList
+                    items={f.relaciones_externas}
+                    onChange={(v) => setF("relaciones_externas", v)}
+                    placeholder="Ej: Proveedor XYZ — Para negociación de contratos"
+                  />
+                </div>
+              </div>
+            </FormSection>
+
+            <FormSection title="Condiciones de Trabajo" defaultOpen={false}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                {(["horario", "modalidad", "viajes", "esfuerzo", "riesgos"] as const).map((campo) => {
+                  const labels: Record<string, string> = { horario: "Horario", modalidad: "Modalidad de trabajo", viajes: "Viajes requeridos", esfuerzo: "Esfuerzo físico / mental", riesgos: "Riesgos del cargo" };
+                  return (
+                    <Field key={campo} label={labels[campo]}>
+                      <textarea
+                        value={f.condiciones?.[campo] ?? ""}
+                        onChange={(e) => setF("condiciones", { ...(f.condiciones ?? {}), [campo]: e.target.value })}
+                        rows={2}
+                        style={{ ...INPUT, resize: "vertical" }}
+                      />
+                    </Field>
+                  );
+                })}
+              </div>
             </FormSection>
           </div>
 
