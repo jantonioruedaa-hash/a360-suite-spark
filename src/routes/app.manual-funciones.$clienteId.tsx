@@ -18,7 +18,7 @@ type Area = { id: string; nombre: string; orden: number };
 type Funcion     = { descripcion: string; porcentaje_tiempo: number };
 type Competencia = { nombre: string; nivel: string };
 type KPI         = { nombre: string; meta: string; frecuencia: string };
-type Condiciones = { horario?: string; modalidad?: string; viajes?: string; esfuerzo?: string; riesgos?: string };
+type Condiciones = Record<string, string>;
 
 type Cargo = {
   id: string;
@@ -145,30 +145,25 @@ function PreviewPanel({
     style.id = "mf-preview-print-css";
     style.textContent = `
       @media print {
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        body > * { visibility: hidden !important; }
-        .mf-preview, .mf-preview * { visibility: visible !important; }
-        .mf-preview {
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        body * { visibility: hidden; margin: 0; padding: 0; }
+        body { margin: 0 !important; padding: 0 !important; }
+        #preview-panel {
+          visibility: visible !important;
           position: static !important;
-          overflow: visible !important;
-          height: auto !important;
-          background: white !important;
-          z-index: auto !important;
-          padding: 0 !important;
-          display: block !important;
-        }
-        .mf-preview .no-print { display: none !important; }
-        .mf-preview .preview-body {
-          padding: 0 !important;
+          width: 100% !important;
           max-width: 100% !important;
-          overflow: visible !important;
-          height: auto !important;
+          margin: 0 !important;
+          padding: 15mm !important;
+          left: 0 !important;
+          top: 0 !important;
         }
-        .mf-preview .preview-section,
-        .mf-preview .preview-body > * { page-break-inside: avoid; break-inside: avoid; }
-        .mf-preview .print-only { display: flex !important; }
+        #preview-panel * { visibility: visible !important; }
+        .no-print { display: none !important; }
+        .print-only { display: flex !important; }
+        .preview-section { page-break-inside: avoid; break-inside: avoid; }
       }
-      .mf-preview .print-only { display: none; }
+      .print-only { display: none; }
     `;
     document.head.appendChild(style);
     return () => { document.getElementById("mf-preview-print-css")?.remove(); };
@@ -192,9 +187,9 @@ function PreviewPanel({
 
   return (
     <div
+      id="preview-panel"
       className="mf-preview"
       style={{
-        position: "fixed", inset: 0, zIndex: 100,
         background: "#F8FAFF", overflowY: "auto",
         display: "flex", flexDirection: "column",
       }}
@@ -239,7 +234,7 @@ function PreviewPanel({
       {/* ── Document body ── */}
       <div
         className="preview-body"
-        style={{ maxWidth: "760px", width: "100%", margin: "0 auto", padding: "28px 24px 60px" }}
+        style={{ width: "100%", padding: "28px 24px 60px" }}
       >
 
         {/* ── Hero header ── */}
@@ -470,15 +465,12 @@ function PreviewPanel({
         {cargo.condiciones && Object.values(cargo.condiciones).some(Boolean) && (
           <SectionBlock icon={Clock} title="Condiciones de Trabajo" color="#7F77DD">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
-              {[
-                { lbl: "Horario",            val: cargo.condiciones.horario },
-                { lbl: "Modalidad",          val: cargo.condiciones.modalidad },
-                { lbl: "Viajes requeridos",  val: cargo.condiciones.viajes },
-                { lbl: "Esfuerzo",           val: cargo.condiciones.esfuerzo },
-              ].filter((r) => r.val).map((r) => (
-                <div key={r.lbl} style={{ background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 14px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#7F77DD", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>{r.lbl}</div>
-                  <div style={{ fontSize: "13px", color: "#1E1B4B", lineHeight: 1.5 }}>{r.val}</div>
+              {Object.entries(cargo.condiciones).filter(([, v]) => v).map(([key, val]) => (
+                <div key={key} style={{ background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 14px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#7F77DD", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>
+                    {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")}
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#1E1B4B", lineHeight: 1.5 }}>{val}</div>
                 </div>
               ))}
             </div>
@@ -535,6 +527,61 @@ function PreviewPanel({
 }
 
 // ── Form sub-components ────────────────────────────────────────────────────────
+function DynKVList({ value, onChange }: {
+  value: Record<string, string>;
+  onChange: (v: Record<string, string>) => void;
+}) {
+  const pairs = Object.entries(value);
+  const addPair = () => {
+    const key = `condicion_${Date.now()}`;
+    onChange({ ...value, [key]: "" });
+  };
+  const removeKey = (key: string) => {
+    const next = { ...value };
+    delete next[key];
+    onChange(next);
+  };
+  const renameKey = (oldKey: string, newKey: string) => {
+    if (newKey === oldKey) return;
+    const next: Record<string, string> = {};
+    for (const [k, v] of Object.entries(value)) {
+      next[k === oldKey ? newKey : k] = v;
+    }
+    onChange(next);
+  };
+  const setValue = (key: string, val: string) => onChange({ ...value, [key]: val });
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {pairs.map(([key, val]) => (
+        <div key={key} style={{ border: "1.5px solid #E2E8F0", borderRadius: "10px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px", background: "#FAFBFF" }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <input
+              value={key.replace(/_/g, " ")}
+              onChange={(e) => renameKey(key, e.target.value.trim().replace(/\s+/g, "_") || key)}
+              style={{ ...INPUT, fontWeight: 700, fontSize: "12px", flex: 1 }}
+              placeholder="Nombre de la condición"
+            />
+            <button onClick={() => removeKey(key)} style={{ padding: "7px", borderRadius: "7px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
+              <Trash2 style={{ width: "13px", height: "13px" }} />
+            </button>
+          </div>
+          <textarea
+            value={val}
+            onChange={(e) => setValue(key, e.target.value)}
+            rows={2}
+            style={{ ...INPUT, resize: "vertical" }}
+            placeholder="Descripción…"
+          />
+        </div>
+      ))}
+      <button onClick={addPair} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#7F77DD", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
+        <Plus style={{ width: "12px", height: "12px" }} /> Agregar condición
+      </button>
+    </div>
+  );
+}
+
 function DynStringList({ items, onChange, placeholder }: {
   items: string[];
   onChange: (v: string[]) => void;
@@ -944,21 +991,11 @@ function ManualFuncionesWorkspace() {
             </FormSection>
 
             <FormSection title="Condiciones de Trabajo" defaultOpen={false}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                {(["horario", "modalidad", "viajes", "esfuerzo", "riesgos"] as const).map((campo) => {
-                  const labels: Record<string, string> = { horario: "Horario", modalidad: "Modalidad de trabajo", viajes: "Viajes requeridos", esfuerzo: "Esfuerzo físico / mental", riesgos: "Riesgos del cargo" };
-                  return (
-                    <Field key={campo} label={labels[campo]}>
-                      <textarea
-                        value={f.condiciones?.[campo] ?? ""}
-                        onChange={(e) => setF("condiciones", { ...(f.condiciones ?? {}), [campo]: e.target.value })}
-                        rows={2}
-                        style={{ ...INPUT, resize: "vertical" }}
-                      />
-                    </Field>
-                  );
-                })}
-              </div>
+              <DynKVList
+                key={cargoEditando?.id ?? "new"}
+                value={f.condiciones ?? {}}
+                onChange={(v) => setF("condiciones", v)}
+              />
             </FormSection>
           </div>
 
