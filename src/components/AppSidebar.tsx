@@ -58,7 +58,7 @@ const sections: Section[] = [
       { title: "Procesos", url: "#", icon: Workflow, upcoming: true },
       { title: "SGC", url: "#", icon: ShieldCheck, upcoming: true },
       { title: "TalentHR", url: "#", icon: Users, upcoming: true },
-      { title: "Manual de Funciones", url: "#", icon: FileText, upcoming: true },
+      { title: "Manual de Funciones", url: "/app/manual-funciones", icon: FileText },
     ],
   },
   {
