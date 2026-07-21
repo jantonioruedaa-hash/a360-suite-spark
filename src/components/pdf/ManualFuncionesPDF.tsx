@@ -516,6 +516,7 @@ export function ManualFuncionesPDF({
                   {cargo.competencias_blandas.map((c, i) => (
                     <View
                       key={i}
+                      wrap={false}
                       style={[
                         s.compItem,
                         i === cargo.competencias_blandas.length - 1 ? s.compItemLast : {},
@@ -535,6 +536,7 @@ export function ManualFuncionesPDF({
                   {cargo.competencias_tecnicas.map((c, i) => (
                     <View
                       key={i}
+                      wrap={false}
                       style={[
                         s.compItem,
                         i === cargo.competencias_tecnicas.length - 1 ? s.compItemLast : {},
@@ -573,7 +575,7 @@ export function ManualFuncionesPDF({
         {/* ── Relaciones ── */}
         {(hasContent(cargo.relaciones_internas) || hasContent(cargo.relaciones_externas)) && (
           <Section title="Relaciones de Trabajo">
-            <View style={s.relGrid}>
+            <View style={s.relGrid} wrap={false}>
               {hasContent(cargo.relaciones_internas) && (
                 <View style={[s.relCol, s.relInternas]}>
                   <Text style={s.relLabel}>Relaciones Internas</Text>
@@ -605,7 +607,7 @@ export function ManualFuncionesPDF({
           <Section title="Condiciones de Trabajo">
             <View style={s.condGrid}>
               {condEntries.map(([key, val]) => (
-                <View key={key} style={s.condCard}>
+                <View key={key} style={s.condCard} wrap={false}>
                   <Text style={s.condLabel}>
                     {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")}
                   </Text>
@@ -619,7 +621,7 @@ export function ManualFuncionesPDF({
         {/* ── Plan de carrera ── */}
         {cargo.plan_carrera && (
           <Section title="Plan de Carrera">
-            <View style={s.planBox}>
+            <View style={s.planBox} wrap={false}>
               <Text style={s.planLabel}>Trayectoria de crecimiento</Text>
               <Text style={s.planText}>{cargo.plan_carrera}</Text>
             </View>
@@ -627,7 +629,7 @@ export function ManualFuncionesPDF({
         )}
 
         {/* ── Firmas ── */}
-        <View style={s.firmasRow}>
+        <View style={s.firmasRow} wrap={false}>
           {[
             { titulo: "Elaborado por", nombre: cargo.elaborado_por },
             { titulo: "Revisado por",  nombre: null },

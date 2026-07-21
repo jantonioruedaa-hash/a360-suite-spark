@@ -1167,25 +1167,37 @@ function ManualFuncionesWorkspace() {
               const areaCargos = cargos.filter((c) => c.area === area.nombre);
               const isOpen = areasAbiertas[area.id] !== false;
               return (
-                <div key={area.id} style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "14px", overflow: "hidden" }}>
+                <div key={area.id} style={{ background: "white", border: "1px solid #E2E8F0", borderLeft: "4px solid var(--h-acc)", borderRadius: "14px", overflow: "hidden" }}>
                   <div
                     onClick={() => setAreasAbiertas((prev) => ({ ...prev, [area.id]: !isOpen }))}
-                    style={{ display: "flex", alignItems: "center", padding: "13px 18px", cursor: "pointer", background: isOpen ? "#F8FAFF" : "white", borderBottom: isOpen ? "1px solid #E8EEF8" : "none" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+                    style={{
+                      display: "flex", alignItems: "center", padding: "14px 20px", cursor: "pointer",
+                      background: isOpen ? "linear-gradient(135deg, var(--h-from), var(--h-to))" : "white",
+                      borderBottom: isOpen ? "1px solid rgba(255,255,255,0.15)" : "none",
+                      transition: "box-shadow 0.2s",
+                    }}
                   >
-                    {isOpen
-                      ? <ChevronUp style={{ width: "15px", height: "15px", color: "#94A3B8", flexShrink: 0 }} />
-                      : <ChevronDown style={{ width: "15px", height: "15px", color: "#94A3B8", flexShrink: 0 }} />
-                    }
-                    <span style={{ fontWeight: 700, color: "#0C4A6E", fontSize: "14px", marginLeft: "8px", flex: 1 }}>{area.nombre}</span>
-                    <span style={{ background: "#E0E7FF", color: "#4338CA", borderRadius: "999px", padding: "2px 10px", fontSize: "11px", fontWeight: 700, marginRight: "12px" }}>
+                    {/* Area icon */}
+                    <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: isOpen ? "rgba(255,255,255,0.18)" : "var(--acc2, #E0F2FE)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: "10px" }}>
+                      <Users style={{ width: "14px", height: "14px", color: isOpen ? "white" : "var(--h-acc)" }} />
+                    </div>
+                    {/* Area name */}
+                    <span style={{ fontWeight: 700, fontSize: "15px", flex: 1, color: isOpen ? "white" : "var(--h-from)" }}>{area.nombre}</span>
+                    {/* Badge */}
+                    <span style={{ background: isOpen ? "rgba(255,255,255,0.2)" : "#E0E7FF", color: isOpen ? "white" : "#4338CA", borderRadius: "999px", padding: "2px 10px", fontSize: "11px", fontWeight: 700, marginRight: "12px" }}>
                       {areaCargos.length}
                     </span>
+                    {/* Add cargo button */}
                     <button
                       onClick={(e) => { e.stopPropagation(); abrirNuevo(area.nombre); }}
-                      style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "5px 11px", borderRadius: "7px", border: "1px solid #E0E7FF", background: "white", color: "#0C4A6E", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "5px 11px", borderRadius: "7px", border: isOpen ? "1px solid rgba(255,255,255,0.3)" : "1px solid #E0E7FF", background: isOpen ? "rgba(255,255,255,0.12)" : "white", color: isOpen ? "white" : "#0C4A6E", fontSize: "12px", fontWeight: 600, cursor: "pointer", marginRight: "8px" }}
                     >
                       <Plus style={{ width: "11px", height: "11px" }} /> Agregar cargo
                     </button>
+                    {/* Animated chevron */}
+                    <ChevronDown style={{ width: "16px", height: "16px", color: isOpen ? "white" : "var(--h-acc)", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }} />
                   </div>
                   {isOpen && (
                     <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
