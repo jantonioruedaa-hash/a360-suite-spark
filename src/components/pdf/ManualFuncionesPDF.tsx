@@ -242,9 +242,10 @@ const s = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     color: C.navy,
   },
-  colIndicador: { flex: 2 },
-  colMeta:      { flex: 2 },
-  colFreq:      { flex: 1 },
+  colIndicador: { width: "50%" },
+  colMeta:      { width: "30%" },
+  colFreq:      { width: "20%" },
+  tableCellWrap: { flexWrap: "wrap" },
 
   // Relaciones
   relGrid: {
@@ -276,6 +277,7 @@ const s = StyleSheet.create({
     fontSize: 8,
     color: C.sky,
     marginTop: 1,
+    marginRight: 2,
   },
   relText: {
     fontSize: 9,
@@ -494,7 +496,7 @@ export function ManualFuncionesPDF({
         {hasContent(cargo.funciones) && (
           <Section title="Funciones Principales">
             {cargo.funciones.map((fn, i) => (
-              <View key={i} style={s.funcionRow}>
+              <View key={i} style={s.funcionRow} wrap={false}>
                 <View style={s.funcionNum}>
                   <Text style={s.funcionNumText}>{i + 1}</Text>
                 </View>
@@ -559,10 +561,10 @@ export function ManualFuncionesPDF({
               <Text style={[s.tableHeaderCell, s.colFreq]}>Frecuencia</Text>
             </View>
             {cargo.kpis.map((k, i) => (
-              <View key={i} style={[s.tableRow, i % 2 !== 0 ? s.tableRowEven : {}]}>
-                <Text style={[s.tableCell, s.tableCellBold, s.colIndicador]}>{k.nombre}</Text>
-                <Text style={[s.tableCell, s.colMeta]}>{k.meta}</Text>
-                <Text style={[s.tableCell, s.colFreq]}>{k.frecuencia}</Text>
+              <View key={i} style={[s.tableRow, i % 2 !== 0 ? s.tableRowEven : {}]} wrap={false}>
+                <Text style={[s.tableCell, s.tableCellBold, s.colIndicador, s.tableCellWrap]}>{k.nombre}</Text>
+                <Text style={[s.tableCell, s.colMeta, s.tableCellWrap]}>{k.meta}</Text>
+                <Text style={[s.tableCell, s.colFreq, s.tableCellWrap]}>{k.frecuencia}</Text>
               </View>
             ))}
           </Section>
@@ -577,7 +579,7 @@ export function ManualFuncionesPDF({
                   <Text style={s.relLabel}>Relaciones Internas</Text>
                   {cargo.relaciones_internas.map((r, i) => (
                     <View key={i} style={s.relItem}>
-                      <Text style={s.relBullet}>◆</Text>
+                      <Text style={s.relBullet}>•</Text>
                       <Text style={s.relText}>{r}</Text>
                     </View>
                   ))}
@@ -588,7 +590,7 @@ export function ManualFuncionesPDF({
                   <Text style={s.relLabel}>Relaciones Externas</Text>
                   {cargo.relaciones_externas.map((r, i) => (
                     <View key={i} style={s.relItem}>
-                      <Text style={s.relBullet}>◆</Text>
+                      <Text style={s.relBullet}>•</Text>
                       <Text style={s.relText}>{r}</Text>
                     </View>
                   ))}
