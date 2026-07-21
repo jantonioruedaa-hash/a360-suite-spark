@@ -9,53 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as AppAdminSimpleRouteImport } from './routes/app.admin-simple'
-import { Route as AppClientesRouteImport } from './routes/app.clientes'
-import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
-import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
-import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
-import { Route as AppKpisRouteImport } from './routes/app.kpis'
-import { Route as AppLeeRouteImport } from './routes/app.lee'
-import { Route as AppPlanRouteImport } from './routes/app.plan'
-import { Route as AppSideRouteImport } from './routes/app.side'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShareTokenRouteImport } from './routes/share.$token'
-import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.$clienteId'
-import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
-import { Route as AppCoachingMetodologiaRouteImport } from './routes/app.coaching.metodologia'
-import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
+import { Route as AppSideRouteImport } from './routes/app.side'
+import { Route as AppPlanRouteImport } from './routes/app.plan'
+import { Route as AppLeeRouteImport } from './routes/app.lee'
+import { Route as AppKpisRouteImport } from './routes/app.kpis'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
+import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
+import { Route as AppClientesRouteImport } from './routes/app.clientes'
+import { Route as AppAdminSimpleRouteImport } from './routes/app.admin-simple'
 import { Route as AppManualFuncionesIndexRouteImport } from './routes/app.manual-funciones.index'
-import { Route as AppManualFuncionesClienteIdRouteImport } from './routes/app.manual-funciones.$clienteId'
+import { Route as AppCoachingIndexRouteImport } from './routes/app.coaching.index'
 import { Route as AppSideHistorialRouteImport } from './routes/app.side_.historial'
-import { Route as AppClientesClienteIdActividadesRouteImport } from './routes/app.clientes.$clienteId.actividades'
-import { Route as AppClientesClienteIdAnalisisIaRouteImport } from './routes/app.clientes.$clienteId.analisis-ia'
-import { Route as AppClientesClienteIdCoachingRouteImport } from './routes/app.clientes.$clienteId.coaching'
-import { Route as AppClientesClienteIdContactosRouteImport } from './routes/app.clientes.$clienteId.contactos'
-import { Route as AppClientesClienteIdCotizacionesRouteImport } from './routes/app.clientes.$clienteId.cotizaciones'
-import { Route as AppClientesClienteIdEmpresaRouteImport } from './routes/app.clientes.$clienteId.empresa'
-import { Route as AppClientesClienteIdLeeRouteImport } from './routes/app.clientes.$clienteId.lee'
-import { Route as AppClientesClienteIdOnboardingRouteImport } from './routes/app.clientes.$clienteId.onboarding'
-import { Route as AppClientesClienteIdPlanRouteImport } from './routes/app.clientes.$clienteId.plan'
-import { Route as AppClientesClienteIdResumenRouteImport } from './routes/app.clientes.$clienteId.resumen'
+import { Route as AppManualFuncionesClienteIdRouteImport } from './routes/app.manual-funciones.$clienteId'
+import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
+import { Route as AppCoachingMetodologiaRouteImport } from './routes/app.coaching.metodologia'
+import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.$clienteId'
 import { Route as AppClientesClienteIdSideRouteImport } from './routes/app.clientes.$clienteId.side'
+import { Route as AppClientesClienteIdResumenRouteImport } from './routes/app.clientes.$clienteId.resumen'
+import { Route as AppClientesClienteIdPlanRouteImport } from './routes/app.clientes.$clienteId.plan'
+import { Route as AppClientesClienteIdOnboardingRouteImport } from './routes/app.clientes.$clienteId.onboarding'
+import { Route as AppClientesClienteIdLeeRouteImport } from './routes/app.clientes.$clienteId.lee'
+import { Route as AppClientesClienteIdEmpresaRouteImport } from './routes/app.clientes.$clienteId.empresa'
+import { Route as AppClientesClienteIdCotizacionesRouteImport } from './routes/app.clientes.$clienteId.cotizaciones'
+import { Route as AppClientesClienteIdContactosRouteImport } from './routes/app.clientes.$clienteId.contactos'
+import { Route as AppClientesClienteIdCoachingRouteImport } from './routes/app.clientes.$clienteId.coaching'
+import { Route as AppClientesClienteIdAnalisisIaRouteImport } from './routes/app.clientes.$clienteId.analisis-ia'
+import { Route as AppClientesClienteIdActividadesRouteImport } from './routes/app.clientes.$clienteId.actividades'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -63,44 +53,29 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppAdminSimpleRoute = AppAdminSimpleRouteImport.update({
-  id: '/admin-simple',
-  path: '/admin-simple',
-  getParentRoute: () => AppRoute,
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppClientesRoute = AppClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => AppRoute,
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
-  id: '/configuracion',
-  path: '/configuracion',
-  getParentRoute: () => AppRoute,
+const ShareTokenRoute = ShareTokenRouteImport.update({
+  id: '/share/$token',
+  path: '/share/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppCrecimientoRoute = AppCrecimientoRouteImport.update({
-  id: '/crecimiento',
-  path: '/crecimiento',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDashboardRoute = AppDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppKpisRoute = AppKpisRouteImport.update({
-  id: '/kpis',
-  path: '/kpis',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLeeRoute = AppLeeRouteImport.update({
-  id: '/lee',
-  path: '/lee',
+const AppSideRoute = AppSideRouteImport.update({
+  id: '/side',
+  path: '/side',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPlanRoute = AppPlanRouteImport.update({
@@ -108,39 +83,54 @@ const AppPlanRoute = AppPlanRouteImport.update({
   path: '/plan',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSideRoute = AppSideRouteImport.update({
-  id: '/side',
-  path: '/side',
+const AppLeeRoute = AppLeeRouteImport.update({
+  id: '/lee',
+  path: '/lee',
   getParentRoute: () => AppRoute,
 } as any)
-const ShareTokenRoute = ShareTokenRouteImport.update({
-  id: '/share/$token',
-  path: '/share/$token',
-  getParentRoute: () => rootRouteImport,
+const AppKpisRoute = AppKpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
-  id: '/$clienteId',
-  path: '/$clienteId',
-  getParentRoute: () => AppClientesRoute,
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCrecimientoRoute = AppCrecimientoRouteImport.update({
+  id: '/crecimiento',
+  path: '/crecimiento',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientesRoute = AppClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminSimpleRoute = AppAdminSimpleRouteImport.update({
+  id: '/admin-simple',
+  path: '/admin-simple',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppManualFuncionesIndexRoute = AppManualFuncionesIndexRouteImport.update({
+  id: '/manual-funciones/',
+  path: '/manual-funciones/',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppCoachingIndexRoute = AppCoachingIndexRouteImport.update({
   id: '/coaching/',
   path: '/coaching/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCoachingMetodologiaRoute = AppCoachingMetodologiaRouteImport.update({
-  id: '/coaching/metodologia',
-  path: '/coaching/metodologia',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCoachingResultadosRoute = AppCoachingResultadosRouteImport.update({
-  id: '/coaching/resultados',
-  path: '/coaching/resultados',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppManualFuncionesIndexRoute = AppManualFuncionesIndexRouteImport.update({
-  id: '/manual-funciones/',
-  path: '/manual-funciones/',
+const AppSideHistorialRoute = AppSideHistorialRouteImport.update({
+  id: '/side_/historial',
+  path: '/side/historial',
   getParentRoute: () => AppRoute,
 } as any)
 const AppManualFuncionesClienteIdRoute =
@@ -149,62 +139,25 @@ const AppManualFuncionesClienteIdRoute =
     path: '/manual-funciones/$clienteId',
     getParentRoute: () => AppRoute,
   } as any)
-const AppSideHistorialRoute = AppSideHistorialRouteImport.update({
-  id: '/side_/historial',
-  path: '/side/historial',
+const AppCoachingResultadosRoute = AppCoachingResultadosRouteImport.update({
+  id: '/coaching/resultados',
+  path: '/coaching/resultados',
   getParentRoute: () => AppRoute,
 } as any)
-const AppClientesClienteIdActividadesRoute =
-  AppClientesClienteIdActividadesRouteImport.update({
-    id: '/actividades',
-    path: '/actividades',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdAnalisisIaRoute =
-  AppClientesClienteIdAnalisisIaRouteImport.update({
-    id: '/analisis-ia',
-    path: '/analisis-ia',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdCoachingRoute =
-  AppClientesClienteIdCoachingRouteImport.update({
-    id: '/coaching',
-    path: '/coaching',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdContactosRoute =
-  AppClientesClienteIdContactosRouteImport.update({
-    id: '/contactos',
-    path: '/contactos',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdCotizacionesRoute =
-  AppClientesClienteIdCotizacionesRouteImport.update({
-    id: '/cotizaciones',
-    path: '/cotizaciones',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdEmpresaRoute =
-  AppClientesClienteIdEmpresaRouteImport.update({
-    id: '/empresa',
-    path: '/empresa',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdLeeRoute = AppClientesClienteIdLeeRouteImport.update({
-  id: '/lee',
-  path: '/lee',
-  getParentRoute: () => AppClientesClienteIdRoute,
+const AppCoachingMetodologiaRoute = AppCoachingMetodologiaRouteImport.update({
+  id: '/coaching/metodologia',
+  path: '/coaching/metodologia',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppClientesClienteIdOnboardingRoute =
-  AppClientesClienteIdOnboardingRouteImport.update({
-    id: '/onboarding',
-    path: '/onboarding',
-    getParentRoute: () => AppClientesClienteIdRoute,
-  } as any)
-const AppClientesClienteIdPlanRoute =
-  AppClientesClienteIdPlanRouteImport.update({
-    id: '/plan',
-    path: '/plan',
+const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
+  id: '/$clienteId',
+  path: '/$clienteId',
+  getParentRoute: () => AppClientesRoute,
+} as any)
+const AppClientesClienteIdSideRoute =
+  AppClientesClienteIdSideRouteImport.update({
+    id: '/side',
+    path: '/side',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
 const AppClientesClienteIdResumenRoute =
@@ -213,10 +166,57 @@ const AppClientesClienteIdResumenRoute =
     path: '/resumen',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
-const AppClientesClienteIdSideRoute =
-  AppClientesClienteIdSideRouteImport.update({
-    id: '/side',
-    path: '/side',
+const AppClientesClienteIdPlanRoute =
+  AppClientesClienteIdPlanRouteImport.update({
+    id: '/plan',
+    path: '/plan',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdOnboardingRoute =
+  AppClientesClienteIdOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdLeeRoute = AppClientesClienteIdLeeRouteImport.update({
+  id: '/lee',
+  path: '/lee',
+  getParentRoute: () => AppClientesClienteIdRoute,
+} as any)
+const AppClientesClienteIdEmpresaRoute =
+  AppClientesClienteIdEmpresaRouteImport.update({
+    id: '/empresa',
+    path: '/empresa',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdCotizacionesRoute =
+  AppClientesClienteIdCotizacionesRouteImport.update({
+    id: '/cotizaciones',
+    path: '/cotizaciones',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdContactosRoute =
+  AppClientesClienteIdContactosRouteImport.update({
+    id: '/contactos',
+    path: '/contactos',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdCoachingRoute =
+  AppClientesClienteIdCoachingRouteImport.update({
+    id: '/coaching',
+    path: '/coaching',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdAnalisisIaRoute =
+  AppClientesClienteIdAnalisisIaRouteImport.update({
+    id: '/analisis-ia',
+    path: '/analisis-ia',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdActividadesRoute =
+  AppClientesClienteIdActividadesRouteImport.update({
+    id: '/actividades',
+    path: '/actividades',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
 
@@ -445,25 +445,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -473,60 +459,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/admin-simple': {
-      id: '/app/admin-simple'
-      path: '/admin-simple'
-      fullPath: '/app/admin-simple'
-      preLoaderRoute: typeof AppAdminSimpleRouteImport
-      parentRoute: typeof AppRoute
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/app/clientes': {
-      id: '/app/clientes'
-      path: '/clientes'
-      fullPath: '/app/clientes'
-      preLoaderRoute: typeof AppClientesRouteImport
-      parentRoute: typeof AppRoute
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/app/configuracion': {
-      id: '/app/configuracion'
-      path: '/configuracion'
-      fullPath: '/app/configuracion'
-      preLoaderRoute: typeof AppConfiguracionRouteImport
-      parentRoute: typeof AppRoute
+    '/share/$token': {
+      id: '/share/$token'
+      path: '/share/$token'
+      fullPath: '/share/$token'
+      preLoaderRoute: typeof ShareTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/app/crecimiento': {
-      id: '/app/crecimiento'
-      path: '/crecimiento'
-      fullPath: '/app/crecimiento'
-      preLoaderRoute: typeof AppCrecimientoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/dashboard': {
-      id: '/app/dashboard'
-      path: '/dashboard'
-      fullPath: '/app/dashboard'
-      preLoaderRoute: typeof AppDashboardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/kpis': {
-      id: '/app/kpis'
-      path: '/kpis'
-      fullPath: '/app/kpis'
-      preLoaderRoute: typeof AppKpisRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/lee': {
-      id: '/app/lee'
-      path: '/lee'
-      fullPath: '/app/lee'
-      preLoaderRoute: typeof AppLeeRouteImport
+    '/app/side': {
+      id: '/app/side'
+      path: '/side'
+      fullPath: '/app/side'
+      preLoaderRoute: typeof AppSideRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/plan': {
@@ -536,46 +501,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlanRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/side': {
-      id: '/app/side'
-      path: '/side'
-      fullPath: '/app/side'
-      preLoaderRoute: typeof AppSideRouteImport
+    '/app/lee': {
+      id: '/app/lee'
+      path: '/lee'
+      fullPath: '/app/lee'
+      preLoaderRoute: typeof AppLeeRouteImport
       parentRoute: typeof AppRoute
     }
-    '/share/$token': {
-      id: '/share/$token'
-      path: '/share/$token'
-      fullPath: '/share/$token'
-      preLoaderRoute: typeof ShareTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/clientes/$clienteId': {
-      id: '/app/clientes/$clienteId'
-      path: '/$clienteId'
-      fullPath: '/app/clientes/$clienteId'
-      preLoaderRoute: typeof AppClientesClienteIdRouteImport
-      parentRoute: typeof AppClientesRoute
-    }
-    '/app/coaching/': {
-      id: '/app/coaching/'
-      path: '/coaching'
-      fullPath: '/app/coaching/'
-      preLoaderRoute: typeof AppCoachingIndexRouteImport
+    '/app/kpis': {
+      id: '/app/kpis'
+      path: '/kpis'
+      fullPath: '/app/kpis'
+      preLoaderRoute: typeof AppKpisRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/coaching/metodologia': {
-      id: '/app/coaching/metodologia'
-      path: '/coaching/metodologia'
-      fullPath: '/app/coaching/metodologia'
-      preLoaderRoute: typeof AppCoachingMetodologiaRouteImport
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/coaching/resultados': {
-      id: '/app/coaching/resultados'
-      path: '/coaching/resultados'
-      fullPath: '/app/coaching/resultados'
-      preLoaderRoute: typeof AppCoachingResultadosRouteImport
+    '/app/crecimiento': {
+      id: '/app/crecimiento'
+      path: '/crecimiento'
+      fullPath: '/app/crecimiento'
+      preLoaderRoute: typeof AppCrecimientoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/configuracion': {
+      id: '/app/configuracion'
+      path: '/configuracion'
+      fullPath: '/app/configuracion'
+      preLoaderRoute: typeof AppConfiguracionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clientes': {
+      id: '/app/clientes'
+      path: '/clientes'
+      fullPath: '/app/clientes'
+      preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admin-simple': {
+      id: '/app/admin-simple'
+      path: '/admin-simple'
+      fullPath: '/app/admin-simple'
+      preLoaderRoute: typeof AppAdminSimpleRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/manual-funciones/': {
@@ -585,11 +557,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppManualFuncionesIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/manual-funciones/$clienteId': {
-      id: '/app/manual-funciones/$clienteId'
-      path: '/manual-funciones/$clienteId'
-      fullPath: '/app/manual-funciones/$clienteId'
-      preLoaderRoute: typeof AppManualFuncionesClienteIdRouteImport
+    '/app/coaching/': {
+      id: '/app/coaching/'
+      path: '/coaching'
+      fullPath: '/app/coaching/'
+      preLoaderRoute: typeof AppCoachingIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/side_/historial': {
@@ -599,67 +571,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSideHistorialRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/clientes/$clienteId/actividades': {
-      id: '/app/clientes/$clienteId/actividades'
-      path: '/actividades'
-      fullPath: '/app/clientes/$clienteId/actividades'
-      preLoaderRoute: typeof AppClientesClienteIdActividadesRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
+    '/app/manual-funciones/$clienteId': {
+      id: '/app/manual-funciones/$clienteId'
+      path: '/manual-funciones/$clienteId'
+      fullPath: '/app/manual-funciones/$clienteId'
+      preLoaderRoute: typeof AppManualFuncionesClienteIdRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/clientes/$clienteId/analisis-ia': {
-      id: '/app/clientes/$clienteId/analisis-ia'
-      path: '/analisis-ia'
-      fullPath: '/app/clientes/$clienteId/analisis-ia'
-      preLoaderRoute: typeof AppClientesClienteIdAnalisisIaRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
+    '/app/coaching/resultados': {
+      id: '/app/coaching/resultados'
+      path: '/coaching/resultados'
+      fullPath: '/app/coaching/resultados'
+      preLoaderRoute: typeof AppCoachingResultadosRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/clientes/$clienteId/coaching': {
-      id: '/app/clientes/$clienteId/coaching'
-      path: '/coaching'
-      fullPath: '/app/clientes/$clienteId/coaching'
-      preLoaderRoute: typeof AppClientesClienteIdCoachingRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
+    '/app/coaching/metodologia': {
+      id: '/app/coaching/metodologia'
+      path: '/coaching/metodologia'
+      fullPath: '/app/coaching/metodologia'
+      preLoaderRoute: typeof AppCoachingMetodologiaRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/clientes/$clienteId/contactos': {
-      id: '/app/clientes/$clienteId/contactos'
-      path: '/contactos'
-      fullPath: '/app/clientes/$clienteId/contactos'
-      preLoaderRoute: typeof AppClientesClienteIdContactosRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
+    '/app/clientes/$clienteId': {
+      id: '/app/clientes/$clienteId'
+      path: '/$clienteId'
+      fullPath: '/app/clientes/$clienteId'
+      preLoaderRoute: typeof AppClientesClienteIdRouteImport
+      parentRoute: typeof AppClientesRoute
     }
-    '/app/clientes/$clienteId/cotizaciones': {
-      id: '/app/clientes/$clienteId/cotizaciones'
-      path: '/cotizaciones'
-      fullPath: '/app/clientes/$clienteId/cotizaciones'
-      preLoaderRoute: typeof AppClientesClienteIdCotizacionesRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
-    }
-    '/app/clientes/$clienteId/empresa': {
-      id: '/app/clientes/$clienteId/empresa'
-      path: '/empresa'
-      fullPath: '/app/clientes/$clienteId/empresa'
-      preLoaderRoute: typeof AppClientesClienteIdEmpresaRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
-    }
-    '/app/clientes/$clienteId/lee': {
-      id: '/app/clientes/$clienteId/lee'
-      path: '/lee'
-      fullPath: '/app/clientes/$clienteId/lee'
-      preLoaderRoute: typeof AppClientesClienteIdLeeRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
-    }
-    '/app/clientes/$clienteId/onboarding': {
-      id: '/app/clientes/$clienteId/onboarding'
-      path: '/onboarding'
-      fullPath: '/app/clientes/$clienteId/onboarding'
-      preLoaderRoute: typeof AppClientesClienteIdOnboardingRouteImport
-      parentRoute: typeof AppClientesClienteIdRoute
-    }
-    '/app/clientes/$clienteId/plan': {
-      id: '/app/clientes/$clienteId/plan'
-      path: '/plan'
-      fullPath: '/app/clientes/$clienteId/plan'
-      preLoaderRoute: typeof AppClientesClienteIdPlanRouteImport
+    '/app/clientes/$clienteId/side': {
+      id: '/app/clientes/$clienteId/side'
+      path: '/side'
+      fullPath: '/app/clientes/$clienteId/side'
+      preLoaderRoute: typeof AppClientesClienteIdSideRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
     '/app/clientes/$clienteId/resumen': {
@@ -669,11 +613,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdResumenRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
-    '/app/clientes/$clienteId/side': {
-      id: '/app/clientes/$clienteId/side'
-      path: '/side'
-      fullPath: '/app/clientes/$clienteId/side'
-      preLoaderRoute: typeof AppClientesClienteIdSideRouteImport
+    '/app/clientes/$clienteId/plan': {
+      id: '/app/clientes/$clienteId/plan'
+      path: '/plan'
+      fullPath: '/app/clientes/$clienteId/plan'
+      preLoaderRoute: typeof AppClientesClienteIdPlanRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/onboarding': {
+      id: '/app/clientes/$clienteId/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/clientes/$clienteId/onboarding'
+      preLoaderRoute: typeof AppClientesClienteIdOnboardingRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/lee': {
+      id: '/app/clientes/$clienteId/lee'
+      path: '/lee'
+      fullPath: '/app/clientes/$clienteId/lee'
+      preLoaderRoute: typeof AppClientesClienteIdLeeRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/empresa': {
+      id: '/app/clientes/$clienteId/empresa'
+      path: '/empresa'
+      fullPath: '/app/clientes/$clienteId/empresa'
+      preLoaderRoute: typeof AppClientesClienteIdEmpresaRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/cotizaciones': {
+      id: '/app/clientes/$clienteId/cotizaciones'
+      path: '/cotizaciones'
+      fullPath: '/app/clientes/$clienteId/cotizaciones'
+      preLoaderRoute: typeof AppClientesClienteIdCotizacionesRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/contactos': {
+      id: '/app/clientes/$clienteId/contactos'
+      path: '/contactos'
+      fullPath: '/app/clientes/$clienteId/contactos'
+      preLoaderRoute: typeof AppClientesClienteIdContactosRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/coaching': {
+      id: '/app/clientes/$clienteId/coaching'
+      path: '/coaching'
+      fullPath: '/app/clientes/$clienteId/coaching'
+      preLoaderRoute: typeof AppClientesClienteIdCoachingRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/analisis-ia': {
+      id: '/app/clientes/$clienteId/analisis-ia'
+      path: '/analisis-ia'
+      fullPath: '/app/clientes/$clienteId/analisis-ia'
+      preLoaderRoute: typeof AppClientesClienteIdAnalisisIaRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
+    '/app/clientes/$clienteId/actividades': {
+      id: '/app/clientes/$clienteId/actividades'
+      path: '/actividades'
+      fullPath: '/app/clientes/$clienteId/actividades'
+      preLoaderRoute: typeof AppClientesClienteIdActividadesRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
   }
@@ -773,11 +773,10 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

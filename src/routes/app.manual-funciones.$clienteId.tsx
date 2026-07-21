@@ -464,56 +464,117 @@ function PreviewPanel({
 }
 
 // ── Form sub-components ────────────────────────────────────────────────────────
+// ── DynKVList — local state por par, onBlur para propagar ─────────────────────
+type KVEntry = { _id: string; key: string; val: string };
+
+function KVPairRow({ entry, onKeyBlur, onValBlur, onRemove }: {
+  entry: KVEntry;
+  onKeyBlur: (id: string, key: string) => void;
+  onValBlur: (id: string, val: string) => void;
+  onRemove: (id: string) => void;
+}) {
+  const [localKey, setLocalKey] = useState(entry.key);
+  const [localVal, setLocalVal] = useState(entry.val);
+  return (
+    <div style={{ border: "1.5px solid #E2E8F0", borderRadius: "10px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px", background: "#FAFBFF" }}>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <input
+          value={localKey}
+          onChange={(e) => setLocalKey(e.target.value)}
+          onBlur={() => onKeyBlur(entry._id, localKey.trim().replace(/\s+/g, "_"))}
+          style={{ ...INPUT, fontWeight: 700, fontSize: "12px", flex: 1 }}
+          placeholder="Nombre de la condición"
+        />
+        <button onClick={() => onRemove(entry._id)} style={{ padding: "7px", borderRadius: "7px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
+          <Trash2 style={{ width: "13px", height: "13px" }} />
+        </button>
+      </div>
+      <textarea
+        value={localVal}
+        onChange={(e) => setLocalVal(e.target.value)}
+        onBlur={() => onValBlur(entry._id, localVal)}
+        rows={2}
+        style={{ ...INPUT, resize: "vertical" }}
+        placeholder="Descripción…"
+      />
+    </div>
+  );
+}
+
 function DynKVList({ value, onChange }: {
   value: Record<string, string>;
   onChange: (v: Record<string, string>) => void;
 }) {
-  const pairs = Object.entries(value);
-  const addPair = () => {
-    const key = `condicion_${Date.now()}`;
-    onChange({ ...value, [key]: "" });
+  const [entries, setEntries] = useState<KVEntry[]>(() =>
+    Object.entries(value).map(([key, val]) => ({ _id: `_${key}_${Math.random()}`, key, val }))
+  );
+
+  const toRecord = (list: KVEntry[]): Record<string, string> => {
+    const r: Record<string, string> = {};
+    for (const { key, val } of list) { if (key) r[key] = val; }
+    return r;
   };
-  const removeKey = (key: string) => {
-    const next = { ...value };
-    delete next[key];
-    onChange(next);
+
+  const addPair = () =>
+    setEntries((prev) => [...prev, { _id: `_new_${Date.now()}`, key: "", val: "" }]);
+
+  const removePair = (id: string) => {
+    const next = entries.filter((e) => e._id !== id);
+    setEntries(next);
+    onChange(toRecord(next));
   };
-  const renameKey = (oldKey: string, newKey: string) => {
-    if (newKey === oldKey) return;
-    const next: Record<string, string> = {};
-    for (const [k, v] of Object.entries(value)) {
-      next[k === oldKey ? newKey : k] = v;
-    }
-    onChange(next);
+
+  const updateKey = (id: string, newKey: string) => {
+    const next = entries.map((e) => e._id === id ? { ...e, key: newKey } : e);
+    setEntries(next);
+    onChange(toRecord(next));
   };
-  const setValue = (key: string, val: string) => onChange({ ...value, [key]: val });
+
+  const updateVal = (id: string, newVal: string) => {
+    const next = entries.map((e) => e._id === id ? { ...e, val: newVal } : e);
+    setEntries(next);
+    onChange(toRecord(next));
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      {pairs.map(([key, val]) => (
-        <div key={key} style={{ border: "1.5px solid #E2E8F0", borderRadius: "10px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px", background: "#FAFBFF" }}>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <input
-              value={key.replace(/_/g, " ")}
-              onChange={(e) => renameKey(key, e.target.value.trim().replace(/\s+/g, "_") || key)}
-              style={{ ...INPUT, fontWeight: 700, fontSize: "12px", flex: 1 }}
-              placeholder="Nombre de la condición"
-            />
-            <button onClick={() => removeKey(key)} style={{ padding: "7px", borderRadius: "7px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
-              <Trash2 style={{ width: "13px", height: "13px" }} />
-            </button>
-          </div>
-          <textarea
-            value={val}
-            onChange={(e) => setValue(key, e.target.value)}
-            rows={2}
-            style={{ ...INPUT, resize: "vertical" }}
-            placeholder="Descripción…"
-          />
-        </div>
+      {entries.map((entry) => (
+        <KVPairRow
+          key={entry._id}
+          entry={entry}
+          onKeyBlur={updateKey}
+          onValBlur={updateVal}
+          onRemove={removePair}
+        />
       ))}
       <button onClick={addPair} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#7F77DD", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
         <Plus style={{ width: "12px", height: "12px" }} /> Agregar condición
+      </button>
+    </div>
+  );
+}
+
+// ── DynStringList — local state por item, onBlur para propagar ─────────────────
+type StrEntry = { _id: string; val: string };
+
+function StringItemRow({ entry, onBlur, onRemove, placeholder }: {
+  entry: StrEntry;
+  onBlur: (id: string, val: string) => void;
+  onRemove: (id: string) => void;
+  placeholder?: string;
+}) {
+  const [local, setLocal] = useState(entry.val);
+  return (
+    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+      <input
+        value={local}
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={() => onBlur(entry._id, local)}
+        style={INPUT}
+        placeholder={placeholder}
+      />
+      <button onClick={() => onRemove(entry._id)} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
+        <Trash2 style={{ width: "13px", height: "13px" }} />
       </button>
     </div>
   );
@@ -524,64 +585,109 @@ function DynStringList({ items, onChange, placeholder }: {
   onChange: (v: string[]) => void;
   placeholder?: string;
 }) {
-  const add = () => onChange([...items, ""]);
-  const remove = (i: number) => onChange(items.filter((_, j) => j !== i));
-  const set = (i: number, val: string) => onChange(items.map((v, j) => (j === i ? val : v)));
+  const [entries, setEntries] = useState<StrEntry[]>(() =>
+    items.map((val) => ({ _id: `_${Math.random()}`, val }))
+  );
+
+  const addItem = () =>
+    setEntries((prev) => [...prev, { _id: `_new_${Date.now()}`, val: "" }]);
+
+  const removeItem = (id: string) => {
+    const next = entries.filter((e) => e._id !== id);
+    setEntries(next);
+    onChange(next.map((e) => e.val));
+  };
+
+  const updateItem = (id: string, val: string) => {
+    const next = entries.map((e) => e._id === id ? { ...e, val } : e);
+    setEntries(next);
+    onChange(next.map((e) => e.val));
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {items.map((val, i) => (
-        <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <input value={val} onChange={(e) => set(i, e.target.value)} style={INPUT} placeholder={placeholder} />
-          <button onClick={() => remove(i)} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
-            <Trash2 style={{ width: "13px", height: "13px" }} />
-          </button>
-        </div>
+      {entries.map((entry) => (
+        <StringItemRow
+          key={entry._id}
+          entry={entry}
+          onBlur={updateItem}
+          onRemove={removeItem}
+          placeholder={placeholder}
+        />
       ))}
-      <button onClick={add} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
+      <button onClick={addItem} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
         <Plus style={{ width: "12px", height: "12px" }} /> Agregar
       </button>
     </div>
   );
 }
 
-function DynList<T extends Record<string, unknown>>({
-  items, onChange, schema, labels,
-}: {
+// ── DynList — local state por fila, onBlur en texto, inmediato en select/number ─
+type DynLabelDef<T> = { field: keyof T; label: string; type?: "number" | "select"; options?: string[] };
+
+function DynRow<T extends Record<string, unknown>>({ row, labels, onCommit, onRemove }: {
+  row: T;
+  labels: DynLabelDef<T>[];
+  onCommit: (row: T) => void;
+  onRemove: () => void;
+}) {
+  const [local, setLocal] = useState<T>(row);
+  const update = (key: keyof T, val: unknown, immediate: boolean) => {
+    const next = { ...local, [key]: val } as T;
+    setLocal(next);
+    if (immediate) onCommit(next);
+  };
+  return (
+    <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", flexWrap: "wrap" }}>
+      {labels.map((l) => (
+        <div key={String(l.field)} style={{ flex: l.type === "number" ? "0 0 90px" : 1, minWidth: "120px" }}>
+          <div style={LABEL}>{l.label}</div>
+          {l.type === "select" ? (
+            <select value={String(local[l.field] ?? "")} onChange={(e) => update(l.field, e.target.value, true)} style={INPUT}>
+              {(l.options ?? []).map((o) => <option key={o}>{o}</option>)}
+            </select>
+          ) : l.type === "number" ? (
+            <input type="number" value={String(local[l.field] ?? "")} onChange={(e) => update(l.field, Number(e.target.value), true)} style={INPUT} />
+          ) : (
+            <input type="text" value={String(local[l.field] ?? "")} onChange={(e) => update(l.field, e.target.value, false)} onBlur={() => onCommit(local)} style={INPUT} />
+          )}
+        </div>
+      ))}
+      <button onClick={onRemove} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
+        <Trash2 style={{ width: "13px", height: "13px" }} />
+      </button>
+    </div>
+  );
+}
+
+function DynList<T extends Record<string, unknown>>({ items, onChange, schema, labels }: {
   items: T[];
   onChange: (v: T[]) => void;
   schema: T;
-  labels: { field: keyof T; label: string; type?: "number" | "select"; options?: string[] }[];
+  labels: DynLabelDef<T>[];
 }) {
-  const add = () => onChange([...items, { ...schema }]);
-  const remove = (i: number) => onChange(items.filter((_, j) => j !== i));
-  const set = (i: number, key: keyof T, val: unknown) =>
-    onChange(items.map((row, j) => (j === i ? { ...row, [key]: val } : row)));
+  const [ids, setIds] = useState<string[]>(() => items.map(() => `_${Math.random()}`));
+
+  const add = () => {
+    onChange([...items, { ...schema }]);
+    setIds((prev) => [...prev, `_new_${Date.now()}`]);
+  };
+  const remove = (i: number) => {
+    onChange(items.filter((_, j) => j !== i));
+    setIds((prev) => prev.filter((_, j) => j !== i));
+  };
+  const commit = (i: number, row: T) => onChange(items.map((r, j) => (j === i ? row : r)));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {items.map((row, i) => (
-        <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-end", flexWrap: "wrap" }}>
-          {labels.map((l) => (
-            <div key={String(l.field)} style={{ flex: l.type === "number" ? "0 0 90px" : 1, minWidth: "120px" }}>
-              <div style={LABEL}>{l.label}</div>
-              {l.type === "select" ? (
-                <select value={String(row[l.field] ?? "")} onChange={(e) => set(i, l.field, e.target.value)} style={INPUT}>
-                  {(l.options ?? []).map((o) => <option key={o}>{o}</option>)}
-                </select>
-              ) : (
-                <input
-                  type={l.type ?? "text"}
-                  value={String(row[l.field] ?? "")}
-                  onChange={(e) => set(i, l.field, l.type === "number" ? Number(e.target.value) : e.target.value)}
-                  style={INPUT}
-                />
-              )}
-            </div>
-          ))}
-          <button onClick={() => remove(i)} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
-            <Trash2 style={{ width: "13px", height: "13px" }} />
-          </button>
-        </div>
+        <DynRow<T>
+          key={ids[i] ?? i}
+          row={row}
+          labels={labels}
+          onCommit={(newRow) => commit(i, newRow)}
+          onRemove={() => remove(i)}
+        />
       ))}
       <button onClick={add} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
         <Plus style={{ width: "12px", height: "12px" }} /> Agregar
@@ -612,6 +718,64 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function CargoCard({
+  c, deletingId, onPreview, onEdit, onDeleteInit, onDeleteCancel, onDeleteConfirm,
+}: {
+  c: Cargo;
+  deletingId: string | null;
+  onPreview: () => void;
+  onEdit: () => void;
+  onDeleteInit: () => void;
+  onDeleteCancel: () => void;
+  onDeleteConfirm: () => void;
+}) {
+  return (
+    <div style={{ background: "white", border: "1px solid #E8EEF8", borderRadius: "10px", padding: "13px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+      <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "linear-gradient(135deg, #0EA5E9, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 900, color: "white", flexShrink: 0 }}>
+        {c.cargo[0]?.toUpperCase()}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E" }}>{c.cargo}</span>
+          <span style={PILL(c.estado)}>{c.estado ?? "—"}</span>
+          {c.vacante && <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 9px", borderRadius: "99px", background: "#EDE9FE", color: "#5B21B6" }}>Vacante</span>}
+        </div>
+        {(c.jefe_inmediato || c.codigo) && (
+          <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>
+            {c.jefe_inmediato ? `Reporta a: ${c.jefe_inmediato}` : ""}{c.codigo ? `${c.jefe_inmediato ? " · " : ""}${c.codigo}` : ""}
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: "14px", flexShrink: 0 }}>
+        {[{ val: c.funciones.length, lbl: "func." }, { val: c.kpis.length, lbl: "KPIs" }].map((s) => (
+          <div key={s.lbl} style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "15px", fontWeight: 900, color: "#0C4A6E" }}>{s.val}</div>
+            <div style={{ fontSize: "10px", color: "#94A3B8" }}>{s.lbl}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+        <button onClick={onPreview} style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E0E7FF", background: "#F0F4FF", color: "#6366F1", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}>
+          <Eye style={{ width: "12px", height: "12px" }} /> Ver manual
+        </button>
+        <button onClick={onEdit} style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#0C4A6E", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}>
+          <Pencil style={{ width: "12px", height: "12px" }} /> Editar
+        </button>
+        {deletingId === c.id ? (
+          <div style={{ display: "flex", gap: "4px" }}>
+            <button onClick={onDeleteConfirm} style={{ padding: "7px 10px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>Confirmar</button>
+            <button onClick={onDeleteCancel} style={{ padding: "7px 10px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>No</button>
+          </div>
+        ) : (
+          <button onClick={onDeleteInit} style={{ padding: "7px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer" }}>
+            <Trash2 style={{ width: "13px", height: "13px" }} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 function ManualFuncionesWorkspace() {
   const { clienteId } = Route.useParams();
@@ -621,7 +785,7 @@ function ManualFuncionesWorkspace() {
   const [cargos, setCargos] = useState<Cargo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [areaActiva, setAreaActiva]       = useState<"todas" | string>("todas");
+  const [areasAbiertas, setAreasAbiertas] = useState<Record<string, boolean>>({});
   const [vista, setVista]                 = useState<"lista" | "form" | "preview">("lista");
   const [cargoEditando, setCargoEditando] = useState<Cargo | null>(null);
   const [cargoPreview, setCargoPreview]   = useState<Cargo | null>(null);
@@ -654,13 +818,11 @@ function ManualFuncionesWorkspace() {
   }, [clienteId]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  const cargosFiltrados = areaActiva === "todas"
-    ? cargos
-    : cargos.filter((c) => c.area === areas.find((a) => a.id === areaActiva)?.nombre);
+  const areaNames = new Set(areas.map((a) => a.nombre));
+  const cargosSinArea = cargos.filter((c) => !areaNames.has(c.area));
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  function abrirNuevo() {
-    const areaNombre = areaActiva === "todas" ? "" : (areas.find((a) => a.id === areaActiva)?.nombre ?? "");
+  function abrirNuevo(areaNombre = "") {
     setCargoEditando(null);
     setForm({ ...FORM_BLANK, area: areaNombre });
     setVista("form");
@@ -952,110 +1114,126 @@ function ManualFuncionesWorkspace() {
         /* ── LIST VIEW ── */
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
-            <div>
-              <h1 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", margin: "0 0 4px", letterSpacing: "-0.02em" }}>{clienteNombre}</h1>
-              <p style={{ fontSize: "13px", color: "#94A3B8", margin: 0 }}>
-                {cargos.length} cargo{cargos.length !== 1 ? "s" : ""} documentado{cargos.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-              <button onClick={() => setModalArea(true)} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "8px 14px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "13px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}>
-                <Plus style={{ width: "13px", height: "13px" }} /> Nueva área
-              </button>
-              <button onClick={abrirNuevo} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 16px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
-                <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
-              </button>
-            </div>
-          </div>
-
-          {/* Area tabs */}
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {(["todas", ...areas.map((a) => a.id)] as ("todas" | string)[]).map((key) => {
-              const areaNombre = key === "todas" ? "" : (areas.find((a) => a.id === key)?.nombre ?? "");
-              const count = key === "todas" ? cargos.length : cargos.filter((c) => c.area === areaNombre).length;
-              const active = areaActiva === key;
-              return (
-                <button key={key} onClick={() => setAreaActiva(key)} style={{ padding: "6px 14px", borderRadius: "999px", fontSize: "12px", fontWeight: 700, cursor: "pointer", border: "1.5px solid", background: active ? "#0C4A6E" : "white", color: active ? "white" : "#64748B", borderColor: active ? "#0C4A6E" : "#E2E8F0" }}>
-                  {key === "todas" ? `Todas (${cargos.length})` : `${areaNombre} (${count})`}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Cargo list */}
-          {cargosFiltrados.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "56px 24px", background: "white", borderRadius: "16px", border: "1.5px dashed #E0E7FF" }}>
-              <FileText style={{ width: "36px", height: "36px", color: "#CBD5E1", margin: "0 auto 12px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#0C4A6E", marginBottom: "6px" }}>Sin cargos</h3>
-              <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "16px" }}>
-                {areaActiva === "todas" ? "Crea el primer cargo para esta empresa." : "No hay cargos en esta área todavía."}
-              </p>
-              <button onClick={abrirNuevo} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
-                <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {cargosFiltrados.map((c) => (
-                <div key={c.id} style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "12px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
-
-                  {/* Avatar */}
-                  <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #0EA5E9, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: 900, color: "white", flexShrink: 0 }}>
-                    {c.cargo[0]?.toUpperCase()}
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E" }}>{c.cargo}</span>
-                      <span style={PILL(c.estado)}>{c.estado ?? "—"}</span>
-                      {c.vacante && <span style={{ ...PILL("en_revision"), background: "#EDE9FE", color: "#5B21B6" }}>Vacante</span>}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>
-                      {c.area}{c.jefe_inmediato ? ` · Reporta a: ${c.jefe_inmediato}` : ""}{c.codigo ? ` · ${c.codigo}` : ""}
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div style={{ display: "flex", gap: "16px", flexShrink: 0 }}>
-                    {[{ val: c.funciones.length, lbl: "func." }, { val: c.kpis.length, lbl: "KPIs" }].map((s) => (
-                      <div key={s.lbl} style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: "16px", fontWeight: 900, color: "#0C4A6E" }}>{s.val}</div>
-                        <div style={{ fontSize: "10px", color: "#94A3B8" }}>{s.lbl}</div>
+          {/* Company header */}
+          <div style={{ background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 60%, #312E81 100%)", borderRadius: "16px", padding: "26px 30px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 80% at 85% 30%, rgba(14,165,233,0.18), transparent)", pointerEvents: "none" }} />
+            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ width: "50px", height: "50px", borderRadius: "13px", background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 900, color: "white", flexShrink: 0 }}>
+                  {clienteNombre[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <h1 style={{ fontSize: "19px", fontWeight: 900, color: "white", margin: "0 0 6px", letterSpacing: "-0.02em" }}>{clienteNombre}</h1>
+                  <div style={{ display: "flex", gap: "18px" }}>
+                    {[
+                      { val: cargos.length, lbl: "Cargos" },
+                      { val: cargos.filter((c) => c.estado === "vigente").length, lbl: "Vigentes" },
+                      { val: cargos.filter((c) => c.vacante === true).length, lbl: "Vacantes" },
+                      { val: areas.length, lbl: "Áreas" },
+                    ].map((s) => (
+                      <div key={s.lbl} style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)" }}>
+                        <span style={{ fontWeight: 900, color: "white", fontSize: "15px" }}>{s.val}</span>{" "}{s.lbl}
                       </div>
                     ))}
                   </div>
-
-                  {/* Actions */}
-                  <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-                    <button
-                      onClick={() => abrirPreview(c)}
-                      style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E0E7FF", background: "#F0F4FF", color: "#6366F1", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}
-                    >
-                      <Eye style={{ width: "12px", height: "12px" }} /> Ver manual
-                    </button>
-                    <button
-                      onClick={() => abrirEdicion(c)}
-                      style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#0C4A6E", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}
-                    >
-                      <Pencil style={{ width: "12px", height: "12px" }} /> Editar
-                    </button>
-                    {deletingId === c.id ? (
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <button onClick={() => eliminar(c.id)} style={{ padding: "7px 10px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>Confirmar</button>
-                        <button onClick={() => setDeletingId(null)} style={{ padding: "7px 10px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>No</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => setDeletingId(c.id)} style={{ padding: "7px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer" }}>
-                        <Trash2 style={{ width: "13px", height: "13px" }} />
-                      </button>
-                    )}
-                  </div>
                 </div>
-              ))}
+              </div>
+              <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                <button onClick={() => setModalArea(true)} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "9px 16px", borderRadius: "9px", border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "white", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+                  <Plus style={{ width: "13px", height: "13px" }} /> Nueva área
+                </button>
+                <button onClick={() => abrirNuevo()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "9px", border: "none", background: "rgba(255,255,255,0.95)", color: "#0C4A6E", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
+                  <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Empty state */}
+          {areas.length === 0 && cargos.length === 0 && (
+            <div style={{ textAlign: "center", padding: "56px 24px", background: "white", borderRadius: "16px", border: "1.5px dashed #E0E7FF" }}>
+              <FileText style={{ width: "36px", height: "36px", color: "#CBD5E1", margin: "0 auto 12px" }} />
+              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#0C4A6E", marginBottom: "6px" }}>Sin cargos</h3>
+              <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "16px" }}>Crea el primer cargo para esta empresa.</p>
+              <button onClick={() => abrirNuevo()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
+                <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
+              </button>
             </div>
           )}
+
+          {/* Area accordions */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {areas.map((area) => {
+              const areaCargos = cargos.filter((c) => c.area === area.nombre);
+              const isOpen = areasAbiertas[area.id] !== false;
+              return (
+                <div key={area.id} style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "14px", overflow: "hidden" }}>
+                  <div
+                    onClick={() => setAreasAbiertas((prev) => ({ ...prev, [area.id]: !isOpen }))}
+                    style={{ display: "flex", alignItems: "center", padding: "13px 18px", cursor: "pointer", background: isOpen ? "#F8FAFF" : "white", borderBottom: isOpen ? "1px solid #E8EEF8" : "none" }}
+                  >
+                    {isOpen
+                      ? <ChevronUp style={{ width: "15px", height: "15px", color: "#94A3B8", flexShrink: 0 }} />
+                      : <ChevronDown style={{ width: "15px", height: "15px", color: "#94A3B8", flexShrink: 0 }} />
+                    }
+                    <span style={{ fontWeight: 700, color: "#0C4A6E", fontSize: "14px", marginLeft: "8px", flex: 1 }}>{area.nombre}</span>
+                    <span style={{ background: "#E0E7FF", color: "#4338CA", borderRadius: "999px", padding: "2px 10px", fontSize: "11px", fontWeight: 700, marginRight: "12px" }}>
+                      {areaCargos.length}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); abrirNuevo(area.nombre); }}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "5px 11px", borderRadius: "7px", border: "1px solid #E0E7FF", background: "white", color: "#0C4A6E", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
+                    >
+                      <Plus style={{ width: "11px", height: "11px" }} /> Agregar cargo
+                    </button>
+                  </div>
+                  {isOpen && (
+                    <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {areaCargos.length === 0 ? (
+                        <p style={{ fontSize: "13px", color: "#94A3B8", textAlign: "center", padding: "14px 0", margin: 0 }}>
+                          Sin cargos en esta área.{" "}
+                          <button onClick={() => abrirNuevo(area.nombre)} style={{ fontWeight: 700, color: "#0EA5E9", background: "none", border: "none", cursor: "pointer", fontSize: "13px", padding: 0 }}>+ Agregar</button>
+                        </p>
+                      ) : areaCargos.map((c) => (
+                        <CargoCard
+                          key={c.id} c={c} deletingId={deletingId}
+                          onPreview={() => abrirPreview(c)}
+                          onEdit={() => abrirEdicion(c)}
+                          onDeleteInit={() => setDeletingId(c.id)}
+                          onDeleteCancel={() => setDeletingId(null)}
+                          onDeleteConfirm={() => eliminar(c.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Cargos sin área */}
+            {cargosSinArea.length > 0 && (
+              <div style={{ background: "#FAFBFF", border: "1.5px dashed #C7D2FE", borderRadius: "14px", overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", padding: "13px 18px", borderBottom: "1px solid #E8EEF8" }}>
+                  <span style={{ fontWeight: 700, color: "#64748B", fontSize: "14px", flex: 1 }}>Sin área asignada</span>
+                  <span style={{ background: "#F1F5F9", color: "#64748B", borderRadius: "999px", padding: "2px 10px", fontSize: "11px", fontWeight: 700 }}>
+                    {cargosSinArea.length}
+                  </span>
+                </div>
+                <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {cargosSinArea.map((c) => (
+                    <CargoCard
+                      key={c.id} c={c} deletingId={deletingId}
+                      onPreview={() => abrirPreview(c)}
+                      onEdit={() => abrirEdicion(c)}
+                      onDeleteInit={() => setDeletingId(c.id)}
+                      onDeleteCancel={() => setDeletingId(null)}
+                      onDeleteConfirm={() => eliminar(c.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
