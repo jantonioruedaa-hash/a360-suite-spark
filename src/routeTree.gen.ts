@@ -31,7 +31,6 @@ import { Route as AppManualFuncionesClienteIdRouteImport } from './routes/app.ma
 import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
 import { Route as AppCoachingMetodologiaRouteImport } from './routes/app.coaching.metodologia'
 import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.$clienteId'
-import { Route as AppManualFuncionesClienteIdEvaluacionesRouteImport } from './routes/app.manual-funciones.$clienteId_.evaluaciones'
 import { Route as AppClientesClienteIdSideRouteImport } from './routes/app.clientes.$clienteId.side'
 import { Route as AppClientesClienteIdResumenRouteImport } from './routes/app.clientes.$clienteId.resumen'
 import { Route as AppClientesClienteIdPlanRouteImport } from './routes/app.clientes.$clienteId.plan'
@@ -155,12 +154,6 @@ const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
   path: '/$clienteId',
   getParentRoute: () => AppClientesRoute,
 } as any)
-const AppManualFuncionesClienteIdEvaluacionesRoute =
-  AppManualFuncionesClienteIdEvaluacionesRouteImport.update({
-    id: '/manual-funciones/$clienteId_/evaluaciones',
-    path: '/manual-funciones/$clienteId/evaluaciones',
-    getParentRoute: () => AppRoute,
-  } as any)
 const AppClientesClienteIdSideRoute =
   AppClientesClienteIdSideRouteImport.update({
     id: '/side',
@@ -261,7 +254,6 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
-  '/app/manual-funciones/$clienteId/evaluaciones': typeof AppManualFuncionesClienteIdEvaluacionesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -297,7 +289,6 @@ export interface FileRoutesByTo {
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
-  '/app/manual-funciones/$clienteId/evaluaciones': typeof AppManualFuncionesClienteIdEvaluacionesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -334,7 +325,6 @@ export interface FileRoutesById {
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
-  '/app/manual-funciones/$clienteId_/evaluaciones': typeof AppManualFuncionesClienteIdEvaluacionesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -372,7 +362,6 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
-    | '/app/manual-funciones/$clienteId/evaluaciones'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -408,7 +397,6 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
-    | '/app/manual-funciones/$clienteId/evaluaciones'
   id:
     | '__root__'
     | '/'
@@ -444,7 +432,6 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
-    | '/app/manual-funciones/$clienteId_/evaluaciones'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -612,13 +599,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdRouteImport
       parentRoute: typeof AppClientesRoute
     }
-    '/app/manual-funciones/$clienteId_/evaluaciones': {
-      id: '/app/manual-funciones/$clienteId_/evaluaciones'
-      path: '/manual-funciones/$clienteId/evaluaciones'
-      fullPath: '/app/manual-funciones/$clienteId/evaluaciones'
-      preLoaderRoute: typeof AppManualFuncionesClienteIdEvaluacionesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/clientes/$clienteId/side': {
       id: '/app/clientes/$clienteId/side'
       path: '/side'
@@ -758,7 +738,6 @@ interface AppRouteChildren {
   AppSideHistorialRoute: typeof AppSideHistorialRoute
   AppCoachingIndexRoute: typeof AppCoachingIndexRoute
   AppManualFuncionesIndexRoute: typeof AppManualFuncionesIndexRoute
-  AppManualFuncionesClienteIdEvaluacionesRoute: typeof AppManualFuncionesClienteIdEvaluacionesRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -777,8 +756,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppSideHistorialRoute: AppSideHistorialRoute,
   AppCoachingIndexRoute: AppCoachingIndexRoute,
   AppManualFuncionesIndexRoute: AppManualFuncionesIndexRoute,
-  AppManualFuncionesClienteIdEvaluacionesRoute:
-    AppManualFuncionesClienteIdEvaluacionesRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

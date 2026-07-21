@@ -1139,13 +1139,6 @@ function ManualFuncionesWorkspace() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                <Link
-                  to="/app/manual-funciones/$clienteId/evaluaciones"
-                  params={{ clienteId }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "9px 16px", borderRadius: "9px", border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "white", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}
-                >
-                  <BarChart3 style={{ width: "13px", height: "13px" }} /> Evaluaciones
-                </Link>
                 <button onClick={() => setModalArea(true)} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "9px 16px", borderRadius: "9px", border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "white", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
                   <Plus style={{ width: "13px", height: "13px" }} /> Nueva área
                 </button>
