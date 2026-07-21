@@ -130,6 +130,289 @@ function fmtDate(iso: string | null) {
   catch { return iso; }
 }
 
+// ── PDF export (new window, sin DOM de la app) ────────────────────────────────
+function exportarPDF(cargo: Cargo, clienteNombre: string): void {
+  const html = generarHTMLManual(cargo, clienteNombre);
+  const ventana = window.open("", "_blank", "width=900,height=700");
+  if (!ventana) {
+    toast.error("Permite ventanas emergentes para exportar el PDF");
+    return;
+  }
+  ventana.document.write(html);
+  ventana.document.close();
+  ventana.focus();
+  setTimeout(() => { ventana.print(); }, 500);
+}
+
+function generarHTMLManual(cargo: Cargo, clienteNombre: string): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>${cargo.cargo.replace(/</g, "&lt;")} · Manual de Funciones</title>
+  <style>
+    @page { margin: 15mm; size: A4; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #1E293B; }
+    .header { background: linear-gradient(135deg, #0C4A6E, #1E3A8A); color: white; padding: 28px 32px; border-radius: 12px; margin-bottom: 20px; }
+    .header-top { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 12px; }
+    .cargo-nombre { font-size: 28px; font-weight: 900; margin: 0 0 6px; }
+    .cargo-meta { font-size: 14px; color: rgba(255,255,255,.75); }
+    .badges { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .badge { background: rgba(255,255,255,.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .section { background: white; border: 1px solid #E0E7FF; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; page-break-inside: avoid; }
+    .section-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #0C4A6E; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E0F2FE; }
+    .objetivo { font-size: 14px; line-height: 1.8; color: #334155; font-style: italic; border-left: 4px solid #38BDF8; padding-left: 16px; }
+    .funcion { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #F1F5F9; }
+    .funcion:last-child { border: none; }
+    .funcion-num { width: 28px; height: 28px; min-width: 28px; background: linear-gradient(135deg, #0C4A6E, #1E3A8A); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+    .funcion-desc { font-size: 13px; line-height: 1.6; color: #334155; }
+    .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .comp-group { padding: 14px; border-radius: 8px; }
+    .comp-group.blandas { background: #F0FDF4; border-left: 4px solid #86EFAC; }
+    .comp-group.tecnicas { background: #EFF6FF; border-left: 4px solid #BFDBFE; }
+    .comp-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+    .comp-label.blandas { color: #059669; }
+    .comp-label.tecnicas { color: #1D4ED8; }
+    .comp-item { padding: 8px 0; border-bottom: 1px dashed #E2E8F0; font-size: 12px; }
+    .comp-item:last-child { border: none; }
+    .comp-nombre { font-weight: 700; color: #1E293B; }
+    .comp-nivel { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin: 2px 0; }
+    .nivel-experto { background: #FEF3C7; color: #92400E; }
+    .nivel-avanzado { background: #DBEAFE; color: #1E40AF; }
+    .nivel-intermedio { background: #D1FAE5; color: #065F46; }
+    .nivel-basico { background: #F3F4F6; color: #374151; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: #0C4A6E; color: white; }
+    thead th { padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: .05em; }
+    tbody tr { border-bottom: 1px solid #E0E7FF; }
+    tbody tr:nth-child(even) { background: #F5F7FF; }
+    tbody td { padding: 10px 14px; }
+    .kpi-nombre { font-weight: 700; color: #0C4A6E; }
+    .kpi-meta { font-weight: 700; }
+    .kpi-freq { color: #64748B; font-size: 12px; }
+    .rel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rel-group { padding: 14px; background: #F5F7FF; border-radius: 8px; }
+    .rel-internas { border-left: 4px solid #0C4A6E; }
+    .rel-externas { border-left: 4px solid #1E3A8A; }
+    .rel-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #0C4A6E; margin-bottom: 8px; }
+    .rel-item { font-size: 12px; color: #334155; padding: 4px 0; display: flex; gap: 6px; }
+    .rel-item::before { content: "◆"; color: #38BDF8; font-size: 10px; margin-top: 2px; }
+    .cond-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .cond-card { background: #F5F7FF; border-radius: 8px; padding: 12px 16px; border: 1px solid #E0E7FF; }
+    .cond-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #7F77DD; margin-bottom: 6px; }
+    .cond-valor { font-size: 13px; color: #334155; line-height: 1.5; }
+    .plan-box { background: linear-gradient(135deg, #0C4A6E, #1E3A8A); color: white; padding: 20px 24px; border-radius: 10px; }
+    .plan-label { font-size: 11px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+    .plan-texto { font-size: 14px; line-height: 1.7; }
+    .firmas { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #E0E7FF; }
+    .firma-col { text-align: center; }
+    .firma-linea { border-top: 2px solid #0C4A6E; margin-bottom: 8px; padding-top: 8px; }
+    .firma-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748B; }
+    .footer { text-align: center; margin-top: 24px; font-size: 11px; color: #94A3B8; padding-top: 16px; border-top: 1px solid #E0E7FF; }
+  </style>
+</head>
+<body>
+  ${generarBodyManual(cargo, clienteNombre)}
+</body>
+</html>`;
+}
+
+function generarBodyManual(cargo: Cargo, clienteNombre: string): string {
+  const esc = (s: string | null | undefined): string => {
+    if (!s) return "";
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  };
+
+  const parts: string[] = [];
+
+  // CABECERA
+  parts.push(`
+    <div class="header">
+      <div class="header-top">${esc(clienteNombre)} · Manual de Funciones</div>
+      <div class="cargo-nombre">${esc(cargo.cargo)}</div>
+      <div class="cargo-meta">${esc(cargo.area)}${cargo.jefe_inmediato ? ` · Reporta a: ${esc(cargo.jefe_inmediato)}` : ""}</div>
+      <div class="badges">
+        <span class="badge">${esc((cargo.estado ?? "vigente").replace("_", " "))}</span>
+        ${cargo.vacante ? '<span class="badge">Vacante</span>' : ""}
+        ${cargo.codigo ? `<span class="badge">${esc(cargo.codigo)}</span>` : ""}
+        ${cargo.version ? `<span class="badge">v${esc(cargo.version)}</span>` : ""}
+      </div>
+    </div>`);
+
+  // META FILA
+  const metas = [
+    { lbl: "Elaborado por",     val: cargo.elaborado_por },
+    { lbl: "Aprobado por",      val: cargo.aprobado_por },
+    { lbl: "Fecha elaboración", val: fmtDate(cargo.fecha_elaboracion) },
+    { lbl: "Fecha revisión",    val: fmtDate(cargo.fecha_revision) },
+  ].filter((r) => r.val && r.val !== "—");
+  if (metas.length > 0) {
+    parts.push(`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">
+      ${metas.map((r) => `
+        <div style="background:white;border:1px solid #E0E7FF;border-radius:8px;padding:10px 14px;">
+          <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;">${esc(r.lbl)}</div>
+          <div style="font-size:13px;font-weight:600;color:#0C4A6E;">${esc(r.val ?? "")}</div>
+        </div>`).join("")}
+    </div>`);
+  }
+
+  // OBJETIVO
+  if (cargo.objetivo) {
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Objetivo del Cargo</div>
+      <div class="objetivo">${esc(cargo.objetivo)}</div>
+    </div>`);
+  }
+
+  // FUNCIONES
+  if (cargo.funciones.length > 0) {
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Funciones Principales</div>
+      ${cargo.funciones.map((fn, i) => `
+        <div class="funcion">
+          <div class="funcion-num">${i + 1}</div>
+          <div class="funcion-desc">${esc(fn.descripcion)}</div>
+        </div>`).join("")}
+    </div>`);
+  }
+
+  // COMPETENCIAS
+  const hasBlandas  = cargo.competencias_blandas.length > 0;
+  const hasTecnicas = cargo.competencias_tecnicas.length > 0;
+  if (hasBlandas || hasTecnicas) {
+    const nivelCls = (n: string) =>
+      (({ Experto: "nivel-experto", Avanzado: "nivel-avanzado", Intermedio: "nivel-intermedio", Básico: "nivel-basico" } as Record<string, string>)[n] ?? "nivel-basico");
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Competencias</div>
+      <div class="comp-grid">
+        <div class="comp-group blandas"${!hasBlandas ? ' style="display:none"' : ""}>
+          <div class="comp-label blandas">Competencias Blandas</div>
+          ${cargo.competencias_blandas.map((c) => `
+            <div class="comp-item">
+              <div class="comp-nombre">${esc(c.nombre)}</div>
+              <span class="comp-nivel ${nivelCls(c.nivel)}">${esc(c.nivel)}</span>
+            </div>`).join("")}
+        </div>
+        <div class="comp-group tecnicas"${!hasTecnicas ? ' style="display:none"' : ""}>
+          <div class="comp-label tecnicas">Competencias Técnicas</div>
+          ${cargo.competencias_tecnicas.map((c) => `
+            <div class="comp-item">
+              <div class="comp-nombre">${esc(c.nombre)}</div>
+              <span class="comp-nivel ${nivelCls(c.nivel)}">${esc(c.nivel)}</span>
+            </div>`).join("")}
+        </div>
+      </div>
+    </div>`);
+  }
+
+  // KPIs
+  if (cargo.kpis.length > 0) {
+    parts.push(`
+    <div class="section">
+      <div class="section-title">KPIs</div>
+      <table>
+        <thead><tr><th>Indicador</th><th>Meta</th><th>Frecuencia</th></tr></thead>
+        <tbody>
+          ${cargo.kpis.map((k) => `
+            <tr>
+              <td class="kpi-nombre">${esc(k.nombre)}</td>
+              <td class="kpi-meta">${esc(k.meta)}</td>
+              <td class="kpi-freq">${esc(k.frecuencia)}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`);
+  }
+
+  // RELACIONES
+  const hasInt = cargo.relaciones_internas.length > 0;
+  const hasExt = cargo.relaciones_externas.length > 0;
+  if (hasInt || hasExt) {
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Relaciones de Trabajo</div>
+      <div class="rel-grid">
+        <div class="rel-group rel-internas"${!hasInt ? ' style="display:none"' : ""}>
+          <div class="rel-label">Relaciones Internas</div>
+          ${cargo.relaciones_internas.map((r) => `<div class="rel-item">${esc(r)}</div>`).join("")}
+        </div>
+        <div class="rel-group rel-externas"${!hasExt ? ' style="display:none"' : ""}>
+          <div class="rel-label">Relaciones Externas</div>
+          ${cargo.relaciones_externas.map((r) => `<div class="rel-item">${esc(r)}</div>`).join("")}
+        </div>
+      </div>
+    </div>`);
+  }
+
+  // SUPERVISADOS
+  if (cargo.supervisa_a.length > 0) {
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Supervisados Directos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${cargo.supervisa_a.map((n) => `
+          <div style="background:#F0F9FF;border:1.5px solid #BAE6FD;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:500;color:#0C4A6E;">${esc(n)}</div>`).join("")}
+      </div>
+    </div>`);
+  }
+
+  // CONDICIONES
+  if (cargo.condiciones && Object.values(cargo.condiciones).some(Boolean)) {
+    const entries = Object.entries(cargo.condiciones).filter(([, v]) => v);
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Condiciones de Trabajo</div>
+      <div class="cond-grid">
+        ${entries.map(([key, val]) => `
+          <div class="cond-card">
+            <div class="cond-label">${esc(key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "))}</div>
+            <div class="cond-valor">${esc(val)}</div>
+          </div>`).join("")}
+      </div>
+    </div>`);
+  }
+
+  // PLAN DE CARRERA
+  if (cargo.plan_carrera) {
+    parts.push(`
+    <div class="section">
+      <div class="section-title">Plan de Carrera</div>
+      <div class="plan-box">
+        <div class="plan-label">Trayectoria de crecimiento</div>
+        <div class="plan-texto">${esc(cargo.plan_carrera)}</div>
+      </div>
+    </div>`);
+  }
+
+  // FIRMAS
+  parts.push(`
+    <div class="firmas">
+      ${[
+        { titulo: "Elaborado por", nombre: cargo.elaborado_por },
+        { titulo: "Revisado por",  nombre: null },
+        { titulo: "Aprobado por",  nombre: cargo.aprobado_por },
+      ].map((f) => `
+        <div class="firma-col">
+          <div class="firma-linea"></div>
+          <div style="font-size:12px;font-weight:700;color:#0C4A6E;margin-bottom:4px;">${esc(f.nombre) || "________________________"}</div>
+          <div class="firma-label">${esc(f.titulo)}</div>
+        </div>`).join("")}
+    </div>`);
+
+  // FOOTER
+  parts.push(`
+    <div class="footer">
+      A360 Suite · Manual de Funciones · ${esc(clienteNombre)} · ${new Date().toLocaleDateString("es-CO")}
+    </div>`);
+
+  return parts.join("\n");
+}
+
 // ── PreviewPanel ───────────────────────────────────────────────────────────────
 function PreviewPanel({
   cargo, clienteNombre, onClose, onEdit,
@@ -139,56 +422,6 @@ function PreviewPanel({
   onClose: () => void;
   onEdit: () => void;
 }) {
-  // Inject print CSS on mount
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.id = "mf-preview-print-css";
-    style.textContent = `
-      @media print {
-        @page {
-          margin: 15mm;
-          size: A4;
-        }
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        aside, nav, header,
-        [class*="sidebar"],
-        [class*="Sidebar"],
-        [data-sidebar],
-        .no-print {
-          display: none !important;
-        }
-        main, [role="main"],
-        [class*="main-content"],
-        [class*="content"] {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-        }
-        #preview-panel {
-          width: 100% !important;
-          max-width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: white !important;
-          box-shadow: none !important;
-        }
-        .print-only {
-          display: flex !important;
-        }
-        .preview-section {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-      }
-      .print-only { display: none; }
-    `;
-    document.head.appendChild(style);
-    return () => { document.getElementById("mf-preview-print-css")?.remove(); };
-  }, []);
-
   const hasContent = (arr: unknown[]) => arr.length > 0;
 
   const SectionBlock = ({
@@ -243,7 +476,7 @@ function PreviewPanel({
             <Pencil style={{ width: "13px", height: "13px" }} /> Editar
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={() => exportarPDF(cargo, clienteNombre)}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", border: "none", borderRadius: "8px", padding: "7px 16px", cursor: "pointer" }}
           >
             <Printer style={{ width: "13px", height: "13px" }} /> Exportar PDF
@@ -512,8 +745,8 @@ function PreviewPanel({
           </div>
         )}
 
-        {/* ── Sección de Firmas (solo impresión) ── */}
-        <div className="print-only" style={{ marginTop: "40px", paddingTop: "24px", borderTop: "2px solid #E2E8F0", gap: "0", flexDirection: "column" }}>
+        {/* ── Sección de Firmas (solo en PDF exportado) ── */}
+        <div style={{ display: "none" }}>
           <div style={{ fontSize: "10px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "32px", textAlign: "center" }}>
             Firmas de Aprobación
           </div>
