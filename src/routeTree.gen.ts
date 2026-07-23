@@ -19,6 +19,7 @@ import { Route as AppClientesRouteImport } from './routes/app.clientes'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppCrecimientoRouteImport } from './routes/app.crecimiento'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppEvaluacionCompetenciasRouteImport } from './routes/app.evaluacion-competencias'
 import { Route as AppKpisRouteImport } from './routes/app.kpis'
 import { Route as AppLeeRouteImport } from './routes/app.lee'
 import { Route as AppPlanRouteImport } from './routes/app.plan'
@@ -93,6 +94,12 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEvaluacionCompetenciasRoute =
+  AppEvaluacionCompetenciasRouteImport.update({
+    id: '/evaluacion-competencias',
+    path: '/evaluacion-competencias',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppKpisRoute = AppKpisRouteImport.update({
   id: '/kpis',
   path: '/kpis',
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/evaluacion-competencias': typeof AppEvaluacionCompetenciasRoute
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
@@ -266,6 +274,7 @@ export interface FileRoutesByTo {
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/evaluacion-competencias': typeof AppEvaluacionCompetenciasRoute
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
@@ -302,6 +311,7 @@ export interface FileRoutesById {
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/crecimiento': typeof AppCrecimientoRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/evaluacion-competencias': typeof AppEvaluacionCompetenciasRoute
   '/app/kpis': typeof AppKpisRoute
   '/app/lee': typeof AppLeeRoute
   '/app/plan': typeof AppPlanRoute
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/app/configuracion'
     | '/app/crecimiento'
     | '/app/dashboard'
+    | '/app/evaluacion-competencias'
     | '/app/kpis'
     | '/app/lee'
     | '/app/plan'
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/app/configuracion'
     | '/app/crecimiento'
     | '/app/dashboard'
+    | '/app/evaluacion-competencias'
     | '/app/kpis'
     | '/app/lee'
     | '/app/plan'
@@ -409,6 +421,7 @@ export interface FileRouteTypes {
     | '/app/configuracion'
     | '/app/crecimiento'
     | '/app/dashboard'
+    | '/app/evaluacion-competencias'
     | '/app/kpis'
     | '/app/lee'
     | '/app/plan'
@@ -513,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/app/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/evaluacion-competencias': {
+      id: '/app/evaluacion-competencias'
+      path: '/evaluacion-competencias'
+      fullPath: '/app/evaluacion-competencias'
+      preLoaderRoute: typeof AppEvaluacionCompetenciasRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/kpis': {
@@ -728,6 +748,7 @@ interface AppRouteChildren {
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppCrecimientoRoute: typeof AppCrecimientoRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppEvaluacionCompetenciasRoute: typeof AppEvaluacionCompetenciasRoute
   AppKpisRoute: typeof AppKpisRoute
   AppLeeRoute: typeof AppLeeRoute
   AppPlanRoute: typeof AppPlanRoute
@@ -746,6 +767,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppCrecimientoRoute: AppCrecimientoRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppEvaluacionCompetenciasRoute: AppEvaluacionCompetenciasRoute,
   AppKpisRoute: AppKpisRoute,
   AppLeeRoute: AppLeeRoute,
   AppPlanRoute: AppPlanRoute,
@@ -771,13 +793,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
