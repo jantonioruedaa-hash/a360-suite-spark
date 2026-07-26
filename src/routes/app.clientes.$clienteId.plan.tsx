@@ -1,8 +1,9 @@
 import { createFileRoute, useParams, useSearch, Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { SECCIONES_PLAN, seccionesParaNivel, seccionPorKey, type NivelPlan, type SeccionData } from "@/lib/plan-helpers";
+import { cargarPlan } from "@/lib/plan-service";
+import type { ClienteCtx, PlanRow } from "@/types/plan";
 import { detectSector, detectTamano } from "@/lib/plan-catalogo";
 import { AnalisisIABox } from "@/components/plan/AnalisisIABox";
 import { MarcoSeccionBanner } from "@/components/plan/MarcoSeccionCard";
@@ -21,22 +22,6 @@ export const Route = createFileRoute("/app/clientes/$clienteId/plan")({
   validateSearch: searchSchema,
 });
 
-interface ClienteCtx {
-  id: string;
-  nombre_empresa: string;
-  sector: string | null;
-  num_empleados: number | null;
-  plan_licencia: string;
-  pais: string | null;
-  ciudad: string | null;
-}
-
-interface PlanRow {
-  id: string;
-  nivel: NivelPlan;
-  [key: string]: unknown;
-}
-
 function PlanPage() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/plan" });
   const { s: seccionKeyParam } = useSearch({ from: "/app/clientes/$clienteId/plan" });
@@ -51,19 +36,12 @@ function PlanPage() {
   const sectorKey = detectSector(cliente?.sector);
   const tamano = detectTamano(cliente?.num_empleados);
 
-  // Carga cliente + plan
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: c } = await supabase.from("clientes")
-        .select("id,nombre_empresa,sector,num_empleados,plan_licencia,pais,ciudad")
-        .eq("id", clienteId).maybeSingle();
-      setCliente(c as ClienteCtx | null);
-      const { data: p } = await supabase.from("planes_estrategicos")
-        .select("*").eq("cliente_id", clienteId).maybeSingle();
-      setPlan(p as PlanRow | null);
+    cargarPlan(clienteId).then(({ cliente, plan }) => {
+      setCliente(cliente);
+      setPlan(plan);
       setLoading(false);
-    })();
+    });
   }, [clienteId]);
 
   if (loading || !cliente) return <div className="text-muted-foreground">Cargando plan estratégico…</div>;
