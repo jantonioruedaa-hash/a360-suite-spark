@@ -1,4 +1,4 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useChildMatches, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,9 @@ const WORKBOOK_CAMPOS: { key: string; label: string; placeholder: string }[] = [
 ];
 
 function LeeWorkspace() {
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
+
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/lee" });
   const [programa, setPrograma] = useState<Programa | null>(null);
   const [workbooks, setWorkbooks] = useState<Workbook[]>([]);
