@@ -593,7 +593,6 @@ export type Database = {
         Row: {
           activo: boolean
           ciudad: string | null
-          cliente_user_id: string | null
           codigo_postal: string | null
           consultor_id: string | null
           created_at: string
@@ -625,7 +624,6 @@ export type Database = {
         Insert: {
           activo?: boolean
           ciudad?: string | null
-          cliente_user_id?: string | null
           codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
@@ -657,7 +655,6 @@ export type Database = {
         Update: {
           activo?: boolean
           ciudad?: string | null
-          cliente_user_id?: string | null
           codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
