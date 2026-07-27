@@ -315,10 +315,11 @@ function UsuariosAdmin() {
   const load = async () => {
     setLoading(true);
     const accessToken = session?.access_token;
-    const [{ data: profiles }, { data: roles }, { data: cs }, extras] = await Promise.all([
+    const [{ data: profiles }, { data: roles }, { data: cs }, { data: eu }, extras] = await Promise.all([
       supabase.from("profiles").select("id,email,name,company").order("email"),
       supabase.from("user_roles").select("user_id,role"),
-      supabase.from("clientes").select("id,nombre_empresa,cliente_user_id,consultor_id").order("nombre_empresa"),
+      supabase.from("clientes").select("id,nombre_empresa,consultor_id").order("nombre_empresa"),
+      supabase.from("empresa_usuarios").select("user_id,cliente_id"),
       listExtrasFn({ data: {} }).catch((err) => { console.error("adminListUsersExtra failed:", err); return []; }),
     ]);
     const extrasArr = Array.isArray(extras) ? extras : [];
@@ -334,13 +335,17 @@ function UsuariosAdmin() {
       const b = e.banned_until && new Date(e.banned_until).getTime() > Date.now();
       banByUser.set(e.id, !!b);
     });
-    const allClientes = (cs ?? []) as Array<{ id: string; nombre_empresa: string; cliente_user_id: string | null; consultor_id: string | null }>;
+    const allClientes = (cs ?? []) as Array<{ id: string; nombre_empresa: string; consultor_id: string | null }>;
     setClientes(allClientes.map((c) => ({ id: c.id, nombre_empresa: c.nombre_empresa })));
+    // TODO(multi-empresa): si un usuario pertenece a >1 empresa, este map solo retiene la última.
+    const clienteByUser = new Map<string, string>(
+      (eu ?? []).map((e) => [e.user_id, e.cliente_id]),
+    );
 
     setRows((profiles ?? []).map((p) => {
       const role = rolesByUser.get(p.id) ?? null;
       const link = allClientes.find((c) =>
-        (role === "cliente" || role === "participante") ? c.cliente_user_id === p.id :
+        (role === "cliente" || role === "participante") ? clienteByUser.get(p.id) === c.id :
         role === "consultor" ? c.consultor_id === p.id : false,
       );
       return {
