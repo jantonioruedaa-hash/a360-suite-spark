@@ -198,9 +198,12 @@ export async function deleteAdminUser(data: { accessToken?: string | null; userI
 
 async function linkUserToCliente(userId: string, role: AdminRole, clienteId: string | null) {
   if (role === "cliente" || role === "participante") {
-    await supabaseAdmin.from("clientes").update({ cliente_user_id: null }).eq("cliente_user_id", userId);
+    const { error: delErr } = await supabaseAdmin.from("empresa_usuarios").delete().eq("user_id", userId);
+    if (delErr) throwAdminError(delErr);
     if (clienteId) {
-      const { error } = await supabaseAdmin.from("clientes").update({ cliente_user_id: userId }).eq("id", clienteId);
+      const { error } = await supabaseAdmin
+        .from("empresa_usuarios")
+        .insert({ user_id: userId, cliente_id: clienteId, rol_empresa: "dueño" });
       if (error) throwAdminError(error);
     }
   } else if (role === "consultor" && clienteId) {
