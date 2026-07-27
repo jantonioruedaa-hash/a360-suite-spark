@@ -107,14 +107,14 @@ input:focus,textarea:focus,select:focus,div[contenteditable]:focus{outline:none;
 
 /* ══ TOOLBAR FLOTANTE DE EDICIÓN (modo Editar) ══ */
 #edit-toolbar{
-  display:none;position:fixed;top:136px;left:0;right:0;z-index:999;
+  display:none;position:fixed;top:128px;left:0;right:0;z-index:999;
   justify-content:center;align-items:center;gap:2px;flex-wrap:wrap;
   padding:.4rem .6rem;background:var(--sur);
   border-bottom:1.5px solid var(--bdr);
   box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
 body.edit-mode #edit-toolbar.show{display:flex;}
-body.edit-mode.toolbar-active #main{margin-top:182px;}
+body.edit-mode.toolbar-active #main{margin-top:174px;}
 #edit-toolbar .tb-b,#edit-toolbar .tb-sel,#edit-toolbar .tb-clr{flex-shrink:0;}
 #edit-toolbar .et-hint{
   font-family:var(--fn-b);font-size:11.5px;color:var(--txt3);
@@ -279,8 +279,60 @@ body.edit-mode .hdr-reset-btn{display:inline-flex;align-items:center;justify-con
 .st-t{font-family:var(--fn-d);font-size:15px;font-weight:700;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;max-width:100%;}
 
 
-/* ═══ MAIN — margin-top exacto = 80 + 48 = 128px ═══ */
-#main{margin-top:136px;min-height:calc(100vh - 136px);}
+/* ═══ COMPACT HEADER — Fila 1 siempre visible ═══ */
+.hdr-compact{
+  display:flex;align-items:center;justify-content:space-between;
+  height:38px;padding:0 1.25rem;gap:1rem;
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+.hdr-cap-id{display:flex;align-items:center;gap:.45rem;overflow:hidden;min-width:0;}
+.hdr-cap-badge{
+  font-family:var(--fn-m);font-size:10px;font-weight:700;
+  color:var(--gold2);letter-spacing:2px;flex-shrink:0;
+}
+.hdr-cap-sep{color:rgba(255,255,255,.3);flex-shrink:0;}
+.hdr-cap-ttl{
+  font-family:var(--fn-d);font-size:13.5px;font-weight:700;
+  color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.hdr-info-toggle{
+  flex-shrink:0;height:22px;padding:0 .6rem;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.7);border-radius:4px;
+  font-family:var(--fn-b);font-size:10px;font-weight:600;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.hdr-info-toggle:hover{background:rgba(255,255,255,.2);color:#fff;}
+.hdr-info-toggle.open{background:var(--gold2);color:#1a0800;border-color:transparent;}
+/* Panel colapsable — info capítulo */
+.hdr-info-panel{
+  display:none;align-items:center;justify-content:space-between;
+  padding:.45rem 1.25rem;background:rgba(0,0,0,.12);
+  border-bottom:1px solid rgba(255,255,255,.1);gap:1rem;flex-wrap:wrap;
+}
+.hdr-info-panel.open{display:flex;}
+/* Mini-barra siempre visible — controles frecuentes */
+.hdr-mini{
+  display:flex;align-items:center;justify-content:center;
+  gap:.3rem;height:36px;padding:0 1rem;
+  background:rgba(0,0,0,.18);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  overflow-x:auto;scrollbar-width:none;
+}
+.hdr-mini::-webkit-scrollbar{display:none;}
+/* Panel herramientas colapsable */
+.hdr-tools-panel{
+  display:none;align-items:center;justify-content:center;
+  gap:.3rem;padding:.3rem 1rem;
+  background:rgba(0,0,0,.25);
+  border-bottom:1px solid rgba(255,255,255,.1);
+  flex-wrap:wrap;
+}
+.hdr-tools-panel.open{display:flex;}
+.hdr-tools-btn.on{background:var(--gold2) !important;color:#1a0800 !important;border-color:transparent !important;}
+
+/* ═══ MAIN — margin-top exacto = hdr-compact(38) + hdr-mini(36) + sbar(54) = 128px ═══ */
+#main{margin-top:128px;min-height:calc(100vh - 128px);}
 .pg{display:none;animation:pIn .25s ease;}
 .pg.on{display:block;}
 @keyframes pIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -577,7 +629,7 @@ body.wide .cp{max-width:100%;}
 
 /* ══ GLOBAL EDITOR FLOTANTE ══ */
 #ged{
-  position:fixed;top:130px;left:50%;transform:translateX(-50%);z-index:1200;
+  position:fixed;top:128px;left:50%;transform:translateX(-50%);z-index:1200;
   background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--r);
   padding:.42rem .6rem;display:none;align-items:center;flex-wrap:wrap;gap:2px;
   box-shadow:var(--sh2);pointer-events:auto;
@@ -1363,22 +1415,31 @@ body.edit-mode .gamma-link-title,body.edit-mode .gamma-link-note,body.edit-mode 
 <body class="t6">
 <!-- ══════════════════════════ HEADER ══════════════════════════ -->
 <header id="hdr">
-<!-- LÍNEA 1: Empresa + Título del programa + Sesión actual -->
-<div class="hdr-top">
+<!-- Fila 1: siempre visible — número y título del capítulo -->
+<div class="hdr-compact">
+<div class="hdr-cap-id">
+<span class="hdr-cap-badge">CAP 01</span>
+<span class="hdr-cap-sep">·</span>
+<span class="hdr-cap-ttl">Fundamentos del Liderazgo</span>
+</div>
+<button class="hdr-info-toggle" id="hdr-info-btn" onclick="toggleHdrInfo()">ⓘ Info</button>
+</div>
+<!-- Fila 2: colapsable — brand, sesión activa, progreso -->
+<div class="hdr-info-panel" id="hdr-info-panel">
 <div class="hdr-left">
 <img alt="Logo" id="hdr-logo" src=""/>
 <div>
 <div class="hdr-brand-ttl" id="hdr-co">Aceleradora 360</div>
 <div class="hdr-brand-sub" id="hdr-sub">A360 SP · Ecuador</div>
 </div>
-<button class="hdr-reset-btn" id="hdr-reset-btn" onclick="resetHeaderBrand()" title="Restablecer nombre y subtítulo a los valores por defecto">🗑</button>
+<button class="hdr-reset-btn" id="hdr-reset-btn" onclick="resetHeaderBrand()" title="Restablecer nombre y subtítulo">🗑</button>
 </div>
 <div class="hdr-center">
 <div class="hdr-prog-lbl">LEE · Liderazgo Empresarial Evolutivo · Capítulo 1</div>
 <div class="hdr-sess-name" id="hdr-sess">Aurora Executive · Fundamentos del Liderazgo</div>
 </div>
 <div class="hdr-right-info">
-<div class="hdr-save" id="hsave"><span>●</span> <span id="stxt">Sin guardar</span></div>
+<div class="hdr-save" id="hsave"><span>●</span> <span id="stxt">Sin guardar</span></div>
 <div class="hvl"></div>
 <div class="hdr-prow">
 <div class="hdr-bar"><div class="hdr-bar-f" id="hbf"></div></div>
@@ -1386,8 +1447,8 @@ body.edit-mode .gamma-link-title,body.edit-mode .gamma-link-note,body.edit-mode 
 </div>
 </div>
 </div>
-<!-- LÍNEA 2: Todos los botones en una sola línea, centrados -->
-<div class="hdr-actions">
+<!-- Fila 3: mini-barra siempre visible — controles frecuentes + ⋯ + Volver -->
+<div class="hdr-mini">
 <div class="mtog" id="mode-toggle-wrap">
 <button class="mtb on" id="bpart" onclick="setMode('p')">👤 Participante</button>
 <button class="mtb" id="bcoach" onclick="setMode('c')">🔑 Consultor</button>
@@ -1398,18 +1459,25 @@ body.edit-mode .gamma-link-title,body.edit-mode .gamma-link-note,body.edit-mode 
 <button class="wb" id="wb-w" onclick="setW('w')">⬜ Ancho</button>
 </div>
 <div class="hvl"></div>
-<button class="hb" onclick="openTh()">🎨 Tema</button>
-<button class="hb" onclick="openSh()">🔗 Compartir</button>
-<button class="hb" onclick="exportSessionHtmlJson()" title="Descarga la página o sesión actual como HTML visual editable con JSON interno para reimportación">⬇ HTML JSON sesión</button>
-<button class="hb" onclick="document.getElementById('impf').click()">⬆ Importar</button>
+<button class="hb" onclick="exportSessionHtmlJson()" title="Descarga la sesión actual como HTML editable con JSON interno para reimportación">⬇ HTML sesión</button>
+<button class="hb gld" onclick="printCurrentSession()" title="Imprimir PDF de la página o sesión actual">📄 PDF</button>
 <div class="hvl"></div>
-<button class="hb" id="gamma-mode-btn" onclick="toggleGammaMode()">🎬 Gamma</button><button id="edit-mode-btn" onclick="toggleEditMode()">✏️ Editar</button>
-<button class="hb" onclick="openBlockBuilder()" title="Insertar bloque visual en la página actual">➕ Bloque</button><button class="hb" id="gamma-link-btn" onclick="scrollToGammaLinkCard()" title="Ir al bloque de presentación Gamma vinculada de la página actual">🎞 Gamma</button>
-<button class="hb gld" onclick="printCurrentSession()" title="Imprimir PDF de la página o sesión actual">📄 PDF sesión actual</button>
-<button class="hb" onclick="exportFullDocument()" title="Descarga el capítulo completo con todos sus datos y respuestas">⬇ Todo el documento</button>
-<div class="hvl"></div>
+<button class="hb hdr-tools-btn" id="hdr-tools-btn" onclick="toggleHdrTools()">⋯ Herramientas</button>
 <button class="hb" onclick="LEE_BRIDGE.exitToPlatform()" style="background:rgba(220,38,38,.18);border-color:rgba(220,38,38,.4);">🔙 Volver</button>
 <input accept=".json,.html,.htm" id="impf" onchange="impJSON(this)" style="display:none" type="file"/>
+</div>
+<!-- Fila 4: panel herramientas colapsable -->
+<div class="hdr-tools-panel" id="hdr-tools-panel">
+<button class="hb" onclick="openTh()">🎨 Tema</button>
+<button class="hb" onclick="openSh()">🔗 Compartir</button>
+<div class="hvl"></div>
+<button class="hb" onclick="document.getElementById('impf').click()">⬆ Importar</button>
+<button class="hb" onclick="exportFullDocument()" title="Descarga el capítulo completo con todos sus datos y respuestas">⬇ Todo el documento</button>
+<div class="hvl"></div>
+<button class="hb" id="gamma-mode-btn" onclick="toggleGammaMode()">🎬 Modo presentación</button>
+<button id="edit-mode-btn" onclick="toggleEditMode()">✏️ Editar</button>
+<button class="hb" onclick="openBlockBuilder()" title="Insertar bloque visual en la página actual">➕ Bloque</button>
+<button class="hb" id="gamma-link-btn" onclick="scrollToGammaLinkCard()" title="Ir al bloque de presentación Gamma vinculada de la página actual">🎞 Config. presentación</button>
 </div>
 <!-- LÍNEA 3: Menú de sesiones centrado -->
 <div id="sbar">
@@ -4193,6 +4261,44 @@ function scrollToGammaLinkCard(){
   };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(updateAllGammaLinkCards,400));
 })();
+
+/* ─── Compact header: toggle panels & dynamic margin ─── */
+function updateMainMargin(){
+  var h=document.getElementById('hdr');
+  var main=document.getElementById('main');
+  if(h&&main) main.style.marginTop=h.offsetHeight+'px';
+  var etb=document.getElementById('edit-toolbar');
+  if(h&&etb) etb.style.top=h.offsetHeight+'px';
+  var ged=document.getElementById('ged');
+  if(h&&ged) ged.style.top=(h.offsetHeight+4)+'px';
+}
+function toggleHdrInfo(){
+  var p=document.getElementById('hdr-info-panel');
+  var b=document.getElementById('hdr-info-btn');
+  if(!p)return;
+  p.classList.toggle('open');
+  if(b) b.classList.toggle('open');
+  updateMainMargin();
+}
+function toggleHdrTools(){
+  var p=document.getElementById('hdr-tools-panel');
+  var b=document.getElementById('hdr-tools-btn');
+  if(!p)return;
+  p.classList.toggle('open');
+  if(b) b.classList.toggle('on');
+  updateMainMargin();
+}
+(function patchEditModeMargin(){
+  var _orig=window.toggleEditMode;
+  if(typeof _orig==='function'){
+    window.toggleEditMode=function(){
+      _orig.apply(this,arguments);
+      setTimeout(updateMainMargin,20);
+    };
+  }
+})();
+document.addEventListener('DOMContentLoaded',function(){setTimeout(updateMainMargin,50);});
+
 </script>
 <div class="gamma-drawer-bg" id="gamma-drawer-bg" onclick="closeGammaDrawer(event)">
 <div class="gamma-drawer" onclick="event.stopPropagation()">
