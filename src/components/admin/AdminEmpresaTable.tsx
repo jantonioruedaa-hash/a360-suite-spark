@@ -13,7 +13,6 @@ export interface AdminEmpresaRow {
   plan_licencia: string;
   consultor_id: string | null;
   consultor_nombre: string | null;
-  cliente_user_id: string | null;
   usuarios_activos: number;
   modulos: string[];
   activo: boolean;
