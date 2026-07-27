@@ -53,7 +53,6 @@ interface ClienteRow {
   ciudad: string | null;
   web: string | null;
   consultor_id: string | null;
-  cliente_user_id: string | null;
   plan_licencia: string;
   activo: boolean;
   created_at: string;
@@ -292,10 +291,11 @@ function TabUsuarios() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: profiles }, { data: roles }, { data: cs }, extras] = await Promise.all([
+    const [{ data: profiles }, { data: roles }, { data: cs }, { data: eu }, extras] = await Promise.all([
       supabase.from("profiles").select("id,email,name,company,created_at").order("email"),
       supabase.from("user_roles").select("user_id,role"),
-      supabase.from("clientes").select("id,nombre_empresa,cliente_user_id,consultor_id").order("nombre_empresa"),
+      supabase.from("clientes").select("id,nombre_empresa,consultor_id").order("nombre_empresa"),
+      supabase.from("empresa_usuarios").select("user_id,cliente_id"),
       listExtrasFn({ data: { accessToken: token() } }).catch(() => [] as { id: string; banned_until: string | null; last_sign_in_at: string | null }[]),
     ]);
 
@@ -313,13 +313,17 @@ function TabUsuarios() {
       lastMap.set(e.id, e.last_sign_in_at);
     });
 
-    const allCs = (cs ?? []) as Array<{ id: string; nombre_empresa: string; cliente_user_id: string | null; consultor_id: string | null }>;
+    const allCs = (cs ?? []) as Array<{ id: string; nombre_empresa: string; consultor_id: string | null }>;
     setClientes(allCs.map((c) => ({ id: c.id, nombre_empresa: c.nombre_empresa })));
+
+    const clienteByUser = new Map<string, string>(
+      (eu ?? []).map((e) => [e.user_id, e.cliente_id]),
+    );
 
     setRows((profiles ?? []).map((p) => {
       const role = roleMap.get(p.id) ?? null;
       const link = allCs.find((c) =>
-        role === "cliente" || role === "participante" ? c.cliente_user_id === p.id :
+        role === "cliente" || role === "participante" ? clienteByUser.get(p.id) === c.id :
         role === "consultor" ? c.consultor_id === p.id : false,
       );
       return {
@@ -955,6 +959,7 @@ function TabClientes() {
   const [clientes, setClientes]       = useState<ClienteRow[]>([]);
   const [consultores, setConsultores] = useState<ConsultorOpt[]>([]);
   const [profileMap, setProfileMap]   = useState<Map<string, { name: string | null; email: string }>>(new Map());
+  const [companyMembersMap, setCompanyMembersMap] = useState<Map<string, { duenos: number; colaboradores: number }>>(new Map());
   const [loading, setLoading]         = useState(true);
   const [search, setSearch]           = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | "activo" | "inactivo">("");
@@ -963,14 +968,14 @@ function TabClientes() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: clientesData }, { data: consultorRoles }] = await Promise.all([
+    const [{ data: clientesData }, { data: consultorRoles }, { data: euData }] = await Promise.all([
       supabase.from("clientes").select("*").order("nombre_empresa"),
       supabase.from("user_roles").select("user_id").in("role", ["consultor", "admin"]),
+      supabase.from("empresa_usuarios").select("cliente_id,rol_empresa"),
     ]);
 
     const allIds = new Set<string>();
     (consultorRoles ?? []).forEach((r) => allIds.add(r.user_id as string));
-    (clientesData ?? []).forEach((c) => { if (c.cliente_user_id) allIds.add(c.cliente_user_id as string); });
 
     const profiles = allIds.size > 0
       ? ((await supabase.from("profiles").select("id,email,name").in("id", [...allIds])).data ?? [])
@@ -979,10 +984,19 @@ function TabClientes() {
     const pMap = new Map<string, { name: string | null; email: string }>();
     profiles.forEach((p) => pMap.set(p.id, { name: p.name, email: p.email }));
 
+    const membersMap = new Map<string, { duenos: number; colaboradores: number }>();
+    (euData ?? []).forEach((eu) => {
+      const cur = membersMap.get(eu.cliente_id) ?? { duenos: 0, colaboradores: 0 };
+      if (eu.rol_empresa === "dueño") cur.duenos++;
+      else cur.colaboradores++;
+      membersMap.set(eu.cliente_id, cur);
+    });
+
     const consultorIds = new Set((consultorRoles ?? []).map((r) => r.user_id as string));
     setClientes((clientesData ?? []) as ClienteRow[]);
     setConsultores(profiles.filter((p) => consultorIds.has(p.id)) as ConsultorOpt[]);
     setProfileMap(pMap);
+    setCompanyMembersMap(membersMap);
     setLoading(false);
   }, []);
 
@@ -1052,9 +1066,9 @@ function TabClientes() {
             </thead>
             <tbody>
               {filtered.map((c, idx) => {
-                const consultor  = c.consultor_id    ? profileMap.get(c.consultor_id)    : null;
-                const portalUser = c.cliente_user_id ? profileMap.get(c.cliente_user_id) : null;
-                const planLabel  = PLANES_LICENCIA.find((p) => p.value === c.plan_licencia)?.label ?? c.plan_licencia;
+                const consultor = c.consultor_id ? profileMap.get(c.consultor_id) : null;
+                const members   = companyMembersMap.get(c.id);
+                const planLabel = PLANES_LICENCIA.find((p) => p.value === c.plan_licencia)?.label ?? c.plan_licencia;
                 const isOpen     = expanded === c.id;
 
                 return (
@@ -1085,10 +1099,9 @@ function TabClientes() {
                           : <span className="italic text-xs text-muted-foreground">Sin asignar</span>}
                       </td>
                       <td className="px-4 py-3">
-                        {portalUser ? (
-                          <div>
-                            <div className="text-xs text-navy">{portalUser.name ?? "—"}</div>
-                            <div className="text-xs text-muted-foreground font-mono">{portalUser.email}</div>
+                        {members && (members.duenos + members.colaboradores) > 0 ? (
+                          <div className="text-xs text-navy">
+                            {members.duenos} dueño{members.duenos !== 1 ? "s" : ""}{" · "}{members.colaboradores} colaborador{members.colaboradores !== 1 ? "es" : ""}
                           </div>
                         ) : (
                           <span className="italic text-xs text-muted-foreground">Sin vincular</span>
