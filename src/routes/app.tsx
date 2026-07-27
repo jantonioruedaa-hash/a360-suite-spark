@@ -31,16 +31,20 @@ function AppLayout() {
     if (allowed) return;
 
     setRedirecting(true);
+    // TODO(multi-empresa): cuando un usuario pertenezca a >1 empresa,
+    // mostrar un selector en lugar de tomar la primera.
     supabase
-      .from("clientes")
-      .select("id")
-      .eq("cliente_user_id", user.id)
+      .from("empresa_usuarios")
+      .select("cliente_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.id) {
+        if (data?.cliente_id) {
           navigate({
             to: "/app/clientes/$clienteId/resumen",
-            params: { clienteId: data.id },
+            params: { clienteId: data.cliente_id },
             replace: true,
           });
         } else {
