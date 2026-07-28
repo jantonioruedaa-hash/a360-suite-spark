@@ -17,7 +17,10 @@ export async function ensureAdmin(userId: string) {
 export async function ensureAdminFromToken(accessToken?: string | null) {
   if (!accessToken) throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
   const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
-  if (error || !data.user) throw new Error("Sesión inválida o expirada. Vuelve a iniciar sesión.");
+  if (error || !data.user) {
+    console.error("[ensureAdminFromToken] supabaseAdmin.auth.getUser failed:", error);
+    throw new Error("Sesión inválida o expirada. Vuelve a iniciar sesión.");
+  }
   await ensureAdmin(data.user.id);
   return data.user.id;
 }
