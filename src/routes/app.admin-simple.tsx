@@ -366,10 +366,10 @@ function TabUsuarios() {
           placeholder="Buscar por nombre o email…"
           className="max-w-xs"
         />
-        <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as AppRole | "")}>
+        <Select value={roleFilter || "__none__"} onValueChange={(v) => setRoleFilter(v === "__none__" ? "" : v as AppRole)}>
           <SelectTrigger className="w-40"><SelectValue placeholder="Todos los roles" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="__none__">Todos</SelectItem>
             {ROLES.map((r) => <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -715,10 +715,10 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
             </div>
             <div>
               <Label className="text-xs">Empresa asignada</Label>
-              <Select value={form.clienteId} onValueChange={(v) => setForm({ ...form, clienteId: v })}>
+              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v })}>
                 <SelectTrigger><SelectValue placeholder="— Sin vincular —" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">— Sin vincular —</SelectItem>
+                  <SelectItem value="__none__">— Sin vincular —</SelectItem>
                   {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -817,10 +817,10 @@ function EditarDialog({ user, clientes, onClose, onSave }: {
             </div>
             <div>
               <Label className="text-xs">Empresa asignada</Label>
-              <Select value={form.clienteId} onValueChange={(v) => setForm({ ...form, clienteId: v })}>
+              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v })}>
                 <SelectTrigger><SelectValue placeholder="— Sin vincular —" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">— Sin vincular —</SelectItem>
+                  <SelectItem value="__none__">— Sin vincular —</SelectItem>
                   {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -1030,10 +1030,10 @@ function TabClientes() {
           placeholder="Buscar empresa…"
           className="max-w-xs"
         />
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "" | "activo" | "inactivo")}>
+        <Select value={statusFilter || "__none__"} onValueChange={(v) => setStatusFilter(v === "__none__" ? "" : v as "activo" | "inactivo")}>
           <SelectTrigger className="w-36"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="__none__">Todos</SelectItem>
             <SelectItem value="activo">Activos</SelectItem>
             <SelectItem value="inactivo">Inactivos</SelectItem>
           </SelectContent>
@@ -1844,10 +1844,10 @@ function EditarClienteDialog({ cliente, consultores, onClose, onSave }: {
             </div>
             <div>
               <Label className="text-xs">Consultor asignado</Label>
-              <Select value={form.consultor_id} onValueChange={(v) => f("consultor_id", v)}>
+              <Select value={form.consultor_id || "__none__"} onValueChange={(v) => f("consultor_id", v === "__none__" ? "" : v)}>
                 <SelectTrigger><SelectValue placeholder="— Sin asignar —" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">— Sin asignar —</SelectItem>
+                  <SelectItem value="__none__">— Sin asignar —</SelectItem>
                   {consultores.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name ?? c.email}</SelectItem>
                   ))}
