@@ -38,7 +38,8 @@ export function translateAdminError(msg: string): string {
 }
 
 export function throwAdminError(e: unknown): never {
-  const m = e instanceof Error ? e.message : String(e);
+  console.error("[throwAdminError] raw error:", e);
+  const m = e instanceof Error ? e.message : ((e as any)?.message ?? String(e));
   throw new Error(translateAdminError(m));
 }
 
