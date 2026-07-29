@@ -1,1280 +1,319 @@
-// @ts-nocheck
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  ArrowLeft, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
-  FileText, X, Check, Eye, Printer, Target, ListChecks,
-  Users, Cpu, BarChart3, Rocket, Network, Clock,
-} from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ManualFuncionesPDF } from "@/components/pdf/ManualFuncionesPDF";
-import type { Cargo, FormDatos, Funcion, Competencia, KPI, Condiciones } from "@/types/manual-funciones";
-import { FORM_BLANK } from "@/types/manual-funciones";
 
 export const Route = createFileRoute("/app/manual-funciones/$clienteId")({
-  component: ManualFuncionesWorkspace,
+  component: ManualFuncionesViewer,
 });
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Area = { id: string; nombre: string; orden: number };
 
-const ESTADOS    = ["vigente", "en_revision", "obsoleto"];
-const NIVELES    = ["Básico", "Intermedio", "Avanzado", "Experto"];
-const FRECUENCIAS = ["Diario", "Semanal", "Mensual", "Trimestral", "Anual"];
+type HtmlCargo = Record<string, unknown>;
 
-// ── Style constants ────────────────────────────────────────────────────────────
-const LABEL: React.CSSProperties = {
-  fontSize: "11px", fontWeight: 700, color: "#64748B",
-  textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "5px",
-};
-const INPUT: React.CSSProperties = {
-  width: "100%", padding: "8px 12px", fontSize: "14px",
-  border: "1.5px solid #E2E8F0", borderRadius: "8px",
-  background: "white", color: "#0C4A6E", outline: "none", boxSizing: "border-box",
-};
-const PILL = (estado: string | null) => {
-  const m: Record<string, { bg: string; color: string }> = {
-    vigente:     { bg: "#D1FAE5", color: "#065F46" },
-    en_revision: { bg: "#FEF3C7", color: "#92400E" },
-    obsoleto:    { bg: "#FEE2E2", color: "#991B1B" },
-  };
-  const s = m[estado ?? ""] ?? { bg: "#F1F5F9", color: "#64748B" };
-  return { ...s, fontSize: "11px", fontWeight: 700, padding: "2px 9px", borderRadius: "99px" };
-};
-const NIVEL_COLOR: Record<string, { bg: string; color: string }> = {
-  "Básico":      { bg: "#F1F5F9", color: "#64748B" },
-  "Intermedio":  { bg: "#DBEAFE", color: "#1D4ED8" },
-  "Avanzado":    { bg: "#D1FAE5", color: "#065F46" },
-  "Experto":     { bg: "#EDE9FE", color: "#5B21B6" },
+type SupabaseCargo = {
+  id: string;
+  cliente_id: string;
+  cargo: string;
+  area: string;
+  jefe_inmediato?: string | null;
+  vacante?: boolean;
+  estado?: string | null;
+  version?: string | null;
+  codigo?: string | null;
+  objetivo?: string | null;
+  elaborado_por?: string | null;
+  aprobado_por?: string | null;
+  fecha_elaboracion?: string | null;
+  fecha_revision?: string | null;
+  supervisa_a?: string[];
+  relaciones_internas?: string[];
+  relaciones_externas?: string[];
+  requisitos?: Record<string, string>;
+  condiciones?: Record<string, string>;
+  plan_carrera?: string | null;
+  funciones?: Array<{ descripcion: string; porcentaje_tiempo: number }>;
+  competencias_blandas?: Array<{ nombre: string; nivel: string; desc?: string }>;
+  competencias_tecnicas?: Array<{ nombre: string; nivel: string; desc?: string }>;
+  kpis?: Array<{ nombre: string; meta: string; frecuencia: string; formula?: string }>;
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-function parseJsonb<T>(val: unknown, fallback: T[]): T[] {
-  if (!val) return fallback;
-  if (Array.isArray(val)) return val as T[];
-  try { const p = JSON.parse(val as string); return Array.isArray(p) ? p : fallback; }
-  catch { return fallback; }
+// ── Format helpers ─────────────────────────────────────────────────────────────
+
+function isoToMmYyyy(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const [y, m] = iso.split("-");
+  return m && y ? `${m}/${y}` : "";
 }
 
-function parseCargo(row: Record<string, unknown>): Cargo {
+function mmYyyyToIso(s: string | null | undefined): string | null {
+  if (!s) return null;
+  const [m, y] = s.split("/");
+  if (!m || !y) return null;
+  return `${y}-${m.padStart(2, "0")}-01`;
+}
+
+function supabaseToHtml(row: SupabaseCargo, clienteNombre: string): HtmlCargo {
   return {
-    id: row.id as string,
-    cargo: (row.cargo as string) ?? "",
-    area: (row.area as string) ?? "",
-    jefe_inmediato: (row.jefe_inmediato as string) ?? null,
-    codigo: (row.codigo as string) ?? null,
-    version: (row.version as string) ?? null,
-    estado: (row.estado as string) ?? null,
-    vacante: (row.vacante as boolean) ?? false,
-    objetivo: (row.objetivo as string) ?? null,
-    funciones: parseJsonb<Funcion>(row.funciones, []),
-    competencias_blandas: parseJsonb<Competencia>(row.competencias_blandas, []),
-    competencias_tecnicas: parseJsonb<Competencia>(row.competencias_tecnicas, []),
-    kpis: parseJsonb<KPI>(row.kpis, []),
-    elaborado_por: (row.elaborado_por as string) ?? null,
-    aprobado_por: (row.aprobado_por as string) ?? null,
-    fecha_elaboracion: (row.fecha_elaboracion as string) ?? null,
-    fecha_revision: (row.fecha_revision as string) ?? null,
-    plan_carrera: (row.plan_carrera as string) ?? null,
-    supervisa_a: parseJsonb<string>(row.supervisa_a, []),
-    condiciones: (row.condiciones as Condiciones) ?? null,
-    relaciones_internas: parseJsonb<string>(row.relaciones_internas, []),
-    relaciones_externas: parseJsonb<string>(row.relaciones_externas, []),
-    requisitos: (row.requisitos as Record<string, string>) ?? null,
+    id:                  row.id,
+    cargo:               row.cargo,
+    area:                row.area,
+    jefe:                row.jefe_inmediato ?? "",
+    vacante:             row.vacante ?? false,
+    estado:              row.estado ?? "vigente",
+    version:             row.version ?? "1.0",
+    codigo:              row.codigo ?? "",
+    objetivo:            row.objetivo ?? "",
+    elaborado:           row.elaborado_por ?? "",
+    aprobado:            row.aprobado_por ?? "",
+    fecha_elaboracion:   isoToMmYyyy(row.fecha_elaboracion),
+    fecha_revision:      isoToMmYyyy(row.fecha_revision),
+    supervisa_a:         row.supervisa_a ?? [],
+    relaciones_internas: row.relaciones_internas ?? [],
+    relaciones_externas: row.relaciones_externas ?? [],
+    requisitos:          row.requisitos ?? {},
+    condiciones:         row.condiciones ?? {},
+    plan_carrera:        row.plan_carrera ?? "",
+    funciones:           (row.funciones ?? []).map(f => f.descripcion),
+    competencias_blandas:  row.competencias_blandas ?? [],
+    competencias_tecnicas: row.competencias_tecnicas ?? [],
+    kpis: (row.kpis ?? []).map(k => ({
+      nombre:  k.nombre,
+      meta:    k.meta,
+      freq:    k.frecuencia,
+      formula: k.formula ?? "",
+    })),
+    nombre_empresa: clienteNombre,
   };
 }
 
-function fmtDate(iso: string | null) {
-  if (!iso) return "—";
-  try { return new Date(iso).toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" }); }
-  catch { return iso; }
-}
+type ContentFields = Omit<SupabaseCargo, "id" | "cliente_id">;
 
-// ── PreviewPanel ───────────────────────────────────────────────────────────────
-function PreviewPanel({
-  cargo, clienteNombre, onClose, onEdit,
-}: {
-  cargo: Cargo;
-  clienteNombre: string;
-  onClose: () => void;
-  onEdit: () => void;
-}) {
-  const hasContent = (arr: unknown[]) => arr.length > 0;
-
-  const SectionBlock = ({
-    icon: Icon, title, color, children,
-  }: { icon: React.ElementType; title: string; color: string; children: React.ReactNode }) => (
-    <div className="preview-section" style={{ background: "white", borderRadius: "12px", border: "1.5px solid #E2E8F0", overflow: "hidden", marginBottom: "14px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 18px", borderBottom: "1.5px solid #E2E8F0", background: `${color}08` }}>
-        <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: `${color}20`, border: `1.5px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon style={{ width: "15px", height: "15px", color }} />
-        </div>
-        <span style={{ fontSize: "13px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em" }}>{title}</span>
-      </div>
-      <div style={{ padding: "18px" }}>{children}</div>
-    </div>
-  );
-
-  return (
-    <div
-      id="preview-panel"
-      className="mf-preview"
-      style={{
-        background: "#F8FAFF", overflowY: "auto",
-        display: "flex", flexDirection: "column",
-      }}
-    >
-      {/* ── Sticky action bar ── */}
-      <div
-        className="no-print"
-        style={{
-          position: "sticky", top: 0, zIndex: 10,
-          background: "white", borderBottom: "1px solid #E2E8F0",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "12px 24px", gap: "12px",
-        }}
-      >
-        <button
-          onClick={onClose}
-          style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}
-        >
-          <ArrowLeft style={{ width: "13px", height: "13px" }} /> Volver a la lista
-        </button>
-
-        <span style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E", flex: 1, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {cargo.cargo}
-        </span>
-
-        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-          <button
-            onClick={onEdit}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 600, color: "#0C4A6E", background: "white", border: "1.5px solid #E2E8F0", borderRadius: "8px", padding: "7px 14px", cursor: "pointer" }}
-          >
-            <Pencil style={{ width: "13px", height: "13px" }} /> Editar
-          </button>
-          <PDFDownloadLink
-            document={<ManualFuncionesPDF cargo={cargo} clienteNombre={clienteNombre} />}
-            fileName={`${cargo.cargo}_Manual.pdf`}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", border: "none", borderRadius: "8px", padding: "7px 16px", cursor: "pointer", textDecoration: "none" }}
-          >
-            {({ loading }) => (
-              <>
-                <Printer style={{ width: "13px", height: "13px" }} />
-                {loading ? "Generando…" : "Exportar PDF"}
-              </>
-            )}
-          </PDFDownloadLink>
-        </div>
-      </div>
-
-      {/* ── Document body ── */}
-      <div
-        className="preview-body"
-        style={{ width: "100%", padding: "28px 24px 60px" }}
-      >
-
-        {/* ── Hero header ── */}
-        <div style={{
-          background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 100%)",
-          borderRadius: "16px", padding: "32px 36px", marginBottom: "14px",
-          position: "relative", overflow: "hidden",
-        }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 70% at 90% 10%, rgba(14,165,233,0.18), transparent)", pointerEvents: "none" }} />
-          <div style={{ position: "relative", zIndex: 1 }}>
-            {/* Company tag */}
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#38BDF8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "14px" }}>
-              {clienteNombre} · Manual de Funciones
-            </div>
-
-            {/* Cargo name + avatar */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "18px", marginBottom: "18px" }}>
-              <div style={{ width: "60px", height: "60px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", fontWeight: 900, color: "white", flexShrink: 0 }}>
-                {cargo.cargo[0]?.toUpperCase()}
-              </div>
-              <div>
-                <h1 style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 900, color: "white", margin: "0 0 6px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-                  {cargo.cargo}
-                </h1>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>{cargo.area}</span>
-                  {cargo.jefe_inmediato && (
-                    <>
-                      <span style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
-                      <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>Reporta a: {cargo.jefe_inmediato}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Badges row */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <span style={{ ...PILL(cargo.estado), fontSize: "12px" }}>
-                {(cargo.estado ?? "—").replace("_", " ")}
-              </span>
-              {cargo.vacante && (
-                <span style={{ background: "#EDE9FE", color: "#5B21B6", fontSize: "12px", fontWeight: 700, padding: "2px 9px", borderRadius: "99px" }}>
-                  Vacante
-                </span>
-              )}
-              {cargo.codigo && (
-                <span style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", fontSize: "11px", fontWeight: 700, padding: "2px 10px", borderRadius: "99px", border: "1px solid rgba(255,255,255,0.2)" }}>
-                  {cargo.codigo}
-                </span>
-              )}
-              {cargo.version && (
-                <span style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", fontSize: "11px", fontWeight: 600, padding: "2px 10px", borderRadius: "99px", border: "1px solid rgba(255,255,255,0.15)" }}>
-                  v{cargo.version}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Elaboración meta row ── */}
-        {(cargo.elaborado_por || cargo.aprobado_por || cargo.fecha_elaboracion || cargo.fecha_revision) && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "10px", marginBottom: "14px" }}>
-            {[
-              { lbl: "Elaborado por",      val: cargo.elaborado_por },
-              { lbl: "Aprobado por",       val: cargo.aprobado_por },
-              { lbl: "Fecha elaboración",  val: fmtDate(cargo.fecha_elaboracion) },
-              { lbl: "Fecha revisión",     val: fmtDate(cargo.fecha_revision) },
-            ].filter((r) => r.val && r.val !== "—").map((r) => (
-              <div key={r.lbl} style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "10px", padding: "10px 14px" }}>
-                <div style={{ fontSize: "10px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "3px" }}>{r.lbl}</div>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "#0C4A6E" }}>{r.val}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── Objetivo ── */}
-        {cargo.objetivo && (
-          <SectionBlock icon={Target} title="Objetivo del Cargo" color="#0EA5E9">
-            <p style={{ fontSize: "14px", color: "#334155", lineHeight: 1.75, margin: 0 }}>{cargo.objetivo}</p>
-          </SectionBlock>
-        )}
-
-        {/* ── Funciones ── */}
-        {hasContent(cargo.funciones) && (
-          <SectionBlock icon={ListChecks} title="Funciones Principales" color="#6366F1">
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {cargo.funciones.map((fn, i) => (
-                <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <div style={{ width: "26px", height: "26px", borderRadius: "7px", background: "#EEF2FF", border: "1.5px solid #C7D2FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: "#6366F1", flexShrink: 0, marginTop: "1px" }}>
-                    {i + 1}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: "14px", color: "#334155", margin: "0 0 6px", lineHeight: 1.6 }}>{fn.descripcion}</p>
-                    {fn.porcentaje_tiempo > 0 && (
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <div style={{ flex: 1, height: "4px", background: "#EEF2FF", borderRadius: "99px", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${Math.min(fn.porcentaje_tiempo, 100)}%`, background: "linear-gradient(90deg, #6366F1, #818CF8)", borderRadius: "99px" }} />
-                        </div>
-                        <span style={{ fontSize: "11px", fontWeight: 700, color: "#6366F1", flexShrink: 0 }}>{fn.porcentaje_tiempo}%</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SectionBlock>
-        )}
-
-        {/* ── Competencias ── */}
-        {(hasContent(cargo.competencias_blandas) || hasContent(cargo.competencias_tecnicas)) && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
-            {hasContent(cargo.competencias_blandas) && (
-              <div style={{ background: "white", borderRadius: "12px", border: "1.5px solid #E2E8F0", overflow: "hidden" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", borderBottom: "1.5px solid #E2E8F0", background: "#1D9E7508" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: "#1D9E7520", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Users style={{ width: "13px", height: "13px", color: "#1D9E75" }} />
-                  </div>
-                  <span style={{ fontSize: "12px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em" }}>Comp. Blandas</span>
-                </div>
-                <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {cargo.competencias_blandas.map((c, i) => {
-                    const nc = NIVEL_COLOR[c.nivel] ?? NIVEL_COLOR["Básico"];
-                    return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-                        <span style={{ fontSize: "13px", color: "#334155", flex: 1 }}>{c.nombre}</span>
-                        <span style={{ ...nc, fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "99px", flexShrink: 0 }}>{c.nivel}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            {hasContent(cargo.competencias_tecnicas) && (
-              <div style={{ background: "white", borderRadius: "12px", border: "1.5px solid #E2E8F0", overflow: "hidden" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", borderBottom: "1.5px solid #E2E8F0", background: "#7F77DD08" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: "#7F77DD20", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Cpu style={{ width: "13px", height: "13px", color: "#7F77DD" }} />
-                  </div>
-                  <span style={{ fontSize: "12px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em" }}>Comp. Técnicas</span>
-                </div>
-                <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {cargo.competencias_tecnicas.map((c, i) => {
-                    const nc = NIVEL_COLOR[c.nivel] ?? NIVEL_COLOR["Básico"];
-                    return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-                        <span style={{ fontSize: "13px", color: "#334155", flex: 1 }}>{c.nombre}</span>
-                        <span style={{ ...nc, fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "99px", flexShrink: 0 }}>{c.nivel}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── KPIs ── */}
-        {hasContent(cargo.kpis) && (
-          <SectionBlock icon={BarChart3} title="KPIs" color="#BA7517">
-            <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", background: "#0C4A6E", padding: "9px 14px", gap: "12px" }}>
-                {["Indicador", "Meta", "Frecuencia"].map((h) => (
-                  <span key={h} style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{h}</span>
-                ))}
-              </div>
-              {cargo.kpis.map((k, i) => (
-                <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "12px", padding: "10px 14px", background: i % 2 === 0 ? "white" : "#F8FAFF", borderTop: "1px solid #E2E8F0" }}>
-                  <span style={{ fontSize: "13px", color: "#0C4A6E", fontWeight: 600 }}>{k.nombre}</span>
-                  <span style={{ fontSize: "13px", color: "#334155" }}>{k.meta}</span>
-                  <span style={{ fontSize: "12px", color: "#64748B", whiteSpace: "nowrap" }}>{k.frecuencia}</span>
-                </div>
-              ))}
-            </div>
-          </SectionBlock>
-        )}
-
-        {/* ── Relaciones de Trabajo ── */}
-        {(hasContent(cargo.relaciones_internas) || hasContent(cargo.relaciones_externas)) && (
-          <div className="preview-section" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
-            {hasContent(cargo.relaciones_internas) && (
-              <div style={{ background: "#F5F7FF", borderLeft: "4px solid #0C4A6E", borderRadius: "0 10px 10px 0", padding: "14px 16px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>Relaciones Internas</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {cargo.relaciones_internas.map((r, i) => (
-                    <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                      <span style={{ color: "#0C4A6E", fontWeight: 900, fontSize: "10px", marginTop: "4px", flexShrink: 0 }}>◆</span>
-                      <span style={{ fontSize: "13px", color: "#334155", lineHeight: 1.5 }}>{r}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {hasContent(cargo.relaciones_externas) && (
-              <div style={{ background: "#F5F7FF", borderLeft: "4px solid #1E3A8A", borderRadius: "0 10px 10px 0", padding: "14px 16px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 800, color: "#1E3A8A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>Relaciones Externas</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {cargo.relaciones_externas.map((r, i) => (
-                    <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                      <span style={{ color: "#1E3A8A", fontWeight: 900, fontSize: "10px", marginTop: "4px", flexShrink: 0 }}>◆</span>
-                      <span style={{ fontSize: "13px", color: "#334155", lineHeight: 1.5 }}>{r}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Supervisados Directos ── */}
-        {hasContent(cargo.supervisa_a) && (
-          <SectionBlock icon={Network} title="Supervisados Directos" color="#0EA5E9">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {cargo.supervisa_a.map((nombre, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px" }}>
-                  <div style={{ width: "22px", height: "22px", borderRadius: "6px", background: "linear-gradient(135deg, #0EA5E9, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 900, color: "white", flexShrink: 0 }}>
-                    {nombre[0]?.toUpperCase()}
-                  </div>
-                  <span style={{ fontSize: "13px", color: "#0C4A6E", fontWeight: 500 }}>{nombre}</span>
-                </div>
-              ))}
-            </div>
-          </SectionBlock>
-        )}
-
-        {/* ── Condiciones de Trabajo ── */}
-        {cargo.condiciones && Object.values(cargo.condiciones).some(Boolean) && (
-          <SectionBlock icon={Clock} title="Condiciones de Trabajo" color="#7F77DD">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
-              {Object.entries(cargo.condiciones).filter(([, v]) => v).map(([key, val]) => (
-                <div key={key} style={{ background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 14px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#7F77DD", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>
-                    {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")}
-                  </div>
-                  <div style={{ fontSize: "13px", color: "#1E1B4B", lineHeight: 1.5 }}>{val}</div>
-                </div>
-              ))}
-            </div>
-          </SectionBlock>
-        )}
-
-        {/* ── Plan de Carrera ── */}
-        {cargo.plan_carrera && (
-          <SectionBlock icon={Rocket} title="Plan de Carrera" color="#D85A30">
-            <p style={{ fontSize: "14px", color: "#334155", lineHeight: 1.75, margin: 0 }}>{cargo.plan_carrera}</p>
-          </SectionBlock>
-        )}
-
-        {/* Empty state if absolutely nothing to show */}
-        {!cargo.objetivo && !hasContent(cargo.funciones) && !hasContent(cargo.competencias_blandas) && !hasContent(cargo.competencias_tecnicas) && !hasContent(cargo.kpis) && !cargo.plan_carrera && !hasContent(cargo.supervisa_a) && !cargo.condiciones && (
-          <div style={{ textAlign: "center", padding: "40px 24px", background: "white", borderRadius: "12px", border: "1.5px dashed #E0E7FF" }}>
-            <FileText style={{ width: "32px", height: "32px", color: "#CBD5E1", margin: "0 auto 10px" }} />
-            <p style={{ fontSize: "14px", color: "#94A3B8", margin: 0 }}>Este cargo aún no tiene contenido detallado. Edítalo para agregar funciones, competencias y KPIs.</p>
-          </div>
-        )}
-
-        {/* ── Sección de Firmas (solo en PDF exportado) ── */}
-        <div style={{ display: "none" }}>
-          <div style={{ fontSize: "10px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "32px", textAlign: "center" }}>
-            Firmas de Aprobación
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
-            {[
-              { titulo: "Elaborado por", nombre: cargo.elaborado_por },
-              { titulo: "Revisado por",  nombre: null },
-              { titulo: "Aprobado por",  nombre: cargo.aprobado_por },
-            ].map((f) => (
-              <div key={f.titulo} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "100%", height: "1px", background: "#94A3B8", marginBottom: "4px" }} />
-                <div style={{ fontSize: "12px", fontWeight: 700, color: "#0C4A6E" }}>{f.nombre || "________________________"}</div>
-                <div style={{ fontSize: "10px", color: "#64748B", textTransform: "uppercase", letterSpacing: "0.1em" }}>{f.titulo}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Footer stamp ── */}
-        <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "11px", color: "#94A3B8" }}>
-            A360 Suite · Manual de Funciones
-          </span>
-          <span style={{ fontSize: "11px", color: "#94A3B8" }}>
-            {clienteNombre} · {new Date().toLocaleDateString("es-CO")}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Form sub-components ────────────────────────────────────────────────────────
-// ── DynKVList — local state por par, onBlur para propagar ─────────────────────
-type KVEntry = { _id: string; key: string; val: string };
-
-function KVPairRow({ entry, onKeyBlur, onValBlur, onRemove }: {
-  entry: KVEntry;
-  onKeyBlur: (id: string, key: string) => void;
-  onValBlur: (id: string, val: string) => void;
-  onRemove: (id: string) => void;
-}) {
-  const [localKey, setLocalKey] = useState(entry.key);
-  const [localVal, setLocalVal] = useState(entry.val);
-  return (
-    <div style={{ border: "1.5px solid #E2E8F0", borderRadius: "10px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px", background: "#FAFBFF" }}>
-      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <input
-          value={localKey}
-          onChange={(e) => setLocalKey(e.target.value)}
-          onBlur={() => onKeyBlur(entry._id, localKey.trim().replace(/\s+/g, "_"))}
-          style={{ ...INPUT, fontWeight: 700, fontSize: "12px", flex: 1 }}
-          placeholder="Nombre de la condición"
-        />
-        <button onClick={() => onRemove(entry._id)} style={{ padding: "7px", borderRadius: "7px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
-          <Trash2 style={{ width: "13px", height: "13px" }} />
-        </button>
-      </div>
-      <textarea
-        value={localVal}
-        onChange={(e) => setLocalVal(e.target.value)}
-        onBlur={() => onValBlur(entry._id, localVal)}
-        rows={2}
-        style={{ ...INPUT, resize: "vertical" }}
-        placeholder="Descripción…"
-      />
-    </div>
-  );
-}
-
-function DynKVList({ value, onChange }: {
-  value: Record<string, string>;
-  onChange: (v: Record<string, string>) => void;
-}) {
-  const [entries, setEntries] = useState<KVEntry[]>(() =>
-    Object.entries(value).map(([key, val]) => ({ _id: `_${key}_${Math.random()}`, key, val }))
-  );
-
-  const toRecord = (list: KVEntry[]): Record<string, string> => {
-    const r: Record<string, string> = {};
-    for (const { key, val } of list) { if (key) r[key] = val; }
-    return r;
+function htmlToContent(c: HtmlCargo): ContentFields {
+  return {
+    cargo:               (c.cargo as string) ?? "",
+    area:                (c.area as string) ?? "",
+    jefe_inmediato:      (c.jefe as string) || null,
+    vacante:             (c.vacante as boolean) ?? false,
+    estado:              (c.estado as string) ?? "vigente",
+    version:             (c.version as string) ?? "1.0",
+    codigo:              (c.codigo as string) || null,
+    objetivo:            (c.objetivo as string) || null,
+    elaborado_por:       (c.elaborado as string) || null,
+    aprobado_por:        (c.aprobado as string) || null,
+    fecha_elaboracion:   mmYyyyToIso(c.fecha_elaboracion as string),
+    fecha_revision:      mmYyyyToIso(c.fecha_revision as string),
+    supervisa_a:         (c.supervisa_a as string[]) ?? [],
+    relaciones_internas: (c.relaciones_internas as string[]) ?? [],
+    relaciones_externas: (c.relaciones_externas as string[]) ?? [],
+    requisitos:          (c.requisitos as Record<string, string>) ?? {},
+    condiciones:         (c.condiciones as Record<string, string>) ?? {},
+    plan_carrera:        (c.plan_carrera as string) || null,
+    funciones: ((c.funciones as unknown[]) ?? []).map(f =>
+      typeof f === "string"
+        ? { descripcion: f, porcentaje_tiempo: 0 }
+        : (f as { descripcion: string; porcentaje_tiempo: number }),
+    ),
+    competencias_blandas:  (c.competencias_blandas as SupabaseCargo["competencias_blandas"]) ?? [],
+    competencias_tecnicas: (c.competencias_tecnicas as SupabaseCargo["competencias_tecnicas"]) ?? [],
+    kpis: ((c.kpis as Array<Record<string, string>>) ?? []).map(k => ({
+      nombre:     k.nombre    ?? "",
+      meta:       k.meta      ?? "",
+      frecuencia: k.freq      ?? "",
+      formula:    k.formula   ?? "",
+    })),
   };
-
-  const addPair = () =>
-    setEntries((prev) => [...prev, { _id: `_new_${Date.now()}`, key: "", val: "" }]);
-
-  const removePair = (id: string) => {
-    const next = entries.filter((e) => e._id !== id);
-    setEntries(next);
-    onChange(toRecord(next));
-  };
-
-  const updateKey = (id: string, newKey: string) => {
-    const next = entries.map((e) => e._id === id ? { ...e, key: newKey } : e);
-    setEntries(next);
-    onChange(toRecord(next));
-  };
-
-  const updateVal = (id: string, newVal: string) => {
-    const next = entries.map((e) => e._id === id ? { ...e, val: newVal } : e);
-    setEntries(next);
-    onChange(toRecord(next));
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      {entries.map((entry) => (
-        <KVPairRow
-          key={entry._id}
-          entry={entry}
-          onKeyBlur={updateKey}
-          onValBlur={updateVal}
-          onRemove={removePair}
-        />
-      ))}
-      <button onClick={addPair} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#7F77DD", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
-        <Plus style={{ width: "12px", height: "12px" }} /> Agregar condición
-      </button>
-    </div>
-  );
 }
 
-// ── DynStringList — local state por item, onBlur para propagar ─────────────────
-type StrEntry = { _id: string; val: string };
+// ── DELETE safeguard constants ─────────────────────────────────────────────────
 
-function StringItemRow({ entry, onBlur, onRemove, placeholder }: {
-  entry: StrEntry;
-  onBlur: (id: string, val: string) => void;
-  onRemove: (id: string) => void;
-  placeholder?: string;
-}) {
-  const [local, setLocal] = useState(entry.val);
-  return (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-      <input
-        value={local}
-        onChange={(e) => setLocal(e.target.value)}
-        onBlur={() => onBlur(entry._id, local)}
-        style={INPUT}
-        placeholder={placeholder}
-      />
-      <button onClick={() => onRemove(entry._id)} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
-        <Trash2 style={{ width: "13px", height: "13px" }} />
-      </button>
-    </div>
-  );
-}
+const SAFE_DELETE_THRESHOLD  = 0.5;
+const MIN_SET_SIZE_FOR_GUARD = 3;
 
-function DynStringList({ items, onChange, placeholder }: {
-  items: string[];
-  onChange: (v: string[]) => void;
-  placeholder?: string;
-}) {
-  const [entries, setEntries] = useState<StrEntry[]>(() =>
-    items.map((val) => ({ _id: `_${Math.random()}`, val }))
-  );
+// ── Component ─────────────────────────────────────────────────────────────────
 
-  const addItem = () =>
-    setEntries((prev) => [...prev, { _id: `_new_${Date.now()}`, val: "" }]);
-
-  const removeItem = (id: string) => {
-    const next = entries.filter((e) => e._id !== id);
-    setEntries(next);
-    onChange(next.map((e) => e.val));
-  };
-
-  const updateItem = (id: string, val: string) => {
-    const next = entries.map((e) => e._id === id ? { ...e, val } : e);
-    setEntries(next);
-    onChange(next.map((e) => e.val));
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {entries.map((entry) => (
-        <StringItemRow
-          key={entry._id}
-          entry={entry}
-          onBlur={updateItem}
-          onRemove={removeItem}
-          placeholder={placeholder}
-        />
-      ))}
-      <button onClick={addItem} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
-        <Plus style={{ width: "12px", height: "12px" }} /> Agregar
-      </button>
-    </div>
-  );
-}
-
-// ── DynList — local state por fila, onBlur en texto, inmediato en select/number ─
-type DynLabelDef<T> = { field: keyof T; label: string; type?: "number" | "select"; options?: string[] };
-
-function DynRow<T extends Record<string, unknown>>({ row, labels, onCommit, onRemove }: {
-  row: T;
-  labels: DynLabelDef<T>[];
-  onCommit: (row: T) => void;
-  onRemove: () => void;
-}) {
-  const [local, setLocal] = useState<T>(row);
-  const update = (key: keyof T, val: unknown, immediate: boolean) => {
-    const next = { ...local, [key]: val } as T;
-    setLocal(next);
-    if (immediate) onCommit(next);
-  };
-  return (
-    <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", flexWrap: "wrap" }}>
-      {labels.map((l) => (
-        <div key={String(l.field)} style={{ flex: l.type === "number" ? "0 0 90px" : 1, minWidth: "120px" }}>
-          <div style={LABEL}>{l.label}</div>
-          {l.type === "select" ? (
-            <select value={String(local[l.field] ?? "")} onChange={(e) => update(l.field, e.target.value, true)} style={INPUT}>
-              {(l.options ?? []).map((o) => <option key={o}>{o}</option>)}
-            </select>
-          ) : l.type === "number" ? (
-            <input type="number" value={String(local[l.field] ?? "")} onChange={(e) => update(l.field, Number(e.target.value), true)} style={INPUT} />
-          ) : (
-            <input type="text" value={String(local[l.field] ?? "")} onChange={(e) => update(l.field, e.target.value, false)} onBlur={() => onCommit(local)} style={INPUT} />
-          )}
-        </div>
-      ))}
-      <button onClick={onRemove} style={{ padding: "8px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer", flexShrink: 0 }}>
-        <Trash2 style={{ width: "13px", height: "13px" }} />
-      </button>
-    </div>
-  );
-}
-
-function DynList<T extends Record<string, unknown>>({ items, onChange, schema, labels }: {
-  items: T[];
-  onChange: (v: T[]) => void;
-  schema: T;
-  labels: DynLabelDef<T>[];
-}) {
-  const [ids, setIds] = useState<string[]>(() => items.map(() => `_${Math.random()}`));
-
-  const add = () => {
-    onChange([...items, { ...schema }]);
-    setIds((prev) => [...prev, `_new_${Date.now()}`]);
-  };
-  const remove = (i: number) => {
-    onChange(items.filter((_, j) => j !== i));
-    setIds((prev) => prev.filter((_, j) => j !== i));
-  };
-  const commit = (i: number, row: T) => onChange(items.map((r, j) => (j === i ? row : r)));
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {items.map((row, i) => (
-        <DynRow<T>
-          key={ids[i] ?? i}
-          row={row}
-          labels={labels}
-          onCommit={(newRow) => commit(i, newRow)}
-          onRemove={() => remove(i)}
-        />
-      ))}
-      <button onClick={add} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px", padding: "6px 12px", cursor: "pointer" }}>
-        <Plus style={{ width: "12px", height: "12px" }} /> Agregar
-      </button>
-    </div>
-  );
-}
-
-function FormSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div style={{ border: "1.5px solid #E2E8F0", borderRadius: "12px", overflow: "hidden" }}>
-      <button onClick={() => setOpen((o) => !o)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: "#F8FAFF", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 700, color: "#0C4A6E" }}>
-        {title}
-        {open ? <ChevronUp style={{ width: "14px", height: "14px" }} /> : <ChevronDown style={{ width: "14px", height: "14px" }} />}
-      </button>
-      {open && <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "14px" }}>{children}</div>}
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div style={LABEL}>{label}</div>
-      {children}
-    </div>
-  );
-}
-
-function CargoCard({
-  c, deletingId, onPreview, onEdit, onDeleteInit, onDeleteCancel, onDeleteConfirm,
-}: {
-  c: Cargo;
-  deletingId: string | null;
-  onPreview: () => void;
-  onEdit: () => void;
-  onDeleteInit: () => void;
-  onDeleteCancel: () => void;
-  onDeleteConfirm: () => void;
-}) {
-  return (
-    <div style={{ background: "white", border: "1px solid #E8EEF8", borderRadius: "10px", padding: "13px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
-      <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "linear-gradient(135deg, #0EA5E9, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 900, color: "white", flexShrink: 0 }}>
-        {c.cargo[0]?.toUpperCase()}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "14px", fontWeight: 700, color: "#0C4A6E" }}>{c.cargo}</span>
-          <span style={PILL(c.estado)}>{c.estado ?? "—"}</span>
-          {c.vacante && <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 9px", borderRadius: "99px", background: "#EDE9FE", color: "#5B21B6" }}>Vacante</span>}
-        </div>
-        {(c.jefe_inmediato || c.codigo) && (
-          <div style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}>
-            {c.jefe_inmediato ? `Reporta a: ${c.jefe_inmediato}` : ""}{c.codigo ? `${c.jefe_inmediato ? " · " : ""}${c.codigo}` : ""}
-          </div>
-        )}
-      </div>
-      <div style={{ display: "flex", gap: "14px", flexShrink: 0 }}>
-        {[{ val: c.funciones.length, lbl: "func." }, { val: c.kpis.length, lbl: "KPIs" }].map((s) => (
-          <div key={s.lbl} style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "15px", fontWeight: 900, color: "#0C4A6E" }}>{s.val}</div>
-            <div style={{ fontSize: "10px", color: "#94A3B8" }}>{s.lbl}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-        <button onClick={onPreview} style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E0E7FF", background: "#F0F4FF", color: "#6366F1", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}>
-          <Eye style={{ width: "12px", height: "12px" }} /> Ver manual
-        </button>
-        <button onClick={onEdit} style={{ padding: "7px 12px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#0C4A6E", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: 600 }}>
-          <Pencil style={{ width: "12px", height: "12px" }} /> Editar
-        </button>
-        {deletingId === c.id ? (
-          <div style={{ display: "flex", gap: "4px" }}>
-            <button onClick={onDeleteConfirm} style={{ padding: "7px 10px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}>Confirmar</button>
-            <button onClick={onDeleteCancel} style={{ padding: "7px 10px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", color: "#64748B", cursor: "pointer", fontSize: "12px" }}>No</button>
-          </div>
-        ) : (
-          <button onClick={onDeleteInit} style={{ padding: "7px", borderRadius: "8px", border: "1.5px solid #FEE2E2", background: "#FFF5F5", color: "#DC2626", cursor: "pointer" }}>
-            <Trash2 style={{ width: "13px", height: "13px" }} />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Main component ─────────────────────────────────────────────────────────────
-function ManualFuncionesWorkspace() {
+function ManualFuncionesViewer() {
   const { clienteId } = Route.useParams();
+  const navigate = useNavigate();
+  const iframeRef      = useRef<HTMLIFrameElement>(null);
+  const loadedUUIDs    = useRef<Set<string>>(new Set());
+  const clienteNombre  = useRef<string>("");
 
-  const [clienteNombre, setClienteNombre] = useState("");
-  const [areas, setAreas]   = useState<Area[]>([]);
-  const [cargos, setCargos] = useState<Cargo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [areasAbiertas, setAreasAbiertas] = useState<Record<string, boolean>>({});
-  const [vista, setVista]                 = useState<"lista" | "form" | "preview">("lista");
-  const [cargoEditando, setCargoEditando] = useState<Cargo | null>(null);
-  const [cargoPreview, setCargoPreview]   = useState<Cargo | null>(null);
-  const [form, setForm]                   = useState<FormDatos>({ ...FORM_BLANK });
-  const [saving, setSaving]               = useState(false);
-
-  const [modalArea, setModalArea]               = useState(false);
-  const [nuevaAreaNombre, setNuevaAreaNombre]   = useState("");
-  const [savingArea, setSavingArea]             = useState(false);
-  const [deletingId, setDeletingId]             = useState<string | null>(null);
-
-  const toastShown = useRef(false);
-
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // Esc → volver al índice
+  const handleBack = useCallback(
+    () => navigate({ to: "/app/manual-funciones" }),
+    [navigate],
+  );
   useEffect(() => {
-    Promise.all([
-      supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).single(),
-      (supabase as any).from("manual_areas").select("id,nombre,orden").eq("cliente_id", clienteId).order("orden"),
-      supabase.from("manual_funciones_cargos").select("*").eq("cliente_id", clienteId).order("cargo"),
-    ]).then(([{ data: cl }, { data: ar }, { data: ca }]) => {
-      setClienteNombre((cl as any)?.nombre_empresa ?? "");
-      setAreas((ar ?? []) as Area[]);
-      setCargos(((ca ?? []) as Record<string, unknown>[]).map(parseCargo));
-      setLoading(false);
-      if (!toastShown.current) {
-        toastShown.current = true;
-        toast.success("Manual de Funciones cargado");
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleBack(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handleBack]);
+
+  // ── Bridge ──────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = async (e: MessageEvent) => {
+      // Validación 1: origin
+      if (e.origin !== window.location.origin) return;
+      const msg = e.data as { type?: string; clienteId?: string; cargos?: HtmlCargo[] };
+      if (!msg?.type) return;
+      // Validación 2: clienteId activo
+      if (msg.clienteId !== clienteId) return;
+
+      // ── MF_READY → inyectar datos ──────────────────────────────────────────
+      if (msg.type === "MF_READY") {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const supa = supabase as any;
+          const [{ data: cliente }, { data: rows, error: rowsErr }] = await Promise.all([
+            supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).single(),
+            supa.from("manual_funciones_cargos").select("*").eq("cliente_id", clienteId).order("created_at"),
+          ]);
+
+          if (rowsErr) throw rowsErr;
+
+          clienteNombre.current  = cliente?.nombre_empresa ?? "";
+          const cargosDB         = (rows ?? []) as SupabaseCargo[];
+          loadedUUIDs.current    = new Set(cargosDB.map(r => r.id));
+          const htmlCargos       = cargosDB.map(r => supabaseToHtml(r, clienteNombre.current));
+
+          // Validación 3: targetOrigin específico, nunca '*'
+          iframeRef.current?.contentWindow?.postMessage(
+            { type: "MF_DATA_RESPONSE", clienteId, cargos: htmlCargos },
+            { targetOrigin: window.location.origin },
+          );
+        } catch (err) {
+          toast.error("Error cargando cargos: " + (err instanceof Error ? err.message : String(err)));
+          // Enviar array vacío para no bloquear al HTML
+          iframeRef.current?.contentWindow?.postMessage(
+            { type: "MF_DATA_RESPONSE", clienteId, cargos: [] },
+            { targetOrigin: window.location.origin },
+          );
+        }
       }
-    });
-  }, [clienteId]);
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-  const areaNames = new Set(areas.map((a) => a.nombre));
-  const cargosSinArea = cargos.filter((c) => !areaNames.has(c.area));
+      // ── MF_SAVE → persistir en Supabase ───────────────────────────────────
+      if (msg.type === "MF_SAVE") {
+        if (!Array.isArray(msg.cargos)) return;
+        setSaving(true);
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          const consultorId = user?.id ?? null;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const supa2 = supabase as any;
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
-  function abrirNuevo(areaNombre = "") {
-    setCargoEditando(null);
-    setForm({ ...FORM_BLANK, area: areaNombre });
-    setVista("form");
-  }
+          const knownUUIDs  = loadedUUIDs.current;
+          const payloadIds  = new Set(msg.cargos.map(c => c.id as string));
 
-  function abrirEdicion(c: Cargo) {
-    setCargoEditando(c);
-    setForm({
-      cargo: c.cargo, area: c.area, jefe_inmediato: c.jefe_inmediato ?? "",
-      codigo: c.codigo ?? "", version: c.version ?? "1.0",
-      estado: c.estado ?? "vigente", vacante: c.vacante ?? false,
-      objetivo: c.objetivo ?? "",
-      funciones: c.funciones, competencias_blandas: c.competencias_blandas,
-      competencias_tecnicas: c.competencias_tecnicas, kpis: c.kpis,
-      elaborado_por: c.elaborado_por ?? "", aprobado_por: c.aprobado_por ?? "",
-      fecha_elaboracion: c.fecha_elaboracion ?? "", fecha_revision: c.fecha_revision ?? "",
-      plan_carrera: c.plan_carrera ?? "",
-      relaciones_internas: c.relaciones_internas ?? [],
-      relaciones_externas: c.relaciones_externas ?? [],
-      condiciones: c.condiciones ?? {},
-    });
-    setVista("form");
-  }
+          // INSERTs y UPDATEs
+          for (const cargo of msg.cargos) {
+            const cargoId  = cargo.id as string;
+            const fields   = htmlToContent(cargo);
 
-  function abrirPreview(c: Cargo) {
-    setCargoPreview(c);
-    setVista("preview");
-  }
+            if (knownUUIDs.has(cargoId)) {
+              // UPDATE — consultor_id no se toca
+              const { error } = await supa2
+                .from("manual_funciones_cargos")
+                .update({ ...fields, updated_at: new Date().toISOString() })
+                .eq("id", cargoId);
+              if (error) throw error;
+            } else {
+              // INSERT — consultor_id = usuario actual
+              const { error } = await supa2
+                .from("manual_funciones_cargos")
+                .insert({ id: cargoId, cliente_id: clienteId, consultor_id: consultorId, ...fields });
+              if (error) throw error;
+            }
+          }
 
-  async function guardar() {
-    if (!form.cargo.trim() || !form.area.trim()) {
-      toast.error("Cargo y área son obligatorios");
-      return;
-    }
-    setSaving(true);
-    const payload = {
-      cliente_id: clienteId,
-      cargo: form.cargo.trim(),
-      area: form.area.trim(),
-      jefe_inmediato: form.jefe_inmediato || null,
-      codigo: form.codigo || null,
-      version: form.version || null,
-      estado: form.estado,
-      vacante: form.vacante,
-      objetivo: form.objetivo || null,
-      funciones: form.funciones,
-      competencias_blandas: form.competencias_blandas,
-      competencias_tecnicas: form.competencias_tecnicas,
-      kpis: form.kpis,
-      elaborado_por: form.elaborado_por || null,
-      aprobado_por: form.aprobado_por || null,
-      fecha_elaboracion: form.fecha_elaboracion || null,
-      fecha_revision: form.fecha_revision || null,
-      plan_carrera: form.plan_carrera || null,
-      relaciones_internas: form.relaciones_internas.length ? form.relaciones_internas : null,
-      relaciones_externas: form.relaciones_externas.length ? form.relaciones_externas : null,
-      condiciones: Object.values(form.condiciones ?? {}).some(Boolean) ? form.condiciones : null,
+          // DELETEs con salvaguarda
+          const toDelete = [...knownUUIDs].filter(uuid => !payloadIds.has(uuid));
+          if (toDelete.length > 0) {
+            const dropRatio    = toDelete.length / knownUUIDs.size;
+            const shouldGuard  =
+              knownUUIDs.size >= MIN_SET_SIZE_FOR_GUARD &&
+              dropRatio > SAFE_DELETE_THRESHOLD;
+
+            if (shouldGuard) {
+              console.warn(
+                `[MF_BRIDGE] DELETE suprimido — payload: ${payloadIds.size} cargos, ` +
+                `cargados: ${knownUUIDs.size}, caída: ${(dropRatio * 100).toFixed(0)}%. ` +
+                `IDs omitidos: ${toDelete.join(", ")}`,
+              );
+              toast.warning("Cambios guardados. Algunos cargos pendientes de reconciliar.");
+            } else {
+              const { error } = await supa2
+                .from("manual_funciones_cargos")
+                .delete()
+                .in("id", toDelete);
+              if (error) throw error;
+            }
+          }
+
+          // Actualizar set de UUIDs conocidos para el siguiente ciclo
+          loadedUUIDs.current = payloadIds;
+          toast.success("Cambios guardados en la nube");
+        } catch (err) {
+          toast.error("Error al guardar: " + (err instanceof Error ? err.message : String(err)));
+        } finally {
+          setSaving(false);
+        }
+      }
     };
 
-    if (cargoEditando) {
-      const { data, error } = await supabase
-        .from("manual_funciones_cargos").update(payload).eq("id", cargoEditando.id).select().single();
-      if (error) { toast.error("Error al guardar"); setSaving(false); return; }
-      const updated = parseCargo(data as Record<string, unknown>);
-      setCargos((prev) => prev.map((c) => (c.id === cargoEditando.id ? updated : c)));
-      if (cargoPreview?.id === cargoEditando.id) setCargoPreview(updated);
-      toast.success("Cargo actualizado");
-    } else {
-      const { data, error } = await supabase
-        .from("manual_funciones_cargos").insert(payload).select().single();
-      if (error) { toast.error("Error al guardar"); setSaving(false); return; }
-      setCargos((prev) => [...prev, parseCargo(data as Record<string, unknown>)]);
-      toast.success("Cargo creado");
-    }
-    setSaving(false);
-    setVista("lista");
-  }
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [clienteId]);
 
-  async function eliminar(id: string) {
-    const { error } = await supabase.from("manual_funciones_cargos").delete().eq("id", id);
-    if (error) { toast.error("Error al eliminar"); return; }
-    setCargos((prev) => prev.filter((c) => c.id !== id));
-    setDeletingId(null);
-    toast.success("Cargo eliminado");
-  }
-
-  async function crearArea() {
-    if (!nuevaAreaNombre.trim()) return;
-    setSavingArea(true);
-    const maxOrden = areas.reduce((m, a) => Math.max(m, a.orden), -1) + 1;
-    const { data, error } = await (supabase as any)
-      .from("manual_areas")
-      .insert({ cliente_id: clienteId, nombre: nuevaAreaNombre.trim(), orden: maxOrden })
-      .select().single();
-    if (error) { toast.error("Error al crear área"); setSavingArea(false); return; }
-    setAreas((prev) => [...prev, data as Area]);
-    setNuevaAreaNombre("");
-    setSavingArea(false);
-    setModalArea(false);
-    toast.success("Área creada");
-  }
-
-  // ── Render: preview (full-screen overlay) ──────────────────────────────────
-  if (vista === "preview" && cargoPreview) {
-    return (
-      <PreviewPanel
-        cargo={cargoPreview}
-        clienteNombre={clienteNombre}
-        onClose={() => setVista("lista")}
-        onEdit={() => abrirEdicion(cargoPreview)}
-      />
-    );
-  }
-
-  const f = form;
-  const setF = <K extends keyof FormDatos>(k: K, v: FormDatos[K]) =>
-    setForm((prev) => ({ ...prev, [k]: v }));
-
-  return (
-    <div style={{ maxWidth: "900px" }}>
-
-      {/* ── Breadcrumb ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px" }}>
-        <Link
-          to="/app/manual-funciones"
-          style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 600, color: "#0EA5E9", textDecoration: "none" }}
-        >
-          <ArrowLeft style={{ width: "14px", height: "14px" }} /> Manual de Funciones
-        </Link>
-        <span style={{ color: "#CBD5E1" }}>/</span>
-        <span style={{ fontSize: "13px", fontWeight: 700, color: "#0C4A6E" }}>{clienteNombre || "…"}</span>
+  return createPortal(
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      display: "flex", flexDirection: "column",
+      background: "#0C4A6E",
+    }}>
+      {/* Franja superior */}
+      <div style={{
+        height: "44px", flexShrink: 0,
+        background: "#0C4A6E", borderBottom: "3px solid #0EA5E9",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 16px",
+      }}>
+        <span style={{ color: "#38BDF8", fontWeight: 700, fontSize: "13px", letterSpacing: "0.04em" }}>
+          Manual de Funciones
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {saving && (
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+              <Save style={{ width: "12px", height: "12px" }} /> Guardando…
+            </span>
+          )}
+          <button
+            onClick={handleBack}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              color: "white", fontSize: "13px", fontWeight: 500,
+              background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.25)",
+              borderRadius: "4px", padding: "5px 14px", cursor: "pointer",
+            }}
+          >
+            <ArrowLeft style={{ width: "14px", height: "14px" }} /> Volver a clientes
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <p style={{ color: "#64748B", fontSize: "14px" }}>Cargando…</p>
-      ) : vista === "form" ? (
-
-        /* ── FORM VIEW ── */
-        <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-            <div>
-              <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#0C4A6E", margin: 0 }}>
-                {cargoEditando ? `Editar: ${cargoEditando.cargo}` : "Nuevo Cargo"}
-              </h2>
-              <p style={{ fontSize: "13px", color: "#94A3B8", margin: "3px 0 0" }}>{clienteNombre}</p>
-            </div>
-            <button onClick={() => setVista("lista")} style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: "8px", padding: "8px 14px", cursor: "pointer" }}>
-              <X style={{ width: "13px", height: "13px" }} /> Cancelar
-            </button>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <FormSection title="Identificación del Cargo">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <Field label="Cargo *">
-                  <input value={f.cargo} onChange={(e) => setF("cargo", e.target.value)} style={INPUT} placeholder="Ej: Gerente de Ventas" />
-                </Field>
-                <Field label="Área *">
-                  {areas.length > 0 ? (
-                    <select value={f.area} onChange={(e) => setF("area", e.target.value)} style={INPUT}>
-                      <option value="">— Seleccionar —</option>
-                      {areas.map((a) => <option key={a.id} value={a.nombre}>{a.nombre}</option>)}
-                    </select>
-                  ) : (
-                    <input value={f.area} onChange={(e) => setF("area", e.target.value)} style={INPUT} placeholder="Ej: Comercial" />
-                  )}
-                </Field>
-                <Field label="Jefe Inmediato">
-                  <input value={f.jefe_inmediato ?? ""} onChange={(e) => setF("jefe_inmediato", e.target.value)} style={INPUT} placeholder="Ej: Director Comercial" />
-                </Field>
-                <Field label="Código">
-                  <input value={f.codigo ?? ""} onChange={(e) => setF("codigo", e.target.value)} style={INPUT} placeholder="Ej: GV-001" />
-                </Field>
-                <Field label="Versión">
-                  <input value={f.version ?? ""} onChange={(e) => setF("version", e.target.value)} style={INPUT} placeholder="1.0" />
-                </Field>
-                <Field label="Estado">
-                  <select value={f.estado ?? "vigente"} onChange={(e) => setF("estado", e.target.value)} style={INPUT}>
-                    {ESTADOS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
-                  </select>
-                </Field>
-              </div>
-              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#0C4A6E", cursor: "pointer" }}>
-                <input type="checkbox" checked={f.vacante ?? false} onChange={(e) => setF("vacante", e.target.checked)} />
-                Vacante
-              </label>
-            </FormSection>
-
-            <FormSection title="Elaboración y Aprobación" defaultOpen={false}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <Field label="Elaborado por">
-                  <input value={f.elaborado_por ?? ""} onChange={(e) => setF("elaborado_por", e.target.value)} style={INPUT} />
-                </Field>
-                <Field label="Aprobado por">
-                  <input value={f.aprobado_por ?? ""} onChange={(e) => setF("aprobado_por", e.target.value)} style={INPUT} />
-                </Field>
-                <Field label="Fecha Elaboración">
-                  <input type="date" value={f.fecha_elaboracion ?? ""} onChange={(e) => setF("fecha_elaboracion", e.target.value)} style={INPUT} />
-                </Field>
-                <Field label="Fecha Revisión">
-                  <input type="date" value={f.fecha_revision ?? ""} onChange={(e) => setF("fecha_revision", e.target.value)} style={INPUT} />
-                </Field>
-              </div>
-            </FormSection>
-
-            <FormSection title="Objetivo del Cargo">
-              <textarea value={f.objetivo ?? ""} onChange={(e) => setF("objetivo", e.target.value)} rows={3} style={{ ...INPUT, resize: "vertical" }} placeholder="Describa el propósito principal del cargo…" />
-            </FormSection>
-
-            <FormSection title="Funciones Principales" defaultOpen={false}>
-              <DynList<Funcion>
-                items={f.funciones} onChange={(v) => setF("funciones", v)}
-                schema={{ descripcion: "", porcentaje_tiempo: 0 }}
-                labels={[{ field: "descripcion", label: "Descripción" }, { field: "porcentaje_tiempo", label: "% Tiempo", type: "number" }]}
-              />
-            </FormSection>
-
-            <FormSection title="Competencias Blandas" defaultOpen={false}>
-              <DynList<Competencia>
-                items={f.competencias_blandas} onChange={(v) => setF("competencias_blandas", v)}
-                schema={{ nombre: "", nivel: "Básico" }}
-                labels={[{ field: "nombre", label: "Competencia" }, { field: "nivel", label: "Nivel", type: "select", options: NIVELES }]}
-              />
-            </FormSection>
-
-            <FormSection title="Competencias Técnicas" defaultOpen={false}>
-              <DynList<Competencia>
-                items={f.competencias_tecnicas} onChange={(v) => setF("competencias_tecnicas", v)}
-                schema={{ nombre: "", nivel: "Básico" }}
-                labels={[{ field: "nombre", label: "Competencia" }, { field: "nivel", label: "Nivel", type: "select", options: NIVELES }]}
-              />
-            </FormSection>
-
-            <FormSection title="KPIs" defaultOpen={false}>
-              <DynList<KPI>
-                items={f.kpis} onChange={(v) => setF("kpis", v)}
-                schema={{ nombre: "", meta: "", frecuencia: "Mensual" }}
-                labels={[{ field: "nombre", label: "Indicador" }, { field: "meta", label: "Meta" }, { field: "frecuencia", label: "Frecuencia", type: "select", options: FRECUENCIAS }]}
-              />
-            </FormSection>
-
-            <FormSection title="Plan de Carrera" defaultOpen={false}>
-              <textarea value={f.plan_carrera ?? ""} onChange={(e) => setF("plan_carrera", e.target.value)} rows={3} style={{ ...INPUT, resize: "vertical" }} placeholder="Posibles trayectorias de crecimiento para este cargo…" />
-            </FormSection>
-
-            <FormSection title="Relaciones de Trabajo" defaultOpen={false}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                <div>
-                  <div style={LABEL}>Relaciones Internas</div>
-                  <DynStringList
-                    items={f.relaciones_internas}
-                    onChange={(v) => setF("relaciones_internas", v)}
-                    placeholder="Ej: Gerente Financiero — Para X propósito"
-                  />
-                </div>
-                <div>
-                  <div style={LABEL}>Relaciones Externas</div>
-                  <DynStringList
-                    items={f.relaciones_externas}
-                    onChange={(v) => setF("relaciones_externas", v)}
-                    placeholder="Ej: Proveedor XYZ — Para negociación de contratos"
-                  />
-                </div>
-              </div>
-            </FormSection>
-
-            <FormSection title="Condiciones de Trabajo" defaultOpen={false}>
-              <DynKVList
-                key={cargoEditando?.id ?? "new"}
-                value={f.condiciones ?? {}}
-                onChange={(v) => setF("condiciones", v)}
-              />
-            </FormSection>
-          </div>
-
-          <div style={{ marginTop: "20px", display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-            <button onClick={() => setVista("lista")} style={{ padding: "10px 20px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "14px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}>
-              Cancelar
-            </button>
-            <button onClick={guardar} disabled={saving} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "14px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
-              <Check style={{ width: "14px", height: "14px" }} />
-              {saving ? "Guardando…" : cargoEditando ? "Actualizar cargo" : "Crear cargo"}
-            </button>
-          </div>
-        </div>
-
-      ) : (
-
-        /* ── LIST VIEW ── */
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-
-          {/* Company header */}
-          <div style={{ background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 60%, #312E81 100%)", borderRadius: "16px", padding: "26px 30px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 80% at 85% 30%, rgba(14,165,233,0.18), transparent)", pointerEvents: "none" }} />
-            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <div style={{ width: "50px", height: "50px", borderRadius: "13px", background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 900, color: "white", flexShrink: 0 }}>
-                  {clienteNombre[0]?.toUpperCase()}
-                </div>
-                <div>
-                  <h1 style={{ fontSize: "19px", fontWeight: 900, color: "white", margin: "0 0 6px", letterSpacing: "-0.02em" }}>{clienteNombre}</h1>
-                  <div style={{ display: "flex", gap: "18px" }}>
-                    {[
-                      { val: cargos.length, lbl: "Cargos" },
-                      { val: cargos.filter((c) => c.estado === "vigente").length, lbl: "Vigentes" },
-                      { val: cargos.filter((c) => c.vacante === true).length, lbl: "Vacantes" },
-                      { val: areas.length, lbl: "Áreas" },
-                    ].map((s) => (
-                      <div key={s.lbl} style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)" }}>
-                        <span style={{ fontWeight: 900, color: "white", fontSize: "15px" }}>{s.val}</span>{" "}{s.lbl}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                <button onClick={() => setModalArea(true)} style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "9px 16px", borderRadius: "9px", border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "white", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
-                  <Plus style={{ width: "13px", height: "13px" }} /> Nueva área
-                </button>
-                <button onClick={() => abrirNuevo()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "9px", border: "none", background: "rgba(255,255,255,0.95)", color: "#0C4A6E", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
-                  <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Empty state */}
-          {areas.length === 0 && cargos.length === 0 && (
-            <div style={{ textAlign: "center", padding: "56px 24px", background: "white", borderRadius: "16px", border: "1.5px dashed #E0E7FF" }}>
-              <FileText style={{ width: "36px", height: "36px", color: "#CBD5E1", margin: "0 auto 12px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#0C4A6E", marginBottom: "6px" }}>Sin cargos</h3>
-              <p style={{ fontSize: "13px", color: "#94A3B8", marginBottom: "16px" }}>Crea el primer cargo para esta empresa.</p>
-              <button onClick={() => abrirNuevo()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
-                <Plus style={{ width: "13px", height: "13px" }} /> Nuevo cargo
-              </button>
-            </div>
-          )}
-
-          {/* Area accordions */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {areas.map((area) => {
-              const areaCargos = cargos.filter((c) => c.area === area.nombre);
-              const isOpen = areasAbiertas[area.id] !== false;
-              return (
-                <div key={area.id} style={{ background: "white", border: "1px solid #E2E8F0", borderLeft: "4px solid var(--h-acc)", borderRadius: "14px", overflow: "hidden" }}>
-                  <div
-                    onClick={() => setAreasAbiertas((prev) => ({ ...prev, [area.id]: !isOpen }))}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
-                    style={{
-                      display: "flex", alignItems: "center", padding: "14px 20px", cursor: "pointer",
-                      background: isOpen ? "linear-gradient(135deg, var(--h-from), var(--h-to))" : "white",
-                      borderBottom: isOpen ? "1px solid rgba(255,255,255,0.15)" : "none",
-                      transition: "box-shadow 0.2s",
-                    }}
-                  >
-                    {/* Area icon */}
-                    <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: isOpen ? "rgba(255,255,255,0.18)" : "var(--acc2, #E0F2FE)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: "10px" }}>
-                      <Users style={{ width: "14px", height: "14px", color: isOpen ? "white" : "var(--h-acc)" }} />
-                    </div>
-                    {/* Area name */}
-                    <span style={{ fontWeight: 700, fontSize: "15px", flex: 1, color: isOpen ? "white" : "var(--h-from)" }}>{area.nombre}</span>
-                    {/* Badge */}
-                    <span style={{ background: isOpen ? "rgba(255,255,255,0.2)" : "#E0E7FF", color: isOpen ? "white" : "#4338CA", borderRadius: "999px", padding: "2px 10px", fontSize: "11px", fontWeight: 700, marginRight: "12px" }}>
-                      {areaCargos.length}
-                    </span>
-                    {/* Add cargo button */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); abrirNuevo(area.nombre); }}
-                      style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "5px 11px", borderRadius: "7px", border: isOpen ? "1px solid rgba(255,255,255,0.3)" : "1px solid #E0E7FF", background: isOpen ? "rgba(255,255,255,0.12)" : "white", color: isOpen ? "white" : "#0C4A6E", fontSize: "12px", fontWeight: 600, cursor: "pointer", marginRight: "8px" }}
-                    >
-                      <Plus style={{ width: "11px", height: "11px" }} /> Agregar cargo
-                    </button>
-                    {/* Animated chevron */}
-                    <ChevronDown style={{ width: "16px", height: "16px", color: isOpen ? "white" : "var(--h-acc)", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }} />
-                  </div>
-                  {isOpen && (
-                    <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {areaCargos.length === 0 ? (
-                        <p style={{ fontSize: "13px", color: "#94A3B8", textAlign: "center", padding: "14px 0", margin: 0 }}>
-                          Sin cargos en esta área.{" "}
-                          <button onClick={() => abrirNuevo(area.nombre)} style={{ fontWeight: 700, color: "#0EA5E9", background: "none", border: "none", cursor: "pointer", fontSize: "13px", padding: 0 }}>+ Agregar</button>
-                        </p>
-                      ) : areaCargos.map((c) => (
-                        <CargoCard
-                          key={c.id} c={c} deletingId={deletingId}
-                          onPreview={() => abrirPreview(c)}
-                          onEdit={() => abrirEdicion(c)}
-                          onDeleteInit={() => setDeletingId(c.id)}
-                          onDeleteCancel={() => setDeletingId(null)}
-                          onDeleteConfirm={() => eliminar(c.id)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Cargos sin área */}
-            {cargosSinArea.length > 0 && (
-              <div style={{ background: "#FAFBFF", border: "1.5px dashed #C7D2FE", borderRadius: "14px", overflow: "hidden" }}>
-                <div style={{ display: "flex", alignItems: "center", padding: "13px 18px", borderBottom: "1px solid #E8EEF8" }}>
-                  <span style={{ fontWeight: 700, color: "#64748B", fontSize: "14px", flex: 1 }}>Sin área asignada</span>
-                  <span style={{ background: "#F1F5F9", color: "#64748B", borderRadius: "999px", padding: "2px 10px", fontSize: "11px", fontWeight: 700 }}>
-                    {cargosSinArea.length}
-                  </span>
-                </div>
-                <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {cargosSinArea.map((c) => (
-                    <CargoCard
-                      key={c.id} c={c} deletingId={deletingId}
-                      onPreview={() => abrirPreview(c)}
-                      onEdit={() => abrirEdicion(c)}
-                      onDeleteInit={() => setDeletingId(c.id)}
-                      onDeleteCancel={() => setDeletingId(null)}
-                      onDeleteConfirm={() => eliminar(c.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── New area modal ── */}
-      {modalArea && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "white", borderRadius: "16px", padding: "28px", width: "340px", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", margin: "0 0 16px" }}>Nueva Área</h3>
-            <div style={LABEL}>Nombre del área</div>
-            <input
-              autoFocus
-              value={nuevaAreaNombre}
-              onChange={(e) => setNuevaAreaNombre(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && crearArea()}
-              style={{ ...INPUT, marginBottom: "16px" }}
-              placeholder="Ej: Recursos Humanos"
-            />
-            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-              <button onClick={() => { setModalArea(false); setNuevaAreaNombre(""); }} style={{ padding: "8px 16px", borderRadius: "8px", border: "1.5px solid #E2E8F0", background: "white", fontSize: "13px", fontWeight: 600, color: "#64748B", cursor: "pointer" }}>
-                Cancelar
-              </button>
-              <button onClick={crearArea} disabled={savingArea || !nuevaAreaNombre.trim()} style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "#0C4A6E", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", opacity: savingArea ? 0.7 : 1 }}>
-                {savingArea ? "Creando…" : "Crear"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      {/* iframe */}
+      <iframe
+        ref={iframeRef}
+        src={`/manual-funciones.html?clienteId=${clienteId}`}
+        title="Manual de Funciones"
+        style={{ flex: 1, border: "none", width: "100%" }}
+        allow="fullscreen"
+      />
+    </div>,
+    document.body,
   );
 }
