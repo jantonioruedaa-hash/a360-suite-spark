@@ -22,6 +22,17 @@ export const Route = createFileRoute("/app/clientes/$clienteId/plan")({
   validateSearch: searchSchema,
 });
 
+const NIVEL_MAP: Record<string, NivelPlan> = {
+  esencial:    "esencial",
+  avanzado:    "avanzado",
+  corporativo: "corporativo",
+  profesional: "avanzado",    // parche temporal — ver backlog consolidación nomenclatura
+  enterprise:  "corporativo",
+  premium:     "corporativo",
+};
+const normalizarNivel = (raw: string | null | undefined): NivelPlan =>
+  NIVEL_MAP[raw?.toLowerCase() ?? ""] ?? "esencial";
+
 function PlanPage() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/plan" });
   const { s: seccionKeyParam } = useSearch({ from: "/app/clientes/$clienteId/plan" });
@@ -31,7 +42,7 @@ function PlanPage() {
 
   const seccionKey = seccionKeyParam ?? "01";
   const seccion = seccionPorKey(seccionKey) ?? SECCIONES_PLAN[0];
-  const nivel: NivelPlan = (cliente?.plan_licencia as NivelPlan) ?? "esencial";
+  const nivel: NivelPlan = normalizarNivel(cliente?.plan_licencia);
   const seccionesVisibles = useMemo(() => seccionesParaNivel(nivel), [nivel]);
   const sectorKey = detectSector(cliente?.sector);
   const tamano = detectTamano(cliente?.num_empleados);

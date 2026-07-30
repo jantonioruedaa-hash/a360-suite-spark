@@ -80,20 +80,22 @@ function Resumen() {
       <div>
         <h3 className="font-display text-navy mb-3">Secciones del cliente</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {[
-            { url: "empresa", label: "Información empresa", icon: Building2, desc: "Datos generales y fiscales" },
-            { url: "contactos", label: "Contactos", icon: Users, desc: "Personas clave del cliente" },
-            { url: "actividades", label: "Actividades", icon: Activity, desc: "Llamadas, reuniones, notas" },
-            { url: "cotizaciones", label: "Cotizaciones", icon: FileText, desc: "Propuestas comerciales" },
-            { url: "side", label: "Diagnósticos SIDE", icon: BarChart3, desc: "Evaluaciones IME" },
-            { url: "plan", label: "Plan estratégico", icon: Target, desc: "18 secciones" },
-            { url: "coaching", label: "Coaching", icon: Users2, desc: "Herramientas y sesiones" },
-            { url: "lee", label: "Programa LEE", icon: BookOpen, desc: "10 capítulos" },
-            { url: "analisis-ia", label: "Análisis IA", icon: Sparkles, desc: "Insights inteligentes" },
-          ].map((s) => (
-            <Link key={s.url}
-              to={`/app/clientes/$clienteId/${s.url}` as "/app/clientes/$clienteId/resumen"}
-              params={{ clienteId }}
+          {(([
+            { url: "empresa",      label: "Información empresa",  icon: Building2, desc: "Datos generales y fiscales" },
+            { url: "contactos",    label: "Contactos",             icon: Users,     desc: "Personas clave del cliente" },
+            { url: "actividades",  label: "Actividades",           icon: Activity,  desc: "Llamadas, reuniones, notas" },
+            { url: "cotizaciones", label: "Cotizaciones",          icon: FileText,  desc: "Propuestas comerciales" },
+            { url: "side",         label: "Diagnósticos SIDE",     icon: BarChart3, desc: "Evaluaciones IME" },
+            { url: "plan",         label: "Plan estratégico",      icon: Target,    desc: "18 secciones" },
+            { url: "coaching",     label: "Coaching",              icon: Users2,    desc: "Herramientas y sesiones" },
+            { url: "lee",          label: "Programa LEE",          icon: BookOpen,  desc: "10 capítulos" },
+            { url: "analisis-ia",  label: "Análisis IA",           icon: Sparkles,  desc: "Insights inteligentes" },
+            { to: `/app/manual-funciones/${clienteId}`, label: "Manual de Funciones", icon: FileText, desc: "Organigramas y perfiles de cargo" },
+          ] as Array<{ url?: string; to?: string; label: string; icon: typeof Activity; desc: string }>)).map((s) => (
+            <Link key={s.label}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              to={(s.to ?? `/app/clientes/$clienteId/${s.url!}`) as any}
+              params={s.to ? {} : { clienteId }}
               className="a360-card p-4 hover:border-gold transition group flex items-start gap-3">
               <div className="w-9 h-9 rounded-md bg-cream flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition flex-shrink-0">
                 <s.icon className="w-4 h-4" />

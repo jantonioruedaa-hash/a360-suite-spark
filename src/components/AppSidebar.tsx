@@ -1,4 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent,
   SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter, useSidebar,
@@ -15,7 +17,7 @@ import { useAppSettings } from "@/lib/app-settings";
 import { getModuleColor } from "@/lib/module-colors";
 import { toast } from "sonner";
 
-type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean };
+type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean; modulo?: string; clienteUrl?: string };
 type Section = { label: string; items: Item[]; consultorOnly?: boolean };
 
 const sections: Section[] = [
@@ -23,32 +25,32 @@ const sections: Section[] = [
     label: "Diagnóstico",
     consultorOnly: true,
     items: [
-      { title: "SIDE", url: "/app/side", icon: Activity },
-      { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon },
+      { title: "SIDE", url: "/app/side", icon: Activity, modulo: "side", clienteUrl: "/app/clientes/{id}/side" },
+      { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon, modulo: "side" },
     ],
   },
   {
     label: "Estrategia",
     consultorOnly: true,
     items: [
-      { title: "Plan Estratégico", url: "/app/plan", icon: Target },
-      { title: "Seguimiento KPIs", url: "/app/kpis", icon: LineChart },
+      { title: "Plan Estratégico", url: "/app/plan", icon: Target, modulo: "plan_estrategico", clienteUrl: "/app/clientes/{id}/plan" },
+      { title: "Seguimiento KPIs", url: "/app/kpis", icon: LineChart, modulo: "kpis" },
     ],
   },
   {
     label: "Coaching A360",
     consultorOnly: true,
     items: [
-      { title: "Panel Coaching", url: "/app/coaching", icon: Users2 },
-      { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen },
-      { title: "Resultados", url: "/app/coaching/resultados", icon: TrendingUp },
+      { title: "Panel Coaching", url: "/app/coaching", icon: Users2, modulo: "coaching", clienteUrl: "/app/clientes/{id}/coaching" },
+      { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen, modulo: "coaching" },
+      { title: "Resultados", url: "/app/coaching/resultados", icon: TrendingUp, modulo: "coaching" },
     ],
   },
   {
     label: "Desarrollo",
     consultorOnly: true,
     items: [
-      { title: "Programa LEE", url: "/app/lee", icon: GraduationCap },
+      { title: "Programa LEE", url: "/app/lee", icon: GraduationCap, modulo: "lee", clienteUrl: "/app/clientes/{id}/lee" },
     ],
   },
   {
@@ -58,7 +60,7 @@ const sections: Section[] = [
       { title: "Procesos", url: "#", icon: Workflow, upcoming: true },
       { title: "SGC", url: "#", icon: ShieldCheck, upcoming: true },
       { title: "TalentHR", url: "#", icon: Users, upcoming: true },
-      { title: "Manual de Funciones", url: "/app/manual-funciones", icon: FileText },
+      { title: "Manual de Funciones", url: "/app/manual-funciones", icon: FileText, modulo: "manual_funciones", clienteUrl: "/app/manual-funciones/{id}" },
     ],
   },
   {
@@ -66,7 +68,7 @@ const sections: Section[] = [
     consultorOnly: true,
     items: [
       { title: "CRM Comercial", url: "#", icon: ShoppingCart, upcoming: true },
-      { title: "Marketing Digital", url: "/app/crecimiento", icon: Megaphone },
+      { title: "Marketing Digital", url: "/app/crecimiento", icon: Megaphone, modulo: "marketing_digital" },
       { title: "Suite Financiera", url: "#", icon: Calculator, upcoming: true },
       { title: "WMS Inventarios", url: "#", icon: Package, upcoming: true },
     ],
@@ -90,7 +92,80 @@ export function AppSidebar() {
   const { getText } = useAppSettings();
 
   const isConsultorOrAdmin = !user || role === "admin" || role === "consultor";
-  const visibleSections = sections.filter((s) => !s.consultorOnly || isConsultorOrAdmin);
+  const isClientRole = role === "cliente" || role === "participante";
+
+  const [allowedModules, setAllowedModules] = useState<Set<string> | null>(null);
+  const [clienteIdState, setClienteIdState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isClientRole || !user) {
+      setAllowedModules(null);
+      setClienteIdState(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: eu } = await supabase
+          .from("empresa_usuarios")
+          .select("cliente_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!eu?.cliente_id) { setAllowedModules(new Set()); return; }
+
+        const { data: cli } = await supabase
+          .from("clientes")
+          .select("plan_licencia")
+          .eq("id", eu.cliente_id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!cli?.plan_licencia) { setAllowedModules(new Set()); return; }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: plan } = await (supabase as any)
+          .from("planes")
+          .select("id")
+          .ilike("nombre", cli.plan_licencia)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!plan?.id) { setAllowedModules(new Set()); return; }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: mods } = await (supabase as any)
+          .from("plan_modulos")
+          .select("modulo_slug")
+          .eq("plan_id", plan.id)
+          .eq("activo", true);
+        if (cancelled) return;
+        setAllowedModules(new Set((mods ?? []).map((m: { modulo_slug: string }) => m.modulo_slug)));
+        setClienteIdState(eu.cliente_id);
+      } catch {
+        if (!cancelled) { setAllowedModules(new Set()); setClienteIdState(null); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isClientRole, user?.id]);
+
+  const visibleSections = isConsultorOrAdmin
+    ? sections
+    : allowedModules === null
+      ? []
+      : sections
+          .map((s) => ({
+            ...s,
+            items: s.items
+              .filter(
+                (item) =>
+                  !item.upcoming && item.modulo && allowedModules.has(item.modulo) && !!item.clienteUrl
+              )
+              .map((item) =>
+                clienteIdState
+                  ? { ...item, url: item.clienteUrl!.replace("{id}", clienteIdState) }
+                  : item
+              ),
+          }))
+          .filter((s) => s.items.length > 0);
 
   const exactOnly = new Set(["/app/coaching", "/app/side"]);
   const isActive = (url: string) =>
@@ -166,10 +241,16 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
 
-        {!isConsultorOrAdmin && !collapsed && (
-          <div className="px-4 mt-2 text-[11px] text-sidebar-foreground/60 leading-relaxed">
-            {getText("sidebar.cliente_hint", "Estás viendo tu portal como cliente. Tu consultor gestiona el resto del workspace.")}
-          </div>
+        {!isConsultorOrAdmin && !collapsed && allowedModules !== null && (
+          allowedModules.size === 0 ? (
+            <div className="px-4 mt-4 text-[11px] text-sidebar-foreground/60 leading-relaxed">
+              No hay módulos disponibles — contacta a tu consultor.
+            </div>
+          ) : (
+            <div className="px-4 mt-2 text-[11px] text-sidebar-foreground/60 leading-relaxed">
+              {getText("sidebar.cliente_hint", "Estás viendo tu portal como cliente. Tu consultor gestiona el resto del workspace.")}
+            </div>
+          )
         )}
       </SidebarContent>
 

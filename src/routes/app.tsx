@@ -27,7 +27,9 @@ function AppLayout() {
     if (role === "admin" || role === "consultor") return;
 
     const allowed =
-      path.startsWith("/app/clientes/") || path === "/app/configuracion";
+      path.startsWith("/app/clientes/") ||
+      path === "/app/configuracion" ||
+      path.startsWith("/app/manual-funciones/");
     if (allowed) return;
 
     setRedirecting(true);
