@@ -30,7 +30,10 @@ function AppLayout() {
       path.startsWith("/app/clientes/") ||
       path === "/app/configuracion" ||
       path.startsWith("/app/manual-funciones/");
-    if (allowed) return;
+    if (allowed) {
+      setRedirecting(false);
+      return;
+    }
 
     setRedirecting(true);
     // TODO(multi-empresa): cuando un usuario pertenezca a >1 empresa,
@@ -53,6 +56,12 @@ function AppLayout() {
           // Sin empresa asociada, mandar a configuración
           navigate({ to: "/app/configuracion", replace: true });
         }
+      })
+      .catch(() => {
+        setRedirecting(false);
+      })
+      .finally(() => {
+        setRedirecting(false);
       });
   }, [loading, user, role, path, navigate]);
 
