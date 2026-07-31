@@ -98,7 +98,7 @@ export const SESION_PLANTILLAS: Record<Key, SesionPlantilla> = {
     objetivo: "Cerrar el ciclo, re-medir SIDE y proyectar la siguiente fase.",
     temas: ["Re-medición SIDE", "Resultados vs línea base", "Hoja de ruta siguiente fase"],
     herramientas: ["SIDE de cierre", "Informe ejecutivo"],
-    proxima_temas: ["Definición Plan Avanzado / Corporativo"],
+    proxima_temas: ["Definición Plan Profesional / Corporativo"],
   },
 
   // ───── LEE ─────

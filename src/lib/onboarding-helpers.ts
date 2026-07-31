@@ -36,7 +36,7 @@ export const DIMENSIONES_SIDE_12 = [
 export const PROGRAMAS_RECOMENDADOS = [
   "Coaching Ejecutivo",
   "SIDE + Plan Esencial",
-  "SIDE + Plan Avanzado",
+  "SIDE + Plan Profesional",
   "SIDE + Plan Corporativo",
 ] as const;
 

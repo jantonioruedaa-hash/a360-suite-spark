@@ -480,7 +480,7 @@ export default function AdminPlanEditor({ plan, onClose, onSave, saving }: Props
                     marginTop: "2px",
                   }}
                 >
-                  Estilo Enterprise
+                  Estilo Corporativo
                 </div>
               </div>
               <Toggle on={form.dark ?? false} dark={form.dark} />

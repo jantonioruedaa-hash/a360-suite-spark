@@ -83,7 +83,8 @@ const PRIORITY: AppRole[] = ["admin", "consultor", "cliente", "participante"];
 const PLANES_LICENCIA = [
   { value: "esencial",      label: "Esencial"      },
   { value: "profesional",   label: "Profesional"   },
-  { value: "enterprise",    label: "Enterprise"    },
+  { value: "corporativo",   label: "Corporativo"   },
+  { value: "premium",       label: "Premium"       },
   { value: "personalizado", label: "Personalizado" },
 ] as const;
 

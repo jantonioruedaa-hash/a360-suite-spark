@@ -105,7 +105,7 @@ const PLANES_DATA = [
     ctaLabel: "Comenzar →", ctaHref: "/login", isMailto: false,
   },
   {
-    nombre: "Enterprise",  precio: 349, popular: false,
+    nombre: "Corporativo", precio: 349, popular: false,
     desc: "Acceso total para organizaciones que quieren escalar sin límites.",
     features: ["Todos los módulos", "Marketing Digital", "Manual de Funciones", "Clientes ilimitados", "Soporte dedicado", "Capacitación incluida"],
     ctaLabel: "Contactar →", ctaHref: "mailto:info@a360sp.com", isMailto: true,

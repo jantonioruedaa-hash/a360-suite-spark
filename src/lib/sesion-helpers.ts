@@ -5,7 +5,7 @@ export const ETAPAS_PROGRAMA = [
 export const PROGRAMAS = [
   "Coaching Ejecutivo",
   "SIDE + Plan Esencial",
-  "SIDE + Plan Avanzado",
+  "SIDE + Plan Profesional",
   "SIDE + Plan Corporativo",
   "LEE",
   "Otro",

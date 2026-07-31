@@ -6,7 +6,7 @@ export const ESTADOS = [
   { value: "inactivo", label: "Inactivo", color: "bg-gray-100 text-gray-700 border-gray-200" },
 ] as const;
 
-export const PLANES_LICENCIA = ["esencial", "avanzado", "corporativo"] as const;
+export const PLANES_LICENCIA = ["esencial", "profesional", "corporativo", "premium"] as const;
 
 export const ORIGENES = ["referido", "prospección", "evento", "inbound", "alianza"] as const;
 

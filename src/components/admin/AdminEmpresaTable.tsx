@@ -61,17 +61,17 @@ interface Props {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PLAN_BADGE: Record<string, { bg: string; color: string; icon: string; border?: string }> = {
-  esencial: { bg: "#F5F7FF", color: "#6366F1", icon: "", border: "1px solid #E0E7FF" },
-  avanzado: { bg: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", color: "#0EA5E9", icon: "💼 " },
-  corporativo: { bg: "linear-gradient(135deg, #FEF3C7, #FDE68A)", color: "#B45309", icon: "⭐ " },
-  enterprise: { bg: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", icon: "🏆 " },
+  esencial:    { bg: "#F5F7FF", color: "#6366F1", icon: "", border: "1px solid #E0E7FF" },
+  profesional: { bg: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", color: "#0EA5E9", icon: "💼 " },
+  corporativo: { bg: "linear-gradient(135deg, #0C4A6E, #1E3A8A)", color: "white", icon: "🏆 " },
+  premium:     { bg: "linear-gradient(135deg, #92400E, #B45309)", color: "white", icon: "👑 " },
 };
 
 const PLAN_MODULES: Record<string, string[]> = {
-  esencial: ["SIDE"],
-  avanzado: ["SIDE", "Coaching A360", "LEE"],
-  corporativo: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico"],
-  enterprise: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico", "BizOS"],
+  esencial:    ["SIDE"],
+  profesional: ["SIDE", "Coaching A360", "LEE"],
+  corporativo: ["SIDE", "Coaching A360", "LEE", "Plan Estratégico", "BizOS"],
+  premium:     ["SIDE", "Coaching A360", "LEE", "Plan Estratégico", "BizOS"],
 };
 
 const ESTADO_STYLE: Record<string, { bg: string; color: string }> = {
