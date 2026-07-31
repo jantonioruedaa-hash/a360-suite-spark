@@ -1,7 +1,7 @@
 import { createFileRoute, useParams, useSearch, Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { z } from "zod";
-import { SECCIONES_PLAN, seccionesParaNivel, seccionPorKey, type NivelPlan, type SeccionData } from "@/lib/plan-helpers";
+import { SECCIONES_PLAN, seccionesParaNivel, seccionPorKey, normalizarNivel, type NivelPlan, type SeccionData } from "@/lib/plan-helpers";
 import { cargarPlan } from "@/lib/plan-service";
 import type { ClienteCtx, PlanRow } from "@/types/plan";
 import { detectSector, detectTamano } from "@/lib/plan-catalogo";
@@ -21,17 +21,6 @@ export const Route = createFileRoute("/app/clientes/$clienteId/plan")({
   component: PlanPage,
   validateSearch: searchSchema,
 });
-
-const NIVEL_MAP: Record<string, NivelPlan> = {
-  esencial:    "esencial",
-  avanzado:    "avanzado",
-  corporativo: "corporativo",
-  profesional: "avanzado",    // parche temporal — ver backlog consolidación nomenclatura
-  enterprise:  "corporativo",
-  premium:     "corporativo",
-};
-const normalizarNivel = (raw: string | null | undefined): NivelPlan =>
-  NIVEL_MAP[raw?.toLowerCase() ?? ""] ?? "esencial";
 
 function PlanPage() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/plan" });

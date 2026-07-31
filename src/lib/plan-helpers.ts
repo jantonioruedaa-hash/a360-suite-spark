@@ -37,6 +37,17 @@ export const SECCIONES_PLAN: SeccionPlan[] = [
 export const seccionesParaNivel = (nivel: NivelPlan) =>
   SECCIONES_PLAN.filter((s) => s.niveles.includes(nivel));
 
+export const NIVEL_MAP: Record<string, NivelPlan> = {
+  esencial:    "esencial",
+  avanzado:    "avanzado",
+  corporativo: "corporativo",
+  profesional: "avanzado",    // parche temporal — ver backlog consolidación nomenclatura
+  enterprise:  "corporativo",
+  premium:     "corporativo",
+};
+export const normalizarNivel = (raw: string | null | undefined): NivelPlan =>
+  NIVEL_MAP[raw?.toLowerCase() ?? ""] ?? "esencial";
+
 export const seccionPorKey = (key: string) =>
   SECCIONES_PLAN.find((s) => s.key === key);
 

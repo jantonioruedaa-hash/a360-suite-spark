@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { SECCIONES_PLAN, completitudPlan, type NivelPlan } from "@/lib/plan-helpers";
+import { SECCIONES_PLAN, completitudPlan, normalizarNivel, type NivelPlan } from "@/lib/plan-helpers";
 import { MarcoSeccionCard } from "@/components/plan/MarcoSeccionCard";
 import { Target, ArrowRight, Briefcase } from "lucide-react";
 
@@ -35,7 +35,7 @@ function PlanPanel() {
       (planes ?? []).forEach((p: Record<string, unknown>) => planByCliente.set(p.cliente_id as string, p));
       const out: Fila[] = (clientes ?? []).map((c) => {
         const p = planByCliente.get(c.id);
-        const nivel = (c.plan_licencia ?? "esencial") as NivelPlan;
+        const nivel = normalizarNivel(c.plan_licencia);
         return {
           cliente_id: c.id,
           nombre_empresa: c.nombre_empresa,
