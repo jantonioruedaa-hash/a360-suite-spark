@@ -57,8 +57,10 @@ export function normalizePlan(plan_licencia?: string | null): PlanKey {
     case "profesional":
     case "business":
       return "business";
+    case "corporativo":
     case "enterprise":
       return "enterprise";
+    case "premium":
     case "full":
     case "full_suite":
     case "fullsuite":

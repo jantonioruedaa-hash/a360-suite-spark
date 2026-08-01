@@ -26,7 +26,7 @@ const sections: Section[] = [
     consultorOnly: true,
     items: [
       { title: "SIDE", url: "/app/side", icon: Activity, modulo: "side", clienteUrl: "/app/clientes/{id}/side" },
-      { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon, modulo: "side" },
+      { title: "Historial SIDE", url: "/app/side/historial", icon: HistoryIcon, modulo: "side_historial", clienteUrl: "/app/clientes/{id}/side-historial" },
     ],
   },
   {
@@ -42,8 +42,8 @@ const sections: Section[] = [
     consultorOnly: true,
     items: [
       { title: "Panel Coaching", url: "/app/coaching", icon: Users2, modulo: "coaching", clienteUrl: "/app/clientes/{id}/coaching" },
-      { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen, modulo: "coaching" },
-      { title: "Resultados", url: "/app/coaching/resultados", icon: TrendingUp, modulo: "coaching" },
+      { title: "Metodología", url: "/app/coaching/metodologia", icon: BookOpen, modulo: "coaching_metodologia", clienteUrl: "/app/coaching/metodologia" },
+      { title: "Resultados", url: "/app/coaching/resultados", icon: TrendingUp, modulo: "coaching_resultados", clienteUrl: "/app/clientes/{id}/coaching-resultados" },
     ],
   },
   {

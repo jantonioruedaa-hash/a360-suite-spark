@@ -22,7 +22,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { normalizePlan, planAllowsModule, PLAN_LABELS, type ModuloKey } from "@/lib/plans";
+import { normalizePlan, planAllowsModule, type ModuloKey } from "@/lib/plans";
 import { ModuloNoIncluido } from "@/components/ModuloNoIncluido";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -161,7 +161,7 @@ function ClienteLayout() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {estado && <Badge variant="outline" className={estado.color}>{estado.label}</Badge>}
-            <Badge variant="outline">{PLAN_LABELS[plan]}</Badge>
+            <Badge variant="outline">{cliente.plan_licencia.charAt(0).toUpperCase() + cliente.plan_licencia.slice(1)}</Badge>
           </div>
         </div>
 

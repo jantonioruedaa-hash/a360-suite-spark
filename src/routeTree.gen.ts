@@ -32,6 +32,7 @@ import { Route as AppManualFuncionesClienteIdRouteImport } from './routes/app.ma
 import { Route as AppCoachingResultadosRouteImport } from './routes/app.coaching.resultados'
 import { Route as AppCoachingMetodologiaRouteImport } from './routes/app.coaching.metodologia'
 import { Route as AppClientesClienteIdRouteImport } from './routes/app.clientes.$clienteId'
+import { Route as AppClientesClienteIdSideHistorialRouteImport } from './routes/app.clientes.$clienteId.side-historial'
 import { Route as AppClientesClienteIdSideRouteImport } from './routes/app.clientes.$clienteId.side'
 import { Route as AppClientesClienteIdResumenRouteImport } from './routes/app.clientes.$clienteId.resumen'
 import { Route as AppClientesClienteIdPlanRouteImport } from './routes/app.clientes.$clienteId.plan'
@@ -40,6 +41,7 @@ import { Route as AppClientesClienteIdLeeRouteImport } from './routes/app.client
 import { Route as AppClientesClienteIdEmpresaRouteImport } from './routes/app.clientes.$clienteId.empresa'
 import { Route as AppClientesClienteIdCotizacionesRouteImport } from './routes/app.clientes.$clienteId.cotizaciones'
 import { Route as AppClientesClienteIdContactosRouteImport } from './routes/app.clientes.$clienteId.contactos'
+import { Route as AppClientesClienteIdCoachingResultadosRouteImport } from './routes/app.clientes.$clienteId.coaching-resultados'
 import { Route as AppClientesClienteIdCoachingRouteImport } from './routes/app.clientes.$clienteId.coaching'
 import { Route as AppClientesClienteIdAnalisisIaRouteImport } from './routes/app.clientes.$clienteId.analisis-ia'
 import { Route as AppClientesClienteIdActividadesRouteImport } from './routes/app.clientes.$clienteId.actividades'
@@ -162,6 +164,12 @@ const AppClientesClienteIdRoute = AppClientesClienteIdRouteImport.update({
   path: '/$clienteId',
   getParentRoute: () => AppClientesRoute,
 } as any)
+const AppClientesClienteIdSideHistorialRoute =
+  AppClientesClienteIdSideHistorialRouteImport.update({
+    id: '/side-historial',
+    path: '/side-historial',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
 const AppClientesClienteIdSideRoute =
   AppClientesClienteIdSideRouteImport.update({
     id: '/side',
@@ -207,6 +215,12 @@ const AppClientesClienteIdContactosRoute =
   AppClientesClienteIdContactosRouteImport.update({
     id: '/contactos',
     path: '/contactos',
+    getParentRoute: () => AppClientesClienteIdRoute,
+  } as any)
+const AppClientesClienteIdCoachingResultadosRoute =
+  AppClientesClienteIdCoachingResultadosRouteImport.update({
+    id: '/coaching-resultados',
+    path: '/coaching-resultados',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
 const AppClientesClienteIdCoachingRoute =
@@ -261,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
   '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
   '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
+  '/app/clientes/$clienteId/coaching-resultados': typeof AppClientesClienteIdCoachingResultadosRoute
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
@@ -269,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
+  '/app/clientes/$clienteId/side-historial': typeof AppClientesClienteIdSideHistorialRoute
   '/app/clientes/$clienteId/lee/$capitulo': typeof AppClientesClienteIdLeeCapituloRoute
 }
 export interface FileRoutesByTo {
@@ -298,6 +314,7 @@ export interface FileRoutesByTo {
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
   '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
   '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
+  '/app/clientes/$clienteId/coaching-resultados': typeof AppClientesClienteIdCoachingResultadosRoute
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
@@ -306,6 +323,7 @@ export interface FileRoutesByTo {
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
+  '/app/clientes/$clienteId/side-historial': typeof AppClientesClienteIdSideHistorialRoute
   '/app/clientes/$clienteId/lee/$capitulo': typeof AppClientesClienteIdLeeCapituloRoute
 }
 export interface FileRoutesById {
@@ -336,6 +354,7 @@ export interface FileRoutesById {
   '/app/clientes/$clienteId/actividades': typeof AppClientesClienteIdActividadesRoute
   '/app/clientes/$clienteId/analisis-ia': typeof AppClientesClienteIdAnalisisIaRoute
   '/app/clientes/$clienteId/coaching': typeof AppClientesClienteIdCoachingRoute
+  '/app/clientes/$clienteId/coaching-resultados': typeof AppClientesClienteIdCoachingResultadosRoute
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
@@ -344,6 +363,7 @@ export interface FileRoutesById {
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
+  '/app/clientes/$clienteId/side-historial': typeof AppClientesClienteIdSideHistorialRoute
   '/app/clientes/$clienteId/lee/$capitulo': typeof AppClientesClienteIdLeeCapituloRoute
 }
 export interface FileRouteTypes {
@@ -375,6 +395,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/actividades'
     | '/app/clientes/$clienteId/analisis-ia'
     | '/app/clientes/$clienteId/coaching'
+    | '/app/clientes/$clienteId/coaching-resultados'
     | '/app/clientes/$clienteId/contactos'
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
@@ -383,6 +404,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
+    | '/app/clientes/$clienteId/side-historial'
     | '/app/clientes/$clienteId/lee/$capitulo'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -412,6 +434,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/actividades'
     | '/app/clientes/$clienteId/analisis-ia'
     | '/app/clientes/$clienteId/coaching'
+    | '/app/clientes/$clienteId/coaching-resultados'
     | '/app/clientes/$clienteId/contactos'
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
@@ -420,6 +443,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
+    | '/app/clientes/$clienteId/side-historial'
     | '/app/clientes/$clienteId/lee/$capitulo'
   id:
     | '__root__'
@@ -449,6 +473,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/actividades'
     | '/app/clientes/$clienteId/analisis-ia'
     | '/app/clientes/$clienteId/coaching'
+    | '/app/clientes/$clienteId/coaching-resultados'
     | '/app/clientes/$clienteId/contactos'
     | '/app/clientes/$clienteId/cotizaciones'
     | '/app/clientes/$clienteId/empresa'
@@ -457,6 +482,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/plan'
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
+    | '/app/clientes/$clienteId/side-historial'
     | '/app/clientes/$clienteId/lee/$capitulo'
   fileRoutesById: FileRoutesById
 }
@@ -632,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdRouteImport
       parentRoute: typeof AppClientesRoute
     }
+    '/app/clientes/$clienteId/side-historial': {
+      id: '/app/clientes/$clienteId/side-historial'
+      path: '/side-historial'
+      fullPath: '/app/clientes/$clienteId/side-historial'
+      preLoaderRoute: typeof AppClientesClienteIdSideHistorialRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
     '/app/clientes/$clienteId/side': {
       id: '/app/clientes/$clienteId/side'
       path: '/side'
@@ -688,6 +721,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdContactosRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
+    '/app/clientes/$clienteId/coaching-resultados': {
+      id: '/app/clientes/$clienteId/coaching-resultados'
+      path: '/coaching-resultados'
+      fullPath: '/app/clientes/$clienteId/coaching-resultados'
+      preLoaderRoute: typeof AppClientesClienteIdCoachingResultadosRouteImport
+      parentRoute: typeof AppClientesClienteIdRoute
+    }
     '/app/clientes/$clienteId/coaching': {
       id: '/app/clientes/$clienteId/coaching'
       path: '/coaching'
@@ -737,6 +777,7 @@ interface AppClientesClienteIdRouteChildren {
   AppClientesClienteIdActividadesRoute: typeof AppClientesClienteIdActividadesRoute
   AppClientesClienteIdAnalisisIaRoute: typeof AppClientesClienteIdAnalisisIaRoute
   AppClientesClienteIdCoachingRoute: typeof AppClientesClienteIdCoachingRoute
+  AppClientesClienteIdCoachingResultadosRoute: typeof AppClientesClienteIdCoachingResultadosRoute
   AppClientesClienteIdContactosRoute: typeof AppClientesClienteIdContactosRoute
   AppClientesClienteIdCotizacionesRoute: typeof AppClientesClienteIdCotizacionesRoute
   AppClientesClienteIdEmpresaRoute: typeof AppClientesClienteIdEmpresaRoute
@@ -745,12 +786,15 @@ interface AppClientesClienteIdRouteChildren {
   AppClientesClienteIdPlanRoute: typeof AppClientesClienteIdPlanRoute
   AppClientesClienteIdResumenRoute: typeof AppClientesClienteIdResumenRoute
   AppClientesClienteIdSideRoute: typeof AppClientesClienteIdSideRoute
+  AppClientesClienteIdSideHistorialRoute: typeof AppClientesClienteIdSideHistorialRoute
 }
 
 const AppClientesClienteIdRouteChildren: AppClientesClienteIdRouteChildren = {
   AppClientesClienteIdActividadesRoute: AppClientesClienteIdActividadesRoute,
   AppClientesClienteIdAnalisisIaRoute: AppClientesClienteIdAnalisisIaRoute,
   AppClientesClienteIdCoachingRoute: AppClientesClienteIdCoachingRoute,
+  AppClientesClienteIdCoachingResultadosRoute:
+    AppClientesClienteIdCoachingResultadosRoute,
   AppClientesClienteIdContactosRoute: AppClientesClienteIdContactosRoute,
   AppClientesClienteIdCotizacionesRoute: AppClientesClienteIdCotizacionesRoute,
   AppClientesClienteIdEmpresaRoute: AppClientesClienteIdEmpresaRoute,
@@ -759,6 +803,8 @@ const AppClientesClienteIdRouteChildren: AppClientesClienteIdRouteChildren = {
   AppClientesClienteIdPlanRoute: AppClientesClienteIdPlanRoute,
   AppClientesClienteIdResumenRoute: AppClientesClienteIdResumenRoute,
   AppClientesClienteIdSideRoute: AppClientesClienteIdSideRoute,
+  AppClientesClienteIdSideHistorialRoute:
+    AppClientesClienteIdSideHistorialRoute,
 }
 
 const AppClientesClienteIdRouteWithChildren =

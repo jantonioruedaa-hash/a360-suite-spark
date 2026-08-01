@@ -29,7 +29,8 @@ function AppLayout() {
     const allowed =
       path.startsWith("/app/clientes/") ||
       path === "/app/configuracion" ||
-      path.startsWith("/app/manual-funciones/");
+      path.startsWith("/app/manual-funciones/") ||
+      path === "/app/coaching/metodologia";
     if (allowed) {
       setRedirecting(false);
       return;
