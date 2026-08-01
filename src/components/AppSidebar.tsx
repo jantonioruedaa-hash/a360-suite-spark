@@ -68,7 +68,7 @@ const sections: Section[] = [
     consultorOnly: true,
     items: [
       { title: "CRM Comercial", url: "#", icon: ShoppingCart, upcoming: true },
-      { title: "Marketing Digital", url: "/app/crecimiento", icon: Megaphone, modulo: "marketing_digital" },
+      { title: "Marketing Digital", url: "/app/crecimiento", icon: Megaphone, modulo: "marketing_digital", clienteUrl: "/app/crecimiento" },
       { title: "Suite Financiera", url: "#", icon: Calculator, upcoming: true },
       { title: "WMS Inventarios", url: "#", icon: Package, upcoming: true },
     ],

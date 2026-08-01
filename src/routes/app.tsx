@@ -30,7 +30,8 @@ function AppLayout() {
       path.startsWith("/app/clientes/") ||
       path === "/app/configuracion" ||
       path.startsWith("/app/manual-funciones/") ||
-      path === "/app/coaching/metodologia";
+      path === "/app/coaching/metodologia" ||
+      path === "/app/crecimiento";
     if (allowed) {
       setRedirecting(false);
       return;
