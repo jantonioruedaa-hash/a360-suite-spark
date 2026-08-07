@@ -28,19 +28,19 @@ export function MarcoSeccionCard({ seccion, clienteId, variant = "card" }: Props
     variant === "card" ? (
       <button
         type="button"
-        className="w-full text-left flex items-center gap-2 p-2 rounded border bg-muted/20 hover:bg-gold/10 hover:border-gold/40 transition group"
+        className="w-full text-left flex items-center gap-2 p-2 rounded border border-[#C7D2FE] bg-muted/20 hover:bg-[#EEF2FF] hover:border-[#A5B4FC] transition group"
       >
-        <Icon className="w-3.5 h-3.5 text-gold shrink-0" />
+        <Icon className="w-3.5 h-3.5 text-[#4338CA] shrink-0" />
         <span className="text-[10px] font-mono text-muted-foreground">
           {String(seccion.numero).padStart(2, "0")}
         </span>
         <span className="truncate flex-1 text-xs">{seccion.titulo}</span>
-        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-navy" />
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-[#4338CA]" />
       </button>
     ) : (
       <button
         type="button"
-        className="text-xs text-navy underline-offset-2 hover:underline inline-flex items-center gap-1"
+        className="text-xs text-[#4338CA] underline-offset-2 hover:underline inline-flex items-center gap-1"
       >
         <Sparkles className="w-3 h-3" />
         Ver marco metodológico
@@ -53,7 +53,7 @@ export function MarcoSeccionCard({ seccion, clienteId, variant = "card" }: Props
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Icon className="w-5 h-5 text-gold" />
+            <Icon className="w-5 h-5 text-[#4338CA]" />
             <span className="font-mono text-xs text-muted-foreground">
               Sec {String(seccion.numero).padStart(2, "0")}
             </span>
@@ -84,13 +84,15 @@ export function MarcoSeccionCard({ seccion, clienteId, variant = "card" }: Props
             <Block icon={HelpCircle} title="Preguntas detonadoras">
               <ul className="space-y-1">
                 {marco.preguntasClave.map((m, i) => (
-                  <li key={i} className="border-l-2 border-gold pl-3 italic text-muted-foreground">{m}</li>
+                  <li key={i} className="border-l-2 border-[#C7D2FE] pl-3 italic text-muted-foreground">{m}</li>
                 ))}
               </ul>
             </Block>
             <Block icon={BarChart3} title="KPIs sugeridos">
               <div className="flex flex-wrap gap-1.5">
-                {marco.kpis.map((k, i) => <Badge key={i} variant="outline">{k}</Badge>)}
+                {marco.kpis.map((k, i) => (
+                  <Badge key={i} variant="outline" className="border-[#C7D2FE] text-[#4338CA]">{k}</Badge>
+                ))}
               </div>
             </Block>
             <Block icon={Network} title="Se conecta con">
@@ -99,15 +101,15 @@ export function MarcoSeccionCard({ seccion, clienteId, variant = "card" }: Props
                   const sx = SECCIONES_PLAN.find((s) => s.key === k);
                   if (!sx) return null;
                   return (
-                    <Badge key={k} variant="secondary" className="text-[10px]">
+                    <Badge key={k} variant="secondary" className="text-[10px] bg-[#EEF2FF] text-[#4338CA] border border-[#C7D2FE]">
                       {String(sx.numero).padStart(2, "0")} · {sx.corto}
                     </Badge>
                   );
                 })}
               </div>
             </Block>
-            <div className="rounded-md border border-gold/30 bg-gold/5 p-3">
-              <div className="text-[10px] uppercase tracking-wider text-gold font-semibold mb-1">
+            <div className="rounded-md border border-[#C7D2FE] bg-[#EEF2FF] p-3">
+              <div className="text-[10px] uppercase tracking-wider text-[#4338CA] font-semibold mb-1">
                 Resultado de transformación
               </div>
               <p className="text-sm">{marco.transformacion}</p>
@@ -115,7 +117,7 @@ export function MarcoSeccionCard({ seccion, clienteId, variant = "card" }: Props
 
             {clienteId && (
               <div className="flex justify-end pt-2 border-t">
-                <Button asChild size="sm" className="bg-navy hover:bg-navy/90">
+                <Button asChild size="sm" style={{ background: "linear-gradient(135deg, #4338CA, #818CF8)", border: "none" }}>
                   <Link
                     to="/app/clientes/$clienteId/plan"
                     params={{ clienteId }}
@@ -138,8 +140,8 @@ function Block({ icon: Icon, title, children }: { icon: typeof Target; title: st
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className="w-3.5 h-3.5 text-navy" />
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-navy">{title}</h4>
+        <Icon className="w-3.5 h-3.5 text-[#4338CA]" />
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#4338CA]">{title}</h4>
       </div>
       <div className="pl-5">{children}</div>
     </div>
@@ -151,11 +153,11 @@ export function MarcoSeccionBanner({ seccion, clienteId }: { seccion: SeccionPla
   const marco = getMarco(seccion.key);
   if (!marco) return null;
   return (
-    <Card className="border-gold/30 bg-gradient-to-br from-gold/5 to-transparent">
+    <Card className="border-[#C7D2FE] bg-[#EEF2FF]">
       <CardContent className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-wider text-gold font-semibold mb-1">
+            <div className="text-[10px] uppercase tracking-wider text-[#4338CA] font-semibold mb-1">
               Marco metodológico
             </div>
             <p className="text-sm text-foreground/90">{marco.proposito}</p>
@@ -174,7 +176,7 @@ export function MarcoSeccionBanner({ seccion, clienteId }: { seccion: SeccionPla
                 to="/app/clientes/$clienteId/plan"
                 params={{ clienteId }}
                 search={{ s: sx.key }}
-                className="text-[10px] px-1.5 py-0.5 rounded bg-navy/10 text-navy hover:bg-navy hover:text-white transition"
+                className="text-[10px] px-1.5 py-0.5 rounded bg-[#EEF2FF] text-[#4338CA] border border-[#C7D2FE] hover:bg-[#4338CA] hover:text-white transition"
               >
                 {String(sx.numero).padStart(2, "0")} · {sx.corto}
               </Link>
