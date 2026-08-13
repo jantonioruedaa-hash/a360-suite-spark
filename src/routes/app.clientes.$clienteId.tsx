@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState, useParams, redirect } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ESTADOS } from "@/lib/clientes-helpers";
 import { Badge } from "@/components/ui/badge";
@@ -19,13 +19,19 @@ import {
 import {
   LayoutDashboard, Building2, Users, Activity, FileText,
   BarChart3, Target, Users2, BookOpen, Sparkles, ArrowLeft, Rocket,
-  ChevronDown,
+  ChevronDown, DollarSign,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { normalizePlan, planAllowsModule, type ModuloKey } from "@/lib/plans";
 import { ModuloNoIncluido } from "@/components/ModuloNoIncluido";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { SECCIONES_PLAN } from "@/lib/plan-helpers";
+import { getModuleColor } from "@/lib/module-colors";
+import {
+  Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
+  BreadcrumbPage, BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export const Route = createFileRoute("/app/clientes/$clienteId")({
   component: ClienteLayout,
@@ -70,15 +76,122 @@ const SECCIONES_MODULOS: Seccion[] = [
   { url: "plan", label: "Plan estratégico", icon: Target, modulo: "plan" },
   { url: "coaching", label: "Coaching Platform", icon: Users2, modulo: "coaching" },
   { url: "lee", label: "Programa LEE", icon: BookOpen, modulo: "lee" },
+  { url: "finanzas", label: "Finanzas", icon: DollarSign, modulo: "finanzas" },
 ];
 
 const TODAS_SECCIONES = [...SECCIONES_CORE, ...SECCIONES_MODULOS];
 
+// ── Breadcrumb helpers ────────────────────────────────────────────────────────
+// hrefs are built as strings and cast with `as any` in <Link to={...}> because
+// TanStack Router's `to` prop requires a statically-known route literal —
+// dynamic template strings can't be inferred. Runtime safety is guaranteed
+// since all routes are stable and internal. (minor typed-router debt)
+
+type CrumbItem = { label: string; href?: string };
+
+function buildCrumbs(path: string, href: string, clienteId: string, nombreEmpresa: string): CrumbItem[] {
+  const base = `/app/clientes/${clienteId}`;
+  const resumen = `${base}/resumen`;
+  const modPath = path.startsWith(base + "/") ? path.slice(base.length + 1) : "";
+
+  const crumbs: CrumbItem[] = [
+    { label: "Inicio", href: resumen },
+    { label: nombreEmpresa, href: resumen },
+  ];
+
+  // On the resumen page: empresa becomes the current (non-clickable) level
+  if (!modPath || modPath === "resumen") {
+    crumbs[1] = { label: nombreEmpresa };
+    return crumbs;
+  }
+
+  // Checked before "side" because "side-historial" starts with the same prefix
+  if (modPath.startsWith("side-historial")) {
+    crumbs.push({ label: "Diagnósticos SIDE", href: `${base}/side` });
+    crumbs.push({ label: "Historial" });
+    return crumbs;
+  }
+
+  if (modPath.startsWith("side")) {
+    crumbs.push({ label: "Diagnósticos SIDE" });
+    return crumbs;
+  }
+
+  if (modPath.startsWith("plan")) {
+    const rawSearch = href.includes("?") ? href.split("?")[1] : "";
+    const secKey = new URLSearchParams(rawSearch).get("s");
+    const sec = secKey ? SECCIONES_PLAN.find((s) => s.key === secKey) : null;
+    if (sec) {
+      crumbs.push({ label: "Plan Estratégico", href: `${base}/plan` });
+      crumbs.push({ label: `${String(sec.numero).padStart(2, "0")}. ${sec.titulo}` });
+    } else {
+      crumbs.push({ label: "Plan Estratégico" });
+    }
+    return crumbs;
+  }
+
+  // Checked before "coaching" because "coaching-resultados" starts with the same prefix
+  if (modPath.startsWith("coaching-resultados")) {
+    crumbs.push({ label: "Coaching Platform", href: `${base}/coaching` });
+    crumbs.push({ label: "Resultados" });
+    return crumbs;
+  }
+
+  if (modPath.startsWith("coaching")) {
+    crumbs.push({ label: "Coaching Platform" });
+    return crumbs;
+  }
+
+  if (modPath.startsWith("lee/")) {
+    const cap = modPath.match(/^lee\/(.+)$/);
+    crumbs.push({ label: "Programa LEE", href: `${base}/lee` });
+    crumbs.push({ label: cap ? `Capítulo ${cap[1]}` : "Capítulo" });
+    return crumbs;
+  }
+
+  if (modPath === "lee") {
+    crumbs.push({ label: "Programa LEE" });
+    return crumbs;
+  }
+
+  if (modPath.includes("finanzas/presupuesto/cuentas")) {
+    crumbs.push({ label: "Finanzas", href: `${base}/finanzas` });
+    crumbs.push({ label: "Plan de Cuentas" });
+    return crumbs;
+  }
+
+  if (modPath.includes("finanzas/presupuesto/ventas")) {
+    crumbs.push({ label: "Finanzas", href: `${base}/finanzas` });
+    crumbs.push({ label: "Ventas" });
+    return crumbs;
+  }
+
+  if (modPath.startsWith("finanzas")) {
+    crumbs.push({ label: "Finanzas" });
+    return crumbs;
+  }
+
+  if (modPath === "onboarding") {
+    crumbs.push({ label: "Onboarding" });
+    return crumbs;
+  }
+
+  // Generic fallback for remaining SECCIONES_CORE (empresa, contactos, actividades, cotizaciones, analisis-ia)
+  const found = TODAS_SECCIONES.find((s) => modPath === s.url || modPath.startsWith(s.url + "/"));
+  if (found) crumbs.push({ label: found.label });
+
+  return crumbs;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function ClienteLayout() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId" });
   const [cliente, setCliente] = useState<ClienteFull | null>(null);
+  const [clienteLoading, setClienteLoading] = useState(true);
   const [kpis, setKpis] = useState<ClienteKPIs | null>(null);
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const href = useRouterState({ select: (r) => r.location.href });
   const { role } = useAuth();
 
   useEffect(() => {
@@ -87,7 +200,10 @@ function ClienteLayout() {
       .select("id,nombre_empresa,nombre_comercial,sector,subsector,estado,plan_licencia,logo_url,fecha_inicio_relacion")
       .eq("id", clienteId)
       .maybeSingle()
-      .then(({ data }) => setCliente(data as ClienteFull | null));
+      .then(({ data }) => {
+        setCliente(data as ClienteFull | null);
+        setClienteLoading(false);
+      });
 
     Promise.all([
       supabase
@@ -108,9 +224,15 @@ function ClienteLayout() {
     });
   }, [clienteId]);
 
-  if (!cliente) {
+  if (clienteLoading) {
     return <div className="p-8 text-center text-muted-foreground">Cargando cliente…</div>;
   }
+  if (!cliente) {
+    return <div className="p-8 text-center text-muted-foreground">Cliente no encontrado.</div>;
+  }
+
+  const crumbs = buildCrumbs(path, href, clienteId, cliente.nombre_empresa);
+  const accentColor = getModuleColor(path).accent;
 
   const estado = ESTADOS.find((e) => e.value === (cliente.estado ?? "activo"));
   const isActive = (url: string) => path.endsWith(`/${url}`) || path.includes(`/${url}/`);
@@ -288,6 +410,31 @@ function ClienteLayout() {
             )}
           </nav>
         </div>
+      </div>
+
+      {/* Breadcrumb bar */}
+      <div className="bg-white border-b border-[#E0E7FF] px-6 lg:px-8 py-2">
+        <Breadcrumb>
+          <BreadcrumbList className="gap-1 sm:gap-1.5" style={{ fontSize: 13 }}>
+            {crumbs.map((crumb, i) => (
+              <Fragment key={i}>
+                {i > 0 && <BreadcrumbSeparator className="text-slate-300" />}
+                <BreadcrumbItem>
+                  {!crumb.href ? (
+                    <BreadcrumbPage className="font-medium" style={{ color: accentColor }}>
+                      {crumb.label}
+                    </BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild className="text-slate-400 hover:text-slate-700">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      <Link to={crumb.href as any}>{crumb.label}</Link>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       {/* Contenido de la sección activa */}
