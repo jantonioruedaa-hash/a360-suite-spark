@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, BarChart3, CheckCircle2, ChevronDown, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScaleButtons } from "@/components/side/ScaleButtons";
+import { SideResultadosCliente } from "@/components/side/SideResultadosCliente";
 import {
   DIMENSIONES, IVEE_PREGUNTAS, IDF_PREGUNTAS, COF_PREGUNTAS,
   type ScoreMap,
@@ -64,7 +65,7 @@ function SideClientePage() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/side" });
   const [sesiones, setSesiones]       = useState<Sesion[]>([]);
   const [loading, setLoading]         = useState(true);
-  const [view, setView]               = useState<"lista" | "cuestionario">("lista");
+  const [view, setView]               = useState<"lista" | "cuestionario" | "resultados">("lista");
   const [sesionActiva, setSesionActiva]   = useState<Sesion | null>(null);
   const [scoresActivos, setScoresActivos] = useState<ScoreMap>({});
   const [readOnly, setReadOnly]           = useState(false);
@@ -109,8 +110,15 @@ function SideClientePage() {
       return; // TODO Etapa 2: mostrar vista de resultados bloqueada
     }
     if (s.estado_revision === "revisado") {
-      toast.info("Los resultados de este diagnóstico ya están disponibles.");
-      return; // TODO Etapa 2: navegar a vista de resultados con comentario_consultor
+      const { data: row } = await supabase
+        .from("side_sesiones")
+        .select("scores")
+        .eq("id", s.id)
+        .single();
+      setScoresActivos((row?.scores as ScoreMap) ?? {});
+      setSesionActiva(s);
+      setView("resultados");
+      return;
     }
 
     // estado_revision === 'borrador':
@@ -128,6 +136,22 @@ function SideClientePage() {
     setReadOnly(!esEditable);
     setView("cuestionario");
   };
+
+  if (view === "resultados" && sesionActiva) {
+    return (
+      <SideResultadosCliente
+        nombre={sesionActiva.nombre_sesion ?? "Diagnóstico SIDE"}
+        imeScore={sesionActiva.ime_score ?? 0}
+        iveeScore={sesionActiva.ivee_score ?? 0}
+        idfScore={sesionActiva.idf_score ?? 0}
+        cofScore={sesionActiva.cof_score ?? 0}
+        comentarioConsultor={sesionActiva.comentario_consultor}
+        revisadoEn={sesionActiva.revisado_en}
+        scores={scoresActivos}
+        onBack={() => { setView("lista"); cargar(); }}
+      />
+    );
+  }
 
   if (view === "cuestionario" && sesionActiva) {
     return (

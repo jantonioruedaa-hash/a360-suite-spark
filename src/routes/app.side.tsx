@@ -16,6 +16,8 @@ import {
 } from "@/lib/side-data";
 import { generarAnalisisSide, generarIniciativasSide, type IniciativaIA } from "@/lib/server-fns";
 import { ScaleButtons } from "@/components/side/ScaleButtons";
+import { DimInterpretacionCard } from "@/components/side/DimInterpretacionCard";
+import { IndiceInterpretacionCard } from "@/components/side/IndiceInterpretacionCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1075,57 +1077,23 @@ function TabDimensiones({
                   <ChevronDown style={{ width: 20, height: 20 }} />
                 </div>
               </div>
-              {open && (() => {
-                const sem = semaforo(ds.score);
-                const content = DIM_CONTENT[d.key];
-                const lvl = sem.level === "nodata" ? null : content?.[sem.level as "critico" | "desarrollo" | "avanzado"];
-                return (
-                  <div style={{ borderTop: "1px solid #F0F4FF" }}>
-                    <div style={{ padding: "16px 24px 8px" }}>
-                      {d.preguntas.map((p) => (
-                        <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} />
-                      ))}
-                    </div>
-                    {lvl && (
-                      <div style={{ margin: "0 24px 24px", borderRadius: 16, border: `1.5px solid ${sem.border}`, background: sem.bg, padding: "24px 28px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                          <span style={{ fontSize: 22 }}>{sem.emoji}</span>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 800, color: sem.color, textTransform: "uppercase", letterSpacing: "0.1em" }}>{sem.label}</div>
-                            <div style={{ fontSize: 12, color: "#64748B" }}>{ds.score > 0 ? `${ds.score.toFixed(1)}/5 · ${Math.round(ds.score * 20)}% · suma ${suma}/${sumaMax}` : "Sin puntuación"}</div>
-                          </div>
-                        </div>
-                        <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.85, textAlign: "justify", marginBottom: 20 }}>{lvl.interpretacion}</p>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                          <div>
-                            <div style={{ fontSize: 12, fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Recomendaciones</div>
-                            {lvl.recomendaciones.map((r, i) => (
-                              <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "flex-start" }}>
-                                <div style={{ width: 22, height: 22, borderRadius: 6, background: sem.color, color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-                                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>{r}</div>
-                              </div>
-                            ))}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 12, fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Iniciativas concretas</div>
-                            {lvl.iniciativas.map((ini, i) => (
-                              <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "flex-start" }}>
-                                <div style={{ fontSize: 16, flexShrink: 0 }}>→</div>
-                                <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>{ini}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {!lvl && ds.score === 0 && (
-                      <div style={{ margin: "0 24px 24px", padding: "16px 20px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
+              {open && (
+                <div style={{ borderTop: "1px solid #F0F4FF" }}>
+                  <div style={{ padding: "16px 24px 8px" }}>
+                    {d.preguntas.map((p) => (
+                      <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} />
+                    ))}
+                  </div>
+                  <div style={{ margin: "0 24px 24px" }}>
+                    <DimInterpretacionCard dimKey={d.key} score={ds.score} suma={suma} sumaMax={sumaMax} />
+                    {ds.score === 0 && (
+                      <div style={{ padding: "16px 20px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
                         Responde las preguntas de esta dimensión para ver la interpretación y recomendaciones personalizadas.
                       </div>
                     )}
                   </div>
-                );
-              })()}
+                </div>
+              )}
             </div>
           );
         })}
@@ -1181,8 +1149,6 @@ function TabIndices({
             const totalPreg = b.preguntas.length;
             const answeredCount = b.preguntas.filter((p: { id: string }) => (scores[p.id] ?? 0) > 0).length;
             const sem = b.id === "idf" ? semaforoIDF(b.score) : semaforo(b.score);
-            const content = INDICE_CONTENT[b.id];
-            const lvl = sem.level === "nodata" ? null : content?.[sem.level as "critico" | "desarrollo" | "avanzado"];
             return (
               <div key={b.id} style={{ background: "white", borderRadius: 20, border: "1px solid #E0E7FF", padding: 36 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28, paddingBottom: 20, borderBottom: "1px solid #F0F4FF" }}>
@@ -1205,22 +1171,8 @@ function TabIndices({
                     <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} accentGradient={b.accentGradient} />
                   ))}
                 </div>
-                {lvl && (
-                  <div style={{ marginTop: 24, borderRadius: 16, border: `1.5px solid ${sem.border}`, background: sem.bg, padding: "24px 28px" }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: sem.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>{sem.emoji} Interpretación · {sem.label}</div>
-                    <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.85, textAlign: "justify", marginBottom: 20 }}>{lvl.interpretacion}</p>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Acciones recomendadas</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                      {lvl.recomendaciones.map((r, i) => (
-                        <div key={i} style={{ background: "white", borderRadius: 12, padding: "14px 16px", border: "1px solid rgba(0,0,0,0.06)", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                          <div style={{ width: 22, height: 22, borderRadius: 6, background: sem.color, color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-                          <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>{r}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {!lvl && b.score === 0 && (
+                <IndiceInterpretacionCard indiceId={b.id as "ivee" | "idf" | "cof"} score={b.score} />
+                {b.score === 0 && (
                   <div style={{ marginTop: 16, padding: "14px 18px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
                     Responde las preguntas para ver la interpretación de {b.label}.
                   </div>
