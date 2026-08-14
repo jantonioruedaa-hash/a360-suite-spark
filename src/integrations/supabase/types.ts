@@ -593,6 +593,7 @@ export type Database = {
         Row: {
           activo: boolean
           ciudad: string | null
+          cliente_user_id: string | null
           codigo_postal: string | null
           consultor_id: string | null
           created_at: string
@@ -624,6 +625,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           ciudad?: string | null
+          cliente_user_id?: string | null
           codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
@@ -655,6 +657,7 @@ export type Database = {
         Update: {
           activo?: boolean
           ciudad?: string | null
+          cliente_user_id?: string | null
           codigo_postal?: string | null
           consultor_id?: string | null
           created_at?: string
@@ -726,6 +729,162 @@ export type Database = {
           },
         ]
       }
+      empresa_invitaciones: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          email: string
+          estado: string
+          expira_at: string
+          id: string
+          invitado_por: string | null
+          removido_at: string | null
+          removido_por: string | null
+          rol_empresa: string
+          token: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          email: string
+          estado?: string
+          expira_at?: string
+          id?: string
+          invitado_por?: string | null
+          removido_at?: string | null
+          removido_por?: string | null
+          rol_empresa: string
+          token?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          email?: string
+          estado?: string
+          expira_at?: string
+          id?: string
+          invitado_por?: string | null
+          removido_at?: string | null
+          removido_por?: string | null
+          rol_empresa?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_invitaciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_plan: {
+        Row: {
+          activo: boolean
+          created_at: string
+          empresa_id: string
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          plan_id: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          empresa_id: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          plan_id: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          empresa_id?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_plan_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "empresa_plan_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_usuario_modulos: {
+        Row: {
+          cliente_id: string
+          modulo_slug: string
+          user_id: string
+        }
+        Insert: {
+          cliente_id: string
+          modulo_slug: string
+          user_id: string
+        }
+        Update: {
+          cliente_id?: string
+          modulo_slug?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_usuario_modulos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_usuarios: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          invitado_por: string | null
+          rol_empresa: string
+          user_id: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          invitado_por?: string | null
+          rol_empresa: string
+          user_id: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          invitado_por?: string | null
+          rol_empresa?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_usuarios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lee_programas: {
         Row: {
           capitulos_desbloqueados: number[]
@@ -754,6 +913,44 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lee_workbook_html: {
+        Row: {
+          capitulo_numero: number
+          completado: boolean
+          created_at: string
+          id: string
+          programa_id: string
+          respuestas: Json
+          updated_at: string
+        }
+        Insert: {
+          capitulo_numero: number
+          completado?: boolean
+          created_at?: string
+          id?: string
+          programa_id: string
+          respuestas?: Json
+          updated_at?: string
+        }
+        Update: {
+          capitulo_numero?: number
+          completado?: boolean
+          created_at?: string
+          id?: string
+          programa_id?: string
+          respuestas?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lee_workbook_html_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "lee_programas"
             referencedColumns: ["id"]
           },
         ]
@@ -802,45 +999,341 @@ export type Database = {
           },
         ]
       }
+      manual_areas: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_areas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_cargos: {
+        Row: {
+          aprobado_por: string | null
+          area: string
+          cargo: string
+          cliente_id: string
+          codigo: string | null
+          competencias_blandas: Json | null
+          competencias_tecnicas: Json | null
+          condiciones: Json | null
+          consultor_id: string | null
+          created_at: string | null
+          elaborado_por: string | null
+          estado: string | null
+          fecha_elaboracion: string | null
+          fecha_revision: string | null
+          funciones: Json | null
+          id: string
+          jefe_inmediato: string | null
+          kpis: Json | null
+          logo_url: string | null
+          objetivo: string | null
+          plan_carrera: string | null
+          relaciones_externas: Json | null
+          relaciones_internas: Json | null
+          requisitos: Json | null
+          supervisa_a: Json | null
+          updated_at: string | null
+          vacante: boolean | null
+          version: string | null
+        }
+        Insert: {
+          aprobado_por?: string | null
+          area: string
+          cargo: string
+          cliente_id: string
+          codigo?: string | null
+          competencias_blandas?: Json | null
+          competencias_tecnicas?: Json | null
+          condiciones?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          elaborado_por?: string | null
+          estado?: string | null
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json | null
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json | null
+          logo_url?: string | null
+          objetivo?: string | null
+          plan_carrera?: string | null
+          relaciones_externas?: Json | null
+          relaciones_internas?: Json | null
+          requisitos?: Json | null
+          supervisa_a?: Json | null
+          updated_at?: string | null
+          vacante?: boolean | null
+          version?: string | null
+        }
+        Update: {
+          aprobado_por?: string | null
+          area?: string
+          cargo?: string
+          cliente_id?: string
+          codigo?: string | null
+          competencias_blandas?: Json | null
+          competencias_tecnicas?: Json | null
+          condiciones?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          elaborado_por?: string | null
+          estado?: string | null
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json | null
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json | null
+          logo_url?: string | null
+          objetivo?: string | null
+          plan_carrera?: string | null
+          relaciones_externas?: Json | null
+          relaciones_internas?: Json | null
+          requisitos?: Json | null
+          supervisa_a?: Json | null
+          updated_at?: string | null
+          vacante?: boolean | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_cargos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_funciones_cargos_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_evaluaciones: {
+        Row: {
+          cargo_data_hash: string | null
+          cargo_id: string
+          competencias_evaluadas: Json | null
+          consultor_id: string | null
+          created_at: string | null
+          evaluador: string | null
+          fecha_evaluacion: string | null
+          firmas: Json
+          id: string
+          indice_global: number | null
+          nombre_evaluado: string | null
+          observacion_general: string | null
+          plan_desarrollo: Json | null
+          proxima_revision: string | null
+          requisitos_evaluados: Json
+          semaforo: string | null
+        }
+        Insert: {
+          cargo_data_hash?: string | null
+          cargo_id: string
+          competencias_evaluadas?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          evaluador?: string | null
+          fecha_evaluacion?: string | null
+          firmas?: Json
+          id?: string
+          indice_global?: number | null
+          nombre_evaluado?: string | null
+          observacion_general?: string | null
+          plan_desarrollo?: Json | null
+          proxima_revision?: string | null
+          requisitos_evaluados?: Json
+          semaforo?: string | null
+        }
+        Update: {
+          cargo_data_hash?: string | null
+          cargo_id?: string
+          competencias_evaluadas?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          evaluador?: string | null
+          fecha_evaluacion?: string | null
+          firmas?: Json
+          id?: string
+          indice_global?: number | null
+          nombre_evaluado?: string | null
+          observacion_general?: string | null
+          plan_desarrollo?: Json | null
+          proxima_revision?: string | null
+          requisitos_evaluados?: Json
+          semaforo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "manual_funciones_cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_evaluaciones_desempeno: {
+        Row: {
+          cargo_id: string
+          comp_scores: Json
+          cond_scores: Json
+          consultor_id: string | null
+          created_at: string
+          evaluador: string | null
+          fecha_evaluacion: string
+          fecha_firma: string | null
+          firma_rrhh: string | null
+          id: string
+          kpi_scores: Json
+          nombre_evaluado: string | null
+          objetivos: Json
+          observacion_evaluado: string | null
+          observacion_evaluador: string | null
+          observacion_rrhh: string | null
+          periodo: string | null
+          plan_mejora: Json
+          score_total: number | null
+          semaforo: string | null
+        }
+        Insert: {
+          cargo_id: string
+          comp_scores?: Json
+          cond_scores?: Json
+          consultor_id?: string | null
+          created_at?: string
+          evaluador?: string | null
+          fecha_evaluacion?: string
+          fecha_firma?: string | null
+          firma_rrhh?: string | null
+          id?: string
+          kpi_scores?: Json
+          nombre_evaluado?: string | null
+          objetivos?: Json
+          observacion_evaluado?: string | null
+          observacion_evaluador?: string | null
+          observacion_rrhh?: string | null
+          periodo?: string | null
+          plan_mejora?: Json
+          score_total?: number | null
+          semaforo?: string | null
+        }
+        Update: {
+          cargo_id?: string
+          comp_scores?: Json
+          cond_scores?: Json
+          consultor_id?: string | null
+          created_at?: string
+          evaluador?: string | null
+          fecha_evaluacion?: string
+          fecha_firma?: string | null
+          firma_rrhh?: string | null
+          id?: string
+          kpi_scores?: Json
+          nombre_evaluado?: string | null
+          objetivos?: Json
+          observacion_evaluado?: string | null
+          observacion_evaluador?: string | null
+          observacion_rrhh?: string | null
+          periodo?: string | null
+          plan_mejora?: Json
+          score_total?: number | null
+          semaforo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_desempeno_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "manual_funciones_cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_desempeno_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_sesiones: {
         Row: {
           cliente_id: string | null
-          completada: boolean
+          completada: boolean | null
           consultor_id: string | null
-          created_at: string
-          empresa: Json
+          created_at: string | null
+          empresa: Json | null
           id: string
-          modulos: Json
+          modulos: Json | null
           nombre_sesion: string
-          reporte_config: Json
-          score_total: number
-          updated_at: string
+          reporte_config: Json | null
+          score_total: number | null
+          updated_at: string | null
         }
         Insert: {
           cliente_id?: string | null
-          completada?: boolean
+          completada?: boolean | null
           consultor_id?: string | null
-          created_at?: string
-          empresa?: Json
+          created_at?: string | null
+          empresa?: Json | null
           id?: string
-          modulos?: Json
+          modulos?: Json | null
           nombre_sesion?: string
-          reporte_config?: Json
-          score_total?: number
-          updated_at?: string
+          reporte_config?: Json | null
+          score_total?: number | null
+          updated_at?: string | null
         }
         Update: {
           cliente_id?: string | null
-          completada?: boolean
+          completada?: boolean | null
           consultor_id?: string | null
-          created_at?: string
-          empresa?: Json
+          created_at?: string | null
+          empresa?: Json | null
           id?: string
-          modulos?: Json
+          modulos?: Json | null
           nombre_sesion?: string
-          reporte_config?: Json
-          score_total?: number
-          updated_at?: string
+          reporte_config?: Json | null
+          score_total?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -858,6 +1351,59 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      plan_modulos: {
+        Row: {
+          activo: boolean
+          modulo_slug: string
+          plan_id: string
+        }
+        Insert: {
+          activo?: boolean
+          modulo_slug: string
+          plan_id: string
+        }
+        Update: {
+          activo?: boolean
+          modulo_slug?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_modulos_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planes: {
+        Row: {
+          activo: boolean
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          precio: number | null
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          precio?: number | null
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          precio?: number | null
+        }
+        Relationships: []
       }
       planes_estrategicos: {
         Row: {
@@ -993,10 +1539,12 @@ export type Database = {
           cliente_id: string
           cof_score: number | null
           cof_scores: Json | null
+          comentario_consultor: string | null
           completada: boolean
           consultor_id: string | null
           created_at: string
           datos_financieros: Json | null
+          estado_revision: string
           id: string
           idf_score: number | null
           idf_scores: Json | null
@@ -1004,6 +1552,8 @@ export type Database = {
           ivee_score: number | null
           ivee_scores: Json | null
           nombre_sesion: string | null
+          revisado_en: string | null
+          revisado_por: string | null
           scores: Json
           updated_at: string
         }
@@ -1012,10 +1562,12 @@ export type Database = {
           cliente_id: string
           cof_score?: number | null
           cof_scores?: Json | null
+          comentario_consultor?: string | null
           completada?: boolean
           consultor_id?: string | null
           created_at?: string
           datos_financieros?: Json | null
+          estado_revision?: string
           id?: string
           idf_score?: number | null
           idf_scores?: Json | null
@@ -1023,6 +1575,8 @@ export type Database = {
           ivee_score?: number | null
           ivee_scores?: Json | null
           nombre_sesion?: string | null
+          revisado_en?: string | null
+          revisado_por?: string | null
           scores?: Json
           updated_at?: string
         }
@@ -1031,10 +1585,12 @@ export type Database = {
           cliente_id?: string
           cof_score?: number | null
           cof_scores?: Json | null
+          comentario_consultor?: string | null
           completada?: boolean
           consultor_id?: string | null
           created_at?: string
           datos_financieros?: Json | null
+          estado_revision?: string
           id?: string
           idf_score?: number | null
           idf_scores?: Json | null
@@ -1042,6 +1598,8 @@ export type Database = {
           ivee_score?: number | null
           ivee_scores?: Json | null
           nombre_sesion?: string | null
+          revisado_en?: string | null
+          revisado_por?: string | null
           scores?: Json
           updated_at?: string
         }
@@ -1113,6 +1671,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_dueno_de_cliente: { Args: { _cliente_id: string }; Returns: boolean }
       registrar_vista_compartido: {
         Args: { _ip?: string; _token: string }
         Returns: undefined
@@ -1253,3 +1812,4 @@ export const Constants = {
     },
   },
 } as const
+
