@@ -53,6 +53,7 @@ interface Cliente {
   tamano: string | null;
   pais: string | null;
   ciudad: string | null;
+  acceso_interpretacion?: boolean;
 }
 
 interface Sesion {
@@ -68,6 +69,7 @@ interface Sesion {
   datos_financieros: DatosFinancieros | null;
   analisis_ia: Record<string, { titulo: string; contenido: string; fecha: string }>;
   completada: boolean;
+  estado_revision: "borrador" | "pendiente_revision" | "revisado";
   created_at: string;
   updated_at: string;
 }
@@ -445,11 +447,19 @@ function Hero({
   );
 }
 
-// ── SidePage (main) ─────────────────────────────────────────────────────────
-function SidePage() {
+// ── SideCore (main) ─────────────────────────────────────────────────────────
+export function SideCore({
+  mode,
+  fixedClienteId,
+  sesionIdParam,
+}: {
+  mode: "consultor" | "cliente";
+  fixedClienteId?: string;
+  sesionIdParam?: string;
+}) {
   const { user, role, session } = useAuth();
-  const { sesion: sesionIdParam } = Route.useSearch();
   const navigate = useNavigate();
+  const esCliente = mode === "cliente";
 
   const [sideTab, setSideTab] = useState<SideTabKey>("side");
   const [sesion, setSesion] = useState<Sesion | null>(null);
@@ -464,9 +474,16 @@ function SidePage() {
   // Load clients
   useEffect(() => {
     if (!user) return;
-    supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad")
-      .eq("activo", true).order("nombre_empresa")
-      .then(({ data }) => setClientes((data ?? []) as Cliente[]));
+    if (esCliente && fixedClienteId) {
+      supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad,acceso_interpretacion")
+        .eq("id", fixedClienteId)
+        .then(({ data }) => setClientes((data ?? []) as Cliente[]));
+    } else {
+      supabase.from("clientes").select("id,nombre_empresa,sector,tamano,pais,ciudad,acceso_interpretacion")
+        .eq("activo", true).order("nombre_empresa")
+        .then(({ data }) => setClientes((data ?? []) as Cliente[]));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Auto-open from URL ?sesion=<id>
@@ -550,6 +567,12 @@ function SidePage() {
 
   const cliente = sesion ? (clientes.find((c) => c.id === sesion.cliente_id) ?? null) : null;
 
+  const puedeVerInterpretacion = !esCliente
+    || (cliente?.acceso_interpretacion ?? false)
+    || sesion?.estado_revision === "revisado";
+  const esEditableSession = !esCliente
+    || (sesion?.estado_revision === "borrador" && !sesion?.completada);
+
   const abrirSesion = (s: Sesion) => {
     setSesion(s);
     setScores(s.scores ?? {});
@@ -558,7 +581,7 @@ function SidePage() {
     dirtyRef.current = false;
     setSavedAt(null);
     setSideTab("side");
-    void navigate({ to: "/app/side", search: { sesion: s.id } });
+    if (!esCliente) void navigate({ to: "/app/side", search: { sesion: s.id } });
   };
 
   const cerrarSesion = () => {
@@ -568,8 +591,23 @@ function SidePage() {
     setAnalisis({});
     dirtyRef.current = false;
     setSavedAt(null);
-    setSideTab("side");
-    void navigate({ to: "/app/side", search: { sesion: undefined } });
+    setSideTab(esCliente ? "historial" : "side");
+    if (!esCliente) void navigate({ to: "/app/side", search: { sesion: undefined } });
+  };
+
+  const enviarRevision = async () => {
+    if (progresoPct < 100) {
+      toast.error(`Debes responder todas las preguntas (${progresoPct}% completado)`);
+      return;
+    }
+    if (!confirm("¿Enviar el diagnóstico para revisión del consultor? No podrás editarlo después.")) return;
+    const { error } = await supabase
+      .from("side_sesiones")
+      .update({ scores: scores as Record<string, number>, estado_revision: "pendiente_revision" })
+      .eq("id", sesion!.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Diagnóstico enviado para revisión — tu consultor lo revisará pronto");
+    cerrarSesion();
   };
 
   const goTab = (tab: SideTabKey) => {
@@ -626,7 +664,7 @@ function SidePage() {
             </button>
           );
         })}
-        {sesion && (
+        {sesion && !esCliente && (
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, padding: "0 8px", flexShrink: 0 }}>
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>
               {savedAt ? `✓ ${savedAt.toLocaleTimeString("es-EC")}` : "Sin guardar"}
@@ -647,6 +685,38 @@ function SidePage() {
             </button>
           </div>
         )}
+        {sesion && esCliente && (
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, padding: "0 8px", flexShrink: 0 }}>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap" }}>
+              {progresoPct}% completado
+            </span>
+            {esEditableSession && (
+              <>
+                <button
+                  onClick={() => void guardar(false)}
+                  disabled={saving}
+                  style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  {saving ? <Loader2 style={{ width: 12, height: 12 }} className="animate-spin" /> : <Save style={{ width: 12, height: 12 }} />}
+                  Guardar
+                </button>
+                <button
+                  onClick={() => void enviarRevision()}
+                  disabled={progresoPct < 100}
+                  style={{ padding: "6px 14px", borderRadius: 8, background: progresoPct === 100 ? "linear-gradient(135deg,#0EA5E9,#6366F1)" : "rgba(255,255,255,0.08)", border: "none", color: progresoPct === 100 ? "white" : "rgba(255,255,255,0.3)", fontSize: 13, fontWeight: 600, cursor: progresoPct === 100 ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <CheckCircle2 style={{ width: 12, height: 12 }} /> Enviar para revisión
+                </button>
+              </>
+            )}
+            <button
+              onClick={cerrarSesion}
+              style={{ padding: "6px 12px", borderRadius: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+            >
+              ← Volver
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Tab content ── */}
@@ -662,6 +732,8 @@ function SidePage() {
           respondidas={respondidas}
           role={role}
           user={user}
+          esCliente={esCliente}
+          fixedClienteId={fixedClienteId}
           onIniciar={abrirSesion}
           onGoTab={goTab}
         />
@@ -674,10 +746,18 @@ function SidePage() {
           dimScores={dimScores}
           respondidas={respondidas}
           progresoPct={progresoPct}
+          readOnly={!esEditableSession}
+          puedeVerInterpretacion={puedeVerInterpretacion}
         />
       )}
       {sideTab === "indices" && sesion && (
-        <TabIndices scores={scores} setScore={setScore} ivee={ivee} idf={idf} cof={cof} />
+        <TabIndices
+          scores={scores}
+          setScore={setScore}
+          ivee={ivee} idf={idf} cof={cof}
+          readOnly={!esEditableSession}
+          puedeVerInterpretacion={puedeVerInterpretacion}
+        />
       )}
       {sideTab === "financiero" && sesion && (
         <TabFinanciero financiero={financiero} setFinanciero={setFinanciero} ime={ime} ivee={ivee} idf={idf} cof={cof} />
@@ -707,6 +787,7 @@ function SidePage() {
           setAnalisis={setAnalisis}
           onSave={() => void guardar(true)}
           accessToken={session?.access_token ?? null}
+          puedeVerInterpretacion={puedeVerInterpretacion}
         />
       )}
       {sideTab === "historial" && (
@@ -714,16 +795,59 @@ function SidePage() {
           clientes={clientes}
           onAbrir={abrirSesion}
           onNuevaSesion={() => setSideTab("side")}
+          fixedClienteId={fixedClienteId}
+          esCliente={esCliente}
         />
       )}
     </div>
   );
 }
 
+// ── Premium gate components ──────────────────────────────────────────────────
+function PremiumGateInline() {
+  return (
+    <div style={{ borderRadius: 16, border: "1.5px dashed #CBD5E1", background: "linear-gradient(135deg,#F8FAFC,#F0F4FF)", padding: "24px 28px", textAlign: "center" }}>
+      <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#0C4A6E", marginBottom: 6 }}>
+        Análisis desbloqueado con Advisory Premium
+      </div>
+      <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.65, maxWidth: 480, margin: "0 auto" }}>
+        Desbloquea el análisis con IA y las recomendaciones de tu consultor con el acompañamiento Advisory Premium de A360SGP.
+      </div>
+    </div>
+  );
+}
+
+function PremiumGateIA() {
+  return (
+    <div style={{ padding: "64px 48px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#F5F7FF" }}>
+      <div style={{ background: "white", borderRadius: 24, border: "1.5px solid #E0E7FF", padding: "48px 56px", textAlign: "center", maxWidth: 560 }}>
+        <div style={{ fontSize: 56, marginBottom: 20 }}>🔒</div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#0C4A6E", marginBottom: 14, letterSpacing: "-0.02em" }}>
+          Análisis estratégico con IA
+        </div>
+        <p style={{ fontSize: 16, color: "#64748B", lineHeight: 1.85, marginBottom: 28, textAlign: "justify" }}>
+          Desbloquea el análisis con IA y las recomendaciones de tu consultor con el acompañamiento <strong>Advisory Premium de A360SGP</strong>.
+        </p>
+        <div style={{ background: "linear-gradient(135deg,#EFF6FF,#ECFDF5)", border: "1.5px solid #A7F3D0", borderRadius: 14, padding: "18px 24px", fontSize: 14, color: "#0C4A6E", fontWeight: 600 }}>
+          Habla con tu consultor para activar este módulo.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── SidePage (route wrapper) ─────────────────────────────────────────────────
+function SidePage() {
+  const { sesion: sesionIdParam } = Route.useSearch();
+  return <SideCore mode="consultor" sesionIdParam={sesionIdParam} />;
+}
+
 // ── Tab SIDE ────────────────────────────────────────────────────────────────
 function TabSide({
   sesion, cliente, clientes, setClientes, ime, ivee, idf, cof,
-  dimScores, progresoPct, respondidas, role, user, onIniciar, onGoTab,
+  dimScores, progresoPct, respondidas, role, user, esCliente, fixedClienteId,
+  onIniciar, onGoTab,
 }: {
   sesion: Sesion | null;
   cliente: Cliente | null;
@@ -735,6 +859,8 @@ function TabSide({
   respondidas: number;
   role: string | null;
   user: { id: string } | null;
+  esCliente: boolean;
+  fixedClienteId?: string;
   onIniciar: (s: Sesion) => void;
   onGoTab: (tab: SideTabKey) => void;
 }) {
@@ -759,11 +885,12 @@ function TabSide({
   };
 
   const iniciar = async () => {
-    if (!clienteId) { toast.error("Selecciona un cliente"); return; }
+    const cid = esCliente ? fixedClienteId! : clienteId;
+    if (!cid) { toast.error("Selecciona un cliente"); return; }
     setCreando(true);
     const { data, error } = await supabase.from("side_sesiones").insert({
-      cliente_id: clienteId,
-      consultor_id: (role === "consultor" || role === "admin") ? user!.id : null,
+      cliente_id: cid,
+      consultor_id: (!esCliente && (role === "consultor" || role === "admin")) ? user!.id : null,
       nombre_sesion: nombreSesion || `Diagnóstico ${new Date().toLocaleDateString("es-EC")}`,
       scores: {}, analisis_ia: {},
     }).select().single();
@@ -799,18 +926,28 @@ function TabSide({
         ]}
       >
         <div style={{ display: "flex", gap: 14, marginBottom: 44, flexWrap: "wrap" }}>
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            style={{ padding: "14px 28px", borderRadius: 10, background: "linear-gradient(135deg,#0EA5E9,#6366F1)", color: "white", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(14,165,233,0.35)" }}
-          >
-            + Nueva sesión de diagnóstico
-          </button>
+          {!esCliente && (
+            <button
+              onClick={() => setShowForm((v) => !v)}
+              style={{ padding: "14px 28px", borderRadius: 10, background: "linear-gradient(135deg,#0EA5E9,#6366F1)", color: "white", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(14,165,233,0.35)" }}
+            >
+              + Nueva sesión de diagnóstico
+            </button>
+          )}
           <button
             onClick={() => onGoTab("historial")}
-            style={{ padding: "14px 24px", borderRadius: 10, background: "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer" }}
+            style={{ padding: "14px 24px", borderRadius: 10, background: esCliente ? "linear-gradient(135deg,#0EA5E9,#6366F1)" : "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: esCliente ? "none" : "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer", boxShadow: esCliente ? "0 4px 20px rgba(14,165,233,0.35)" : "none" }}
           >
-            📋 Ver historial
+            {esCliente ? "📋 Mis diagnósticos" : "📋 Ver historial"}
           </button>
+          {esCliente && (
+            <button
+              onClick={() => setShowForm((v) => !v)}
+              style={{ padding: "14px 24px", borderRadius: 10, background: "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer" }}
+            >
+              + Nuevo diagnóstico
+            </button>
+          )}
         </div>
       </Hero>
 
@@ -837,24 +974,26 @@ function TabSide({
             <div style={S.secLabel}>Nueva sesión de diagnóstico</div>
             <div style={{ ...S.secTitle, fontSize: 24, marginBottom: 24 }}>Configurar diagnóstico</div>
 
-            <div style={{ marginBottom: 16 }}>
-              <Label style={{ fontSize: 14, fontWeight: 700, color: "#374151", display: "block", marginBottom: 8 }}>Cliente</Label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Select value={clienteId} onValueChange={setClienteId}>
-                  <SelectTrigger style={{ flex: 1 }}><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
-                  <SelectContent>
-                    {clientes.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}{c.ciudad ? ` · ${c.ciudad}` : ""}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <button onClick={() => setNuevoOpen(!nuevoOpen)} style={{ padding: "8px 14px", borderRadius: 8, background: "white", border: "1.5px solid #E0E7FF", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                  <Plus style={{ width: 16, height: 16, color: "#64748B" }} />
-                </button>
+            {!esCliente && (
+              <div style={{ marginBottom: 16 }}>
+                <Label style={{ fontSize: 14, fontWeight: 700, color: "#374151", display: "block", marginBottom: 8 }}>Cliente</Label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Select value={clienteId} onValueChange={setClienteId}>
+                    <SelectTrigger style={{ flex: 1 }}><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
+                    <SelectContent>
+                      {clientes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}{c.ciudad ? ` · ${c.ciudad}` : ""}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <button onClick={() => setNuevoOpen(!nuevoOpen)} style={{ padding: "8px 14px", borderRadius: 8, background: "white", border: "1.5px solid #E0E7FF", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                    <Plus style={{ width: 16, height: 16, color: "#64748B" }} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
-            {nuevoOpen && (
+            {nuevoOpen && !esCliente && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: 16, background: "#F5F7FF", borderRadius: 12, marginBottom: 16, border: "1px solid #E0E7FF" }}>
                 <div style={{ gridColumn: "1/-1" }}>
                   <Label style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>Empresa *</Label>
@@ -895,14 +1034,14 @@ function TabSide({
 
             <button
               onClick={iniciar}
-              disabled={creando || !clienteId}
+              disabled={creando || (!esCliente && !clienteId)}
               style={{
                 width: "100%", padding: "14px 28px", borderRadius: 10,
-                background: creando || !clienteId ? "#CBD5E1" : "linear-gradient(135deg,#0EA5E9,#6366F1)",
+                background: (creando || (!esCliente && !clienteId)) ? "#CBD5E1" : "linear-gradient(135deg,#0EA5E9,#6366F1)",
                 color: "white", fontSize: 16, fontWeight: 700, border: "none",
-                cursor: creando || !clienteId ? "not-allowed" : "pointer",
+                cursor: (creando || (!esCliente && !clienteId)) ? "not-allowed" : "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                boxShadow: creando || !clienteId ? "none" : "0 4px 20px rgba(14,165,233,0.3)",
+                boxShadow: (creando || (!esCliente && !clienteId)) ? "none" : "0 4px 20px rgba(14,165,233,0.3)",
               }}
             >
               {creando && <Loader2 style={{ width: 18, height: 18 }} className="animate-spin" />}
@@ -996,7 +1135,7 @@ function TabSide({
 
 // ── Tab Dimensiones ─────────────────────────────────────────────────────────
 function TabDimensiones({
-  dimensiones, scores, setScore, dimScores, respondidas, progresoPct,
+  dimensiones, scores, setScore, dimScores, respondidas, progresoPct, readOnly, puedeVerInterpretacion,
 }: {
   dimensiones: Dimension[];
   scores: ScoreMap;
@@ -1004,6 +1143,8 @@ function TabDimensiones({
   dimScores: { key: string; nombre: string; score: number }[];
   respondidas: number;
   progresoPct: number;
+  readOnly?: boolean;
+  puedeVerInterpretacion?: boolean;
 }) {
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
   const toggle = (k: string) => setOpenKeys((prev) => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; });
@@ -1081,15 +1222,21 @@ function TabDimensiones({
                 <div style={{ borderTop: "1px solid #F0F4FF" }}>
                   <div style={{ padding: "16px 24px 8px" }}>
                     {d.preguntas.map((p) => (
-                      <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} />
+                      <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} readOnly={readOnly} />
                     ))}
                   </div>
                   <div style={{ margin: "0 24px 24px" }}>
-                    <DimInterpretacionCard dimKey={d.key} score={ds.score} suma={suma} sumaMax={sumaMax} />
-                    {ds.score === 0 && (
-                      <div style={{ padding: "16px 20px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
-                        Responde las preguntas de esta dimensión para ver la interpretación y recomendaciones personalizadas.
-                      </div>
+                    {(puedeVerInterpretacion ?? true) ? (
+                      <>
+                        <DimInterpretacionCard dimKey={d.key} score={ds.score} suma={suma} sumaMax={sumaMax} />
+                        {ds.score === 0 && (
+                          <div style={{ padding: "16px 20px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
+                            Responde las preguntas de esta dimensión para ver la interpretación y recomendaciones personalizadas.
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <PremiumGateInline />
                     )}
                   </div>
                 </div>
@@ -1104,11 +1251,13 @@ function TabDimensiones({
 
 // ── Tab Índices ─────────────────────────────────────────────────────────────
 function TabIndices({
-  scores, setScore, ivee, idf, cof,
+  scores, setScore, ivee, idf, cof, readOnly, puedeVerInterpretacion,
 }: {
   scores: ScoreMap;
   setScore: (id: string, v: number) => void;
   ivee: number; idf: number; cof: number;
+  readOnly?: boolean;
+  puedeVerInterpretacion?: boolean;
 }) {
   const blocks = [
     {
@@ -1168,14 +1317,20 @@ function TabIndices({
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 0 }}>
                   {b.preguntas.map((p) => (
-                    <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} accentGradient={b.accentGradient} />
+                    <ScaleButtons key={p.id} id={p.id} texto={p.texto} value={scores[p.id]} onChange={(v) => setScore(p.id, v)} accentGradient={b.accentGradient} readOnly={readOnly} />
                   ))}
                 </div>
-                <IndiceInterpretacionCard indiceId={b.id as "ivee" | "idf" | "cof"} score={b.score} />
-                {b.score === 0 && (
-                  <div style={{ marginTop: 16, padding: "14px 18px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
-                    Responde las preguntas para ver la interpretación de {b.label}.
-                  </div>
+                {(puedeVerInterpretacion ?? true) ? (
+                  <>
+                    <IndiceInterpretacionCard indiceId={b.id as "ivee" | "idf" | "cof"} score={b.score} />
+                    {b.score === 0 && (
+                      <div style={{ marginTop: 16, padding: "14px 18px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 14, color: "#94A3B8", textAlign: "center" }}>
+                        Responde las preguntas para ver la interpretación de {b.label}.
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ marginTop: 24 }}><PremiumGateInline /></div>
                 )}
               </div>
             );
@@ -2055,7 +2210,7 @@ function TabResultados({
 // ── Tab Análisis IA ─────────────────────────────────────────────────────────
 function TabAnalisisIA({
   cliente, ime, ivee, idf, cof, dimScores, financiero,
-  analisis, setAnalisis, onSave, accessToken,
+  analisis, setAnalisis, onSave, accessToken, puedeVerInterpretacion,
 }: {
   cliente: Cliente;
   ime: number; ivee: number; idf: number; cof: number;
@@ -2065,6 +2220,7 @@ function TabAnalisisIA({
   setAnalisis: React.Dispatch<React.SetStateAction<AnalisisMap>>;
   onSave: () => void;
   accessToken: string | null;
+  puedeVerInterpretacion?: boolean;
 }) {
   const [tipo, setTipo] = useState<typeof TIPOS_ANALISIS_DEF[number]["id"]>("ejecutivo");
   const [loading, setLoading] = useState(false);
@@ -2116,6 +2272,9 @@ function TabAnalisisIA({
           { val: ime > 0 ? `${ime.toFixed(1)}/5` : "—", lbl: "IME base del análisis" },
         ]}
       />
+      {!(puedeVerInterpretacion ?? true) ? (
+        <PremiumGateIA />
+      ) : (
       <div style={S.sectionWhite}>
         {/* Diagnostic context card */}
         {ime > 0 && (
@@ -2244,17 +2403,20 @@ function TabAnalisisIA({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
 
 // ── Tab Historial ────────────────────────────────────────────────────────────
 function TabHistorial({
-  clientes, onAbrir, onNuevaSesion,
+  clientes, onAbrir, onNuevaSesion, fixedClienteId, esCliente,
 }: {
   clientes: Cliente[];
   onAbrir: (s: Sesion) => void;
   onNuevaSesion: () => void;
+  fixedClienteId?: string;
+  esCliente?: boolean;
 }) {
   const { user } = useAuth();
   const [sesiones, setSesiones] = useState<Sesion[]>([]);
@@ -2267,8 +2429,9 @@ function TabHistorial({
 
   const cargar = async () => {
     setLoading(true);
+    const sesQuery = supabase.from("side_sesiones").select("*").order("updated_at", { ascending: false });
     const [{ data: ses }, { data: cli }] = await Promise.all([
-      supabase.from("side_sesiones").select("*").order("updated_at", { ascending: false }),
+      fixedClienteId ? sesQuery.eq("cliente_id", fixedClienteId) : sesQuery,
       supabase.from("clientes").select("id,nombre_empresa"),
     ]);
     setSesiones((ses ?? []) as unknown as Sesion[]);
@@ -2468,29 +2631,33 @@ function TabHistorial({
                             onClick={() => onAbrir(s)}
                             style={{ padding: "6px 12px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "1.5px solid #E0E7FF", background: "white", color: "#0EA5E9", cursor: "pointer" }}
                           >
-                            {s.completada ? "Abrir" : "Continuar"}
+                            {s.completada || s.estado_revision === "revisado" ? "Ver resultados" : "Continuar"}
                           </button>
-                          <button
-                            onClick={() => { setEditingId(s.id); setEditingName(s.nombre_sesion ?? ""); }}
-                            title="Renombrar"
-                            style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #E0E7FF", background: "white", color: "#64748B", cursor: "pointer" }}
-                          >
-                            <Pencil style={{ width: 13, height: 13 }} />
-                          </button>
-                          <button
-                            onClick={() => void duplicar(s)}
-                            title="Duplicar"
-                            style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #E0E7FF", background: "white", color: "#64748B", cursor: "pointer" }}
-                          >
-                            <Copy style={{ width: 13, height: 13 }} />
-                          </button>
-                          <button
-                            onClick={() => void toggleCompleta(s)}
-                            title={s.completada ? "Marcar en progreso" : "Marcar completa"}
-                            style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #E0E7FF", background: "white", color: s.completada ? "#D97706" : "#059669", cursor: "pointer" }}
-                          >
-                            {s.completada ? <RotateCcw style={{ width: 13, height: 13 }} /> : <CheckCircle2 style={{ width: 13, height: 13 }} />}
-                          </button>
+                          {!esCliente && (
+                            <>
+                              <button
+                                onClick={() => { setEditingId(s.id); setEditingName(s.nombre_sesion ?? ""); }}
+                                title="Renombrar"
+                                style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #E0E7FF", background: "white", color: "#64748B", cursor: "pointer" }}
+                              >
+                                <Pencil style={{ width: 13, height: 13 }} />
+                              </button>
+                              <button
+                                onClick={() => void duplicar(s)}
+                                title="Duplicar"
+                                style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #E0E7FF", background: "white", color: "#64748B", cursor: "pointer" }}
+                              >
+                                <Copy style={{ width: 13, height: 13 }} />
+                              </button>
+                              <button
+                                onClick={() => void toggleCompleta(s)}
+                                title={s.completada ? "Marcar en progreso" : "Marcar completa"}
+                                style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #E0E7FF", background: "white", color: s.completada ? "#D97706" : "#059669", cursor: "pointer" }}
+                              >
+                                {s.completada ? <RotateCcw style={{ width: 13, height: 13 }} /> : <CheckCircle2 style={{ width: 13, height: 13 }} />}
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => exportar(s)}
                             title="Exportar JSON"
@@ -2498,13 +2665,15 @@ function TabHistorial({
                           >
                             <Download style={{ width: 13, height: 13 }} />
                           </button>
-                          <button
-                            onClick={() => setConfirmDelete({ id: s.id, open: true })}
-                            title="Eliminar"
-                            style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #FEE2E2", background: "#FEF2F2", color: "#DC2626", cursor: "pointer" }}
-                          >
-                            <Trash2 style={{ width: 13, height: 13 }} />
-                          </button>
+                          {(!esCliente || s.estado_revision === "borrador") && (
+                            <button
+                              onClick={() => setConfirmDelete({ id: s.id, open: true })}
+                              title="Eliminar"
+                              style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #FEE2E2", background: "#FEF2F2", color: "#DC2626", cursor: "pointer" }}
+                            >
+                              <Trash2 style={{ width: 13, height: 13 }} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

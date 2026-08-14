@@ -591,6 +591,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          acceso_interpretacion: boolean
           activo: boolean
           ciudad: string | null
           cliente_user_id: string | null
@@ -623,6 +624,7 @@ export type Database = {
           web: string | null
         }
         Insert: {
+          acceso_interpretacion?: boolean
           activo?: boolean
           ciudad?: string | null
           cliente_user_id?: string | null
@@ -655,6 +657,7 @@ export type Database = {
           web?: string | null
         }
         Update: {
+          acceso_interpretacion?: boolean
           activo?: boolean
           ciudad?: string | null
           cliente_user_id?: string | null
