@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { ArrowLeft, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/manual-funciones/$clienteId")({
@@ -132,27 +133,259 @@ function htmlToContent(c: HtmlCargo): ContentFields {
 const SAFE_DELETE_THRESHOLD  = 0.5;
 const MIN_SET_SIZE_FOR_GUARD = 3;
 
+// ── Module not included gate ──────────────────────────────────────────────────
+
+function ModuloNoIncluido() {
+  return (
+    <div style={{ padding: "80px 32px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+      <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "64px", height: "64px", borderRadius: "50%", background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", border: "1.5px solid #C7D2FE", marginBottom: "24px" }}>
+        <Lock style={{ width: "28px", height: "28px", color: "#6366F1" }} />
+      </div>
+      <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.01em", marginBottom: "12px" }}>
+        Módulo no incluido en tu plan
+      </h2>
+      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "460px", margin: 0 }}>
+        El módulo de Manual de Funciones no está incluido en tu plan actual. Contacta a tu consultor A360 para más información.
+      </p>
+    </div>
+  );
+}
+
+// ── Client-facing hero landing ────────────────────────────────────────────────
+
+const OUTCOMES = [
+  { icon: Users,    title: "Claridad organizacional", desc: "Cada persona sabe exactamente qué hace, a quién reporta y con quién se relaciona." },
+  { icon: BarChart3, title: "KPIs definidos por cargo", desc: "Metas concretas y medibles para cada posición. Evaluaciones objetivas y justas." },
+  { icon: Target,   title: "Evaluaciones objetivas",  desc: "El desempeño se mide con estándares claros, no con percepciones subjetivas del jefe." },
+  { icon: Rocket,   title: "Rutas de carrera",        desc: "Cada colaborador visualiza su próximo paso y trabaja hacia él con propósito claro." },
+];
+
+function ClienteManualHero({ clienteId, onAbrir }: { clienteId: string; onAbrir: () => void }) {
+  const [nombre, setNombre]   = useState("");
+  const [total, setTotal]     = useState(0);
+  const [vigentes, setVigentes] = useState(0);
+  const [areas, setAreas]     = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).single(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from("manual_funciones_cargos").select("estado,area").eq("cliente_id", clienteId),
+    ]).then(([{ data: cl }, { data: cargos }]) => {
+      setNombre(cl?.nombre_empresa ?? "");
+      const rows = (cargos ?? []) as { estado: string | null; area: string | null }[];
+      setTotal(rows.length);
+      setVigentes(rows.filter((r) => r.estado === "vigente").length);
+      setAreas(new Set(rows.map((r) => r.area).filter(Boolean)).size);
+    });
+    const t = setTimeout(() => setMounted(true), 80);
+    return () => clearTimeout(t);
+  }, [clienteId]);
+
+  return (
+    <div style={{ maxWidth: "860px", display: "flex", flexDirection: "column", gap: "32px" }}>
+
+      {/* Hero */}
+      <div style={{
+        background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 55%, #312E81 100%)",
+        borderRadius: "20px", padding: "52px 48px 48px", position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 50% 70% at 90% 10%, rgba(14,165,233,0.18), transparent)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 40% 60% at 10% 90%, rgba(99,102,241,0.12), transparent)", pointerEvents: "none" }} />
+
+        <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "44px", alignItems: "center" }}>
+          <div style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(16px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#38BDF8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "14px" }}>
+              Módulo Organizacional · A360 Suite
+            </div>
+            <h1 style={{ fontSize: "clamp(28px, 3.5vw, 40px)", fontWeight: 900, color: "white", margin: "0 0 12px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+              Manual de<br />Funciones
+            </h1>
+            {nombre && (
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", marginBottom: "20px" }}>{nombre}</div>
+            )}
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "28px" }}>
+              {[
+                { val: total,    lbl: "Cargos documentados" },
+                { val: vigentes, lbl: "Vigentes" },
+                { val: areas,    lbl: "Áreas" },
+              ].map((s) => (
+                <div key={s.lbl} style={{ background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "12px", padding: "10px 18px" }}>
+                  <div style={{ fontSize: "24px", fontWeight: 900, color: "white", lineHeight: 1 }}>{s.val}</div>
+                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{s.lbl}</div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={onAbrir}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "8px",
+                padding: "14px 28px", borderRadius: "10px",
+                background: "linear-gradient(135deg, #0EA5E9, #6366F1)",
+                color: "white", fontSize: "14px", fontWeight: 700,
+                border: "none", cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(14,165,233,0.35)",
+              }}
+            >
+              <BookOpen style={{ width: "16px", height: "16px" }} />
+              Abrir Manual de Funciones
+            </button>
+          </div>
+
+          <div style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s" }}>
+            <svg viewBox="0 0 340 210" style={{ width: "100%", maxWidth: "340px", display: "block", margin: "0 auto" }}>
+              <rect x="110" y="6" width="120" height="36" rx="9" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
+              <text x="170" y="28" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" fontFamily="system-ui,sans-serif">EMPRESA</text>
+              <line x1="170" y1="42" x2="170" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+              <line x1="55"  y1="68" x2="285" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+              <line x1="55"  y1="68" x2="55"  y2="84" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+              <line x1="170" y1="68" x2="170" y2="84" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+              <line x1="285" y1="68" x2="285" y2="84" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+              <rect x="10"  y="84" width="90" height="26" rx="7" fill="rgba(14,165,233,0.25)"  stroke="rgba(56,189,248,0.6)"  strokeWidth="1.2" />
+              <text x="55"  y="101" textAnchor="middle" fill="#38BDF8" fontSize="9.5" fontWeight="bold" fontFamily="system-ui,sans-serif">Comercial</text>
+              <line x1="55"  y1="110" x2="55"  y2="124" stroke="rgba(56,189,248,0.35)" strokeWidth="1" />
+              <rect x="5"   y="124" width="100" height="20" rx="5" fill="rgba(255,255,255,0.11)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+              <text x="55"  y="138" textAnchor="middle" fill="rgba(255,255,255,0.82)" fontSize="8" fontFamily="system-ui,sans-serif">Gerente de Ventas</text>
+              <rect x="5"   y="148" width="100" height="20" rx="5" fill="rgba(255,255,255,0.06)" />
+              <text x="55"  y="162" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8" fontFamily="system-ui,sans-serif">Asesor Comercial</text>
+              <rect x="125" y="84" width="90" height="26" rx="7" fill="rgba(99,102,241,0.25)" stroke="rgba(129,140,248,0.6)" strokeWidth="1.2" />
+              <text x="170" y="101" textAnchor="middle" fill="#A5B4FC" fontSize="9.5" fontWeight="bold" fontFamily="system-ui,sans-serif">RRHH</text>
+              <line x1="170" y1="110" x2="170" y2="124" stroke="rgba(129,140,248,0.35)" strokeWidth="1" />
+              <rect x="120" y="124" width="100" height="20" rx="5" fill="rgba(255,255,255,0.11)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+              <text x="170" y="138" textAnchor="middle" fill="rgba(255,255,255,0.82)" fontSize="8" fontFamily="system-ui,sans-serif">Dir. Talento Humano</text>
+              <rect x="120" y="148" width="100" height="20" rx="5" fill="rgba(255,255,255,0.06)" />
+              <text x="170" y="162" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8" fontFamily="system-ui,sans-serif">Psicólogo Org.</text>
+              <rect x="240" y="84" width="90" height="26" rx="7" fill="rgba(16,185,129,0.22)" stroke="rgba(52,211,153,0.55)" strokeWidth="1.2" />
+              <text x="285" y="101" textAnchor="middle" fill="#6EE7B7" fontSize="9.5" fontWeight="bold" fontFamily="system-ui,sans-serif">Operaciones</text>
+              <line x1="285" y1="110" x2="285" y2="124" stroke="rgba(52,211,153,0.35)" strokeWidth="1" />
+              <rect x="235" y="124" width="100" height="20" rx="5" fill="rgba(255,255,255,0.11)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+              <text x="285" y="138" textAnchor="middle" fill="rgba(255,255,255,0.82)" fontSize="8" fontFamily="system-ui,sans-serif">Jefe de Producción</text>
+              <rect x="235" y="148" width="100" height="20" rx="5" fill="rgba(255,255,255,0.06)" />
+              <text x="285" y="162" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8" fontFamily="system-ui,sans-serif">Operario Senior</text>
+              <text x="170" y="200" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="7.5" fontFamily="system-ui,sans-serif" fontStyle="italic">
+                funciones · KPIs · competencias · plan de carrera
+              </text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Outcomes */}
+      <div style={{ background: "white", border: "1.5px solid #E0F2FE", borderRadius: "16px", padding: "32px 36px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#0EA5E9", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "6px" }}>
+          Tu módulo incluye
+        </div>
+        <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#0C4A6E", margin: "0 0 20px", letterSpacing: "-0.01em" }}>
+          Con el Manual de Funciones logras:
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+          {OUTCOMES.map((o) => (
+            <div key={o.title} style={{ display: "flex", gap: "12px", background: "#F8FAFF", border: "1px solid #E0E7FF", borderRadius: "12px", padding: "16px 18px" }}>
+              <div style={{ width: "34px", height: "34px", borderRadius: "9px", background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <o.icon style={{ width: "16px", height: "16px", color: "#059669" }} />
+              </div>
+              <div>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#0C4A6E", marginBottom: "3px" }}>{o.title}</div>
+                <div style={{ fontSize: "12px", color: "#64748B", lineHeight: 1.6 }}>{o.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function ManualFuncionesViewer() {
   const { clienteId } = Route.useParams();
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const esCliente = role === "cliente" || role === "participante";
   const iframeRef      = useRef<HTMLIFrameElement>(null);
   const loadedUUIDs    = useRef<Set<string>>(new Set());
   const clienteNombre  = useRef<string>("");
 
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving]               = useState(false);
+  const [editorAbierto, setEditorAbierto] = useState(!esCliente);
+  // null = loading, true = allowed, false = not allowed
+  const [modEnabled, setModEnabled]       = useState<boolean | null>(esCliente ? null : true);
 
-  // Esc → volver al índice
-  const handleBack = useCallback(
-    () => navigate({ to: "/app/manual-funciones" }),
-    [navigate],
-  );
+  // Entitlement check — same 3-step chain as AppSidebar / app.crecimiento.tsx
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!esCliente || !user) { setModEnabled(true); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: eu } = await supabase
+          .from("empresa_usuarios")
+          .select("cliente_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!eu?.cliente_id) { setModEnabled(false); return; }
+
+        const { data: cli } = await supabase
+          .from("clientes")
+          .select("plan_licencia")
+          .eq("id", eu.cliente_id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!cli?.plan_licencia) { setModEnabled(false); return; }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: plan } = await (supabase as any)
+          .from("planes")
+          .select("id")
+          .ilike("nombre", cli.plan_licencia)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!plan?.id) { setModEnabled(false); return; }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: mod } = await (supabase as any)
+          .from("plan_modulos")
+          .select("modulo_slug")
+          .eq("plan_id", plan.id)
+          .eq("modulo_slug", "manual_funciones")
+          .eq("activo", true)
+          .maybeSingle();
+        if (cancelled) return;
+        setModEnabled(!!mod);
+      } catch {
+        if (!cancelled) setModEnabled(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [esCliente, user?.id]);
+
+  // For clients: Esc closes editor back to hero; for consultors: navigate away
+  const handleBack = useCallback(() => {
+    if (esCliente) { setEditorAbierto(false); }
+    else { navigate({ to: "/app/manual-funciones" }); }
+  }, [esCliente, navigate]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleBack(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [handleBack]);
+
+  // Entitlement gates (clients only)
+  if (modEnabled === null) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
+      <Loader2 style={{ width: "24px", height: "24px", color: "#94A3B8" }} className="animate-spin" />
+    </div>
+  );
+  if (modEnabled === false) return <ModuloNoIncluido />;
+
+  // Show hero for clients until they open the editor
+  if (esCliente && !editorAbierto) {
+    return <ClienteManualHero clienteId={clienteId} onAbrir={() => setEditorAbierto(true)} />;
+  }
 
   // ── Bridge ──────────────────────────────────────────────────────────────────
   useEffect(() => {
