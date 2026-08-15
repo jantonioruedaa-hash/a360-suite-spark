@@ -15,9 +15,10 @@ interface Props {
   analisisActual?: string | null;
   analisisFecha?: string | null;
   onAnalisisGenerado?: (texto: string, fecha: string) => void;
+  readOnly?: boolean;
 }
 
-export function AnalisisIABox({ clienteId, columna, seccionTitulo, contextoEmpresa, datosSeccion, analisisActual, analisisFecha, onAnalisisGenerado }: Props) {
+export function AnalisisIABox({ clienteId, columna, seccionTitulo, contextoEmpresa, datosSeccion, analisisActual, analisisFecha, onAnalisisGenerado, readOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
   const [texto, setTexto] = useState(analisisActual ?? "");
   const [fecha, setFecha] = useState(analisisFecha ?? null);
@@ -50,18 +51,20 @@ export function AnalisisIABox({ clienteId, columna, seccionTitulo, contextoEmpre
           <Sparkles className="w-4 h-4 text-gold" />
           <h3 className="font-display text-navy">Análisis IA — {seccionTitulo}</h3>
         </div>
-        <div className="flex items-center gap-2">
-          {texto && !edit && (
-            <Button size="sm" variant="outline" onClick={() => setEdit(true)}><Edit3 className="w-3 h-3 mr-1" />Editar</Button>
-          )}
-          {texto && edit && (
-            <Button size="sm" onClick={guardarEdicion} className="bg-navy hover:bg-navy/90"><Save className="w-3 h-3 mr-1" />Guardar</Button>
-          )}
-          <Button size="sm" onClick={generar} disabled={loading} className="bg-gold hover:bg-gold/90 text-navy">
-            {loading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : texto ? <RotateCw className="w-3 h-3 mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
-            {loading ? "Generando…" : texto ? "Regenerar" : "Analizar con IA"}
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-2">
+            {texto && !edit && (
+              <Button size="sm" variant="outline" onClick={() => setEdit(true)}><Edit3 className="w-3 h-3 mr-1" />Editar</Button>
+            )}
+            {texto && edit && (
+              <Button size="sm" onClick={guardarEdicion} className="bg-navy hover:bg-navy/90"><Save className="w-3 h-3 mr-1" />Guardar</Button>
+            )}
+            <Button size="sm" onClick={generar} disabled={loading} className="bg-gold hover:bg-gold/90 text-navy">
+              {loading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : texto ? <RotateCw className="w-3 h-3 mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
+              {loading ? "Generando…" : texto ? "Regenerar" : "Analizar con IA"}
+            </Button>
+          </div>
+        )}
       </div>
       {fecha && <p className="text-[11px] text-muted-foreground mb-2">Generado: {new Date(fecha).toLocaleString()}</p>}
       {edit ? (
