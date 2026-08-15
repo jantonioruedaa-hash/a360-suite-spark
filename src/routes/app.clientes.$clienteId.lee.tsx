@@ -57,6 +57,8 @@ function LeeWorkspace() {
   const navigate = useNavigate();
   const { role } = useAuth();
   const childMatches = useChildMatches();
+  const esCliente = role === "cliente" || role === "participante";
+  const [accesoInterpretacion, setAccesoInterpretacion] = useState(false);
 
   // Capítulo activo desde URL (child route match)
   const capMatch = childMatches.find((m) => m.routeId === "/app/clientes/$clienteId/lee/$capitulo");
@@ -66,11 +68,12 @@ function LeeWorkspace() {
 
   // Vista toggle con localStorage
   const [vista, setVista] = useState<"facilitador" | "participante">(() => {
+    if (role === "cliente" || role === "participante") return "participante";
     try {
       const saved = localStorage.getItem("lee-vista");
       if (saved === "facilitador" || saved === "participante") return saved;
     } catch { /* ignore */ }
-    return role === "cliente" || role === "participante" ? "participante" : "facilitador";
+    return "facilitador";
   });
   const cambiarVista = (v: "facilitador" | "participante") => {
     setVista(v);
@@ -96,6 +99,18 @@ function LeeWorkspace() {
     setLoading(false);
   };
   useEffect(() => { cargar(); }, [clienteId]);
+
+  useEffect(() => {
+    if (!esCliente) return;
+    supabase.from("clientes").select("acceso_interpretacion").eq("id", clienteId).maybeSingle()
+      .then(({ data }) => { if (data?.acceso_interpretacion) setAccesoInterpretacion(true); });
+  }, [clienteId, esCliente]);
+
+  const puedeVerInterpretacion = !esCliente || accesoInterpretacion;
+
+  useEffect(() => {
+    if (esCliente && !puedeVerInterpretacion) setVista("participante");
+  }, [esCliente, puedeVerInterpretacion]);
 
   const iniciar = async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -131,11 +146,17 @@ function LeeWorkspace() {
         <h2 className="font-display text-2xl text-navy">Programa LEE</h2>
         <Card><CardContent className="p-8 text-center space-y-3">
           <BookOpen className="w-12 h-12 text-gold mx-auto" />
-          <p className="text-sm text-muted-foreground">Este cliente aún no tiene programa LEE iniciado.</p>
+          <p className="text-sm text-muted-foreground">
+            {esCliente
+              ? "Tu facilitador aún no ha iniciado el programa LEE para tu empresa."
+              : "Este cliente aún no tiene programa LEE iniciado."}
+          </p>
           <p className="text-xs text-muted-foreground max-w-lg mx-auto">{LEE_OVERVIEW.proposito}</p>
-          <Button onClick={iniciar} className="bg-navy hover:bg-navy/90">
-            <Play className="w-4 h-4 mr-1" /> Iniciar programa LEE
-          </Button>
+          {!esCliente && (
+            <Button onClick={iniciar} className="bg-navy hover:bg-navy/90">
+              <Play className="w-4 h-4 mr-1" /> Iniciar programa LEE
+            </Button>
+          )}
         </CardContent></Card>
       </div>
     );
@@ -147,25 +168,27 @@ function LeeWorkspace() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      {/* Toggle de vista */}
-      <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          variant={vista === "facilitador" ? "default" : "outline"}
-          onClick={() => cambiarVista("facilitador")}
-          className={vista === "facilitador" ? "bg-navy hover:bg-navy/90" : ""}
-        >
-          🗂 Vista facilitador
-        </Button>
-        <Button
-          size="sm"
-          variant={vista === "participante" ? "default" : "outline"}
-          onClick={() => cambiarVista("participante")}
-          className={vista === "participante" ? "bg-navy hover:bg-navy/90" : ""}
-        >
-          👤 Vista participante
-        </Button>
-      </div>
+      {/* Toggle de vista — solo visible para consultores o clientes con acceso_interpretacion */}
+      {puedeVerInterpretacion && (
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={vista === "facilitador" ? "default" : "outline"}
+            onClick={() => cambiarVista("facilitador")}
+            className={vista === "facilitador" ? "bg-navy hover:bg-navy/90" : ""}
+          >
+            🗂 Vista facilitador
+          </Button>
+          <Button
+            size="sm"
+            variant={vista === "participante" ? "default" : "outline"}
+            onClick={() => cambiarVista("participante")}
+            className={vista === "participante" ? "bg-navy hover:bg-navy/90" : ""}
+          >
+            👤 Vista participante
+          </Button>
+        </div>
+      )}
 
       {/* ── Vista facilitador (contenido original intacto) ── */}
       {vista === "facilitador" && (
@@ -220,7 +243,7 @@ function LeeWorkspace() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-[10px]">{wbCompletosCap}/{cap.sesiones.length} sesiones</Badge>
-                        {!open && (
+                        {!open && !esCliente && (
                           <Button size="sm" variant="outline" onClick={() => desbloquear(cap.numero)}>
                             <Unlock className="w-3 h-3 mr-1" /> Desbloquear
                           </Button>
