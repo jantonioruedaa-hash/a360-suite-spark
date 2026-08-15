@@ -187,14 +187,19 @@ function buildCrumbs(path: string, href: string, clienteId: string, nombreEmpres
 
 function ClienteLayout() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId" });
+  const { role } = useAuth();
   const [cliente, setCliente] = useState<ClienteFull | null>(null);
   const [clienteLoading, setClienteLoading] = useState(true);
   const [kpis, setKpis] = useState<ClienteKPIs | null>(null);
   const path = useRouterState({ select: (r) => r.location.pathname });
   const href = useRouterState({ select: (r) => r.location.href });
-  const { role } = useAuth();
+
+  const isClientRole = role === "cliente" || role === "participante";
 
   useEffect(() => {
+    // Clients navigate via AppSidebar — no consultant header needed
+    if (isClientRole) return;
+
     supabase
       .from("clientes")
       .select("id,nombre_empresa,nombre_comercial,sector,subsector,estado,plan_licencia,logo_url,fecha_inicio_relacion")
@@ -222,7 +227,12 @@ function ClienteLayout() {
         ultima_actividad: (actividadesRes.data?.[0] as { fecha: string } | undefined)?.fecha ?? null,
       });
     });
-  }, [clienteId]);
+  }, [clienteId, isClientRole]);
+
+  // Clients use the AppSidebar shell — skip the consultant sticky header entirely
+  if (isClientRole) {
+    return <Outlet />;
+  }
 
   if (clienteLoading) {
     return <div className="p-8 text-center text-muted-foreground">Cargando cliente…</div>;
