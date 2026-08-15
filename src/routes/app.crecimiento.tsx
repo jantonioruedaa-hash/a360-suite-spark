@@ -1,5 +1,9 @@
+import { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PreviewGate } from "@/components/PreviewGate";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { Lock, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/crecimiento")({
   component: CrecimientoPage,
@@ -102,8 +106,85 @@ function CrecimientoFull() {
   );
 }
 
-// ── Route entry point (auth-gated) ────────────────────────────────────────────
+// ── Module not included gate ──────────────────────────────────────────────────
+function ModuloNoIncluido() {
+  return (
+    <div style={{ padding: "80px 32px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+      <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "64px", height: "64px", borderRadius: "50%", background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", border: "1.5px solid #C7D2FE", marginBottom: "24px" }}>
+        <Lock style={{ width: "28px", height: "28px", color: "#6366F1" }} />
+      </div>
+      <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.01em", marginBottom: "12px" }}>
+        Módulo no incluido en tu plan
+      </h2>
+      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "460px", margin: 0 }}>
+        El módulo de Marketing Digital no está incluido en tu plan actual. Contacta a tu consultor A360 para más información.
+      </p>
+    </div>
+  );
+}
+
+// ── Route entry point (auth-gated + entitlement-gated for clients) ────────────
 function CrecimientoPage() {
+  const { user, role } = useAuth();
+  const isClientRole = role === "cliente" || role === "participante";
+
+  // null = loading, true = allowed, false = not allowed
+  const [modEnabled, setModEnabled] = useState<boolean | null>(isClientRole ? null : true);
+
+  useEffect(() => {
+    if (!isClientRole || !user) { setModEnabled(true); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: eu } = await supabase
+          .from("empresa_usuarios")
+          .select("cliente_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!eu?.cliente_id) { setModEnabled(false); return; }
+
+        const { data: cli } = await supabase
+          .from("clientes")
+          .select("plan_licencia")
+          .eq("id", eu.cliente_id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!cli?.plan_licencia) { setModEnabled(false); return; }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: plan } = await (supabase as any)
+          .from("planes")
+          .select("id")
+          .ilike("nombre", cli.plan_licencia)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!plan?.id) { setModEnabled(false); return; }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: mod } = await (supabase as any)
+          .from("plan_modulos")
+          .select("modulo_slug")
+          .eq("plan_id", plan.id)
+          .eq("modulo_slug", "marketing_digital")
+          .eq("activo", true)
+          .maybeSingle();
+        if (cancelled) return;
+        setModEnabled(!!mod);
+      } catch {
+        if (!cancelled) setModEnabled(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isClientRole, user?.id]);
+
+  if (modEnabled === null) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
+      <Loader2 style={{ width: "24px", height: "24px", color: "#94A3B8" }} className="animate-spin" />
+    </div>
+  );
+  if (modEnabled === false) return <ModuloNoIncluido />;
+
   return (
     <PreviewGate
       moduleName="Marketing Digital"
