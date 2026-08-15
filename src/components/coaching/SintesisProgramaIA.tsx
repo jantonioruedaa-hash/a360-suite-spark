@@ -49,13 +49,14 @@ function renderizarAnalisis(texto: string) {
 }
 
 export function SintesisProgramaIA({
-  clienteId, contextoCliente, sintesisInicial, fechaInicial, onGuardar,
+  clienteId, contextoCliente, sintesisInicial, fechaInicial, onGuardar, readOnly = false,
 }: {
   clienteId: string;
   contextoCliente?: string;
   sintesisInicial?: string | null;
   fechaInicial?: string | null;
   onGuardar?: (texto: string, fecha: string) => void;
+  readOnly?: boolean;
 }) {
   const [texto, setTexto] = useState(sintesisInicial ?? "");
   const [fecha, setFecha] = useState(fechaInicial ?? null);
@@ -94,33 +95,35 @@ export function SintesisProgramaIA({
             Generado: {new Date(fecha).toLocaleString("es", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
           </p>}
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          {texto && !edit && (
-            <button
-              onClick={() => setEdit(true)}
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", fontSize: "13px", fontWeight: 600, color: "#0369A1", cursor: "pointer" }}
-            >
-              <Edit3 style={{ width: "14px", height: "14px" }} /> Editar
-            </button>
-          )}
-          {texto && edit && (
-            <button
-              onClick={() => { setEdit(false); onGuardar?.(texto, fecha ?? new Date().toISOString()); }}
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "none", background: "#059669", fontSize: "13px", fontWeight: 700, color: "white", cursor: "pointer" }}
-            >
-              <Save style={{ width: "14px", height: "14px" }} /> Guardar edición
-            </button>
-          )}
-          <button onClick={generar} disabled={loading} style={BTN_GRADIENT}>
-            {loading ? (
-              <><Loader2 style={{ width: "16px", height: "16px" }} className="animate-spin" />Sintetizando…</>
-            ) : texto ? (
-              <><RotateCw style={{ width: "16px", height: "16px" }} />Regenerar síntesis</>
-            ) : (
-              <><Sparkles style={{ width: "16px", height: "16px" }} />Generar síntesis con IA</>
+        {!readOnly && (
+          <div style={{ display: "flex", gap: "10px" }}>
+            {texto && !edit && (
+              <button
+                onClick={() => setEdit(true)}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", fontSize: "13px", fontWeight: 600, color: "#0369A1", cursor: "pointer" }}
+              >
+                <Edit3 style={{ width: "14px", height: "14px" }} /> Editar
+              </button>
             )}
-          </button>
-        </div>
+            {texto && edit && (
+              <button
+                onClick={() => { setEdit(false); onGuardar?.(texto, fecha ?? new Date().toISOString()); }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "none", background: "#059669", fontSize: "13px", fontWeight: 700, color: "white", cursor: "pointer" }}
+              >
+                <Save style={{ width: "14px", height: "14px" }} /> Guardar edición
+              </button>
+            )}
+            <button onClick={generar} disabled={loading} style={BTN_GRADIENT}>
+              {loading ? (
+                <><Loader2 style={{ width: "16px", height: "16px" }} className="animate-spin" />Sintetizando…</>
+              ) : texto ? (
+                <><RotateCw style={{ width: "16px", height: "16px" }} />Regenerar síntesis</>
+              ) : (
+                <><Sparkles style={{ width: "16px", height: "16px" }} />Generar síntesis con IA</>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Contenido */}

@@ -34,6 +34,8 @@ import { RadarEditor } from "@/components/coaching/editores/RadarEditor";
 import { EspejoEditor } from "@/components/coaching/editores/EspejoEditor";
 import { PulsoEditor } from "@/components/coaching/editores/PulsoEditor";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { Lock } from "lucide-react";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/coaching")({
   component: CoachingClienteWorkspace,
@@ -107,9 +109,29 @@ const SECTION_LABEL: React.CSSProperties = {
   marginBottom: "14px",
 };
 
+// ── Gate premium ──────────────────────────────────────────────────────────────
+function CoachingPremiumGate() {
+  return (
+    <div className="px-6 lg:px-16 py-20 flex flex-col items-center text-center">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6" style={{ background: "linear-gradient(135deg, #EFF6FF, #EDE9FE)", border: "1.5px solid #C7D2FE" }}>
+        <Lock className="w-7 h-7" style={{ color: "#6366F1" }} />
+      </div>
+      <h2 style={{ fontSize: "22px", fontWeight: 900, color: "#0C4A6E", letterSpacing: "-0.01em", marginBottom: "12px" }}>
+        Análisis IA del programa
+      </h2>
+      <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "480px", marginBottom: "0" }}>
+        Desbloquea el análisis de patrones de liderazgo, síntesis ejecutiva del programa y el análisis de IA por sesión con el acompañamiento Advisory Premium de A360SGP.
+      </p>
+    </div>
+  );
+}
+
 // ── Componente principal ───────────────────────────────────────────────────────
 function CoachingClienteWorkspace() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/coaching" });
+  const { role } = useAuth();
+  const esCliente = role === "cliente" || role === "participante";
+  const [accesoInterpretacion, setAccesoInterpretacion] = useState(false);
   const [sesiones, setSesiones] = useState<SesionCoaching[]>([]);
   const [loading, setLoading] = useState(true);
   const [openNueva, setOpenNueva] = useState<{ herramientaId: string } | null>(null);
@@ -132,6 +154,14 @@ function CoachingClienteWorkspace() {
     supabase.from("clientes").select("nombre_empresa").eq("id", clienteId).maybeSingle()
       .then(({ data }) => { if (data?.nombre_empresa) setClienteNombre(data.nombre_empresa); });
   }, [clienteId]);
+
+  useEffect(() => {
+    if (!esCliente) return;
+    supabase.from("clientes").select("acceso_interpretacion").eq("id", clienteId).maybeSingle()
+      .then(({ data }) => { if (data?.acceso_interpretacion) setAccesoInterpretacion(true); });
+  }, [clienteId, esCliente]);
+
+  const puedeVerInterpretacion = !esCliente || accesoInterpretacion;
 
   const progreso = useMemo(() => progresoPorEtapa(sesiones), [sesiones]);
   const etapa = useMemo(() => etapaActual(sesiones), [sesiones]);
@@ -421,9 +451,11 @@ function CoachingClienteWorkspace() {
                     <div style={{ fontSize: "20px", fontWeight: 900, color: "#0C4A6E", marginBottom: "6px", letterSpacing: "-0.01em" }}>{proximaHerramienta.nombre}</div>
                     <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, textAlign: "justify" as const, margin: 0 }}>{proximaHerramienta.descripcion}</p>
                   </div>
-                  <button onClick={() => setOpenNueva({ herramientaId: proximaHerramienta.id })} style={{ padding: "14px 28px", borderRadius: "12px", background: etapaActiveGrad(etapaInfo?.color ?? "#0EA5E9"), color: "white", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: `0 4px 20px ${etapaInfo?.color ?? "#0EA5E9"}35`, flexShrink: 0 }}>
-                    Iniciar herramienta →
-                  </button>
+                  {!esCliente && (
+                    <button onClick={() => setOpenNueva({ herramientaId: proximaHerramienta.id })} style={{ padding: "14px 28px", borderRadius: "12px", background: etapaActiveGrad(etapaInfo?.color ?? "#0EA5E9"), color: "white", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: `0 4px 20px ${etapaInfo?.color ?? "#0EA5E9"}35`, flexShrink: 0 }}>
+                      Iniciar herramienta →
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -486,14 +518,16 @@ function CoachingClienteWorkspace() {
                 {totalCompletadas} de {HERRAMIENTAS_A360.length} herramientas completadas. Cada sesión es un punto de inflexión.
               </p>
             </div>
-            <div className="relative z-10 shrink-0">
-              <button style={{ ...BTN_PRIMARY, fontSize: "15px", padding: "16px 36px" }} onClick={() => setActiveTab("herramientas")}>
-                Registrar próxima herramienta →
-              </button>
-              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginTop: "12px", textAlign: "right" }}>
-                Con análisis IA incluido · Resultados inmediatos
-              </p>
-            </div>
+            {!esCliente && (
+              <div className="relative z-10 shrink-0">
+                <button style={{ ...BTN_PRIMARY, fontSize: "15px", padding: "16px 36px" }} onClick={() => setActiveTab("herramientas")}>
+                  Registrar próxima herramienta →
+                </button>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginTop: "12px", textAlign: "right" }}>
+                  Con análisis IA incluido · Resultados inmediatos
+                </p>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -513,9 +547,11 @@ function CoachingClienteWorkspace() {
                   {totalCompletadas} de <span style={GRADIENT_TEXT}>{HERRAMIENTAS_A360.length}</span> herramientas completadas
                 </h2>
               </div>
-              <button style={{ ...BTN_PRIMARY, fontSize: "13px", padding: "11px 22px" }} onClick={() => setOpenNueva({ herramientaId: HERRAMIENTAS_A360[0]?.id ?? "" })}>
-                + Nueva sesión
-              </button>
+              {!esCliente && (
+                <button style={{ ...BTN_PRIMARY, fontSize: "13px", padding: "11px 22px" }} onClick={() => setOpenNueva({ herramientaId: HERRAMIENTAS_A360[0]?.id ?? "" })}>
+                  + Nueva sesión
+                </button>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {[
@@ -606,17 +642,19 @@ function CoachingClienteWorkspace() {
                             {ultima && <span>· {new Date(ultima.created_at).toLocaleDateString("es", { day: "numeric", month: "short" })}</span>}
                           </div>
                           <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                            <button
-                              onClick={() => setOpenNueva({ herramientaId: h.id })}
-                              style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: completa ? "#059669" : etapaActiveGrad(et.color), color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${et.color}30`, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-                            >
-                              <Plus style={{ width: "14px", height: "14px" }} />
-                              {completa ? "Nueva sesión" : "Iniciar herramienta"}
-                            </button>
+                            {!esCliente && (
+                              <button
+                                onClick={() => setOpenNueva({ herramientaId: h.id })}
+                                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: completa ? "#059669" : etapaActiveGrad(et.color), color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${et.color}30`, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                              >
+                                <Plus style={{ width: "14px", height: "14px" }} />
+                                {completa ? "Nueva sesión" : "Iniciar herramienta"}
+                              </button>
+                            )}
                             {ultima && (
                               <button
                                 onClick={() => setEditing(ultima)}
-                                style={{ padding: "12px 14px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", color: "#0369A1", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                                style={{ padding: "12px 14px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", color: "#0369A1", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", ...(esCliente ? { flex: 1 } : {}) }}
                                 title="Ver último registro"
                               >
                                 <FileText style={{ width: "14px", height: "14px" }} />
@@ -832,7 +870,8 @@ function CoachingClienteWorkspace() {
       )}
 
       {/* ─ TAB: ANÁLISIS IA ─────────────────────────────────────────────────── */}
-      {activeTab === "ia" && (
+      {activeTab === "ia" && !puedeVerInterpretacion && <CoachingPremiumGate />}
+      {activeTab === "ia" && puedeVerInterpretacion && (
         <div>
           {sesiones.length === 0 ? (
             <div className="px-6 lg:px-16 py-16 bg-white">
@@ -933,7 +972,7 @@ function CoachingClienteWorkspace() {
                 <h3 className="mb-6" style={{ fontSize: "20px", fontWeight: 800, color: "#0C4A6E", letterSpacing: "-0.01em" }}>
                   Análisis integral · Línea base + evolución + recomendaciones
                 </h3>
-                <SintesisProgramaIA clienteId={clienteId} />
+                <SintesisProgramaIA clienteId={clienteId} readOnly={esCliente} />
               </div>
 
               {/* Export */}
@@ -1080,6 +1119,8 @@ function CoachingClienteWorkspace() {
           herramientaId={openNueva.herramientaId}
           onClose={() => setOpenNueva(null)}
           onSaved={() => { setOpenNueva(null); cargar(); }}
+          esCliente={esCliente}
+          puedeVerInterpretacion={puedeVerInterpretacion}
         />
       )}
       {editing && (
@@ -1089,6 +1130,8 @@ function CoachingClienteWorkspace() {
           existing={editing}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); cargar(); }}
+          esCliente={esCliente}
+          puedeVerInterpretacion={puedeVerInterpretacion}
         />
       )}
     </div>
@@ -1099,13 +1142,15 @@ function CoachingClienteWorkspace() {
 // Diálogo nueva/editar sesión — lógica sin cambios
 // ─────────────────────────────────────────────────────────────────────────────
 function DialogoSesion({
-  clienteId, herramientaId, existing, onClose, onSaved,
+  clienteId, herramientaId, existing, onClose, onSaved, esCliente = false, puedeVerInterpretacion = true,
 }: {
   clienteId: string;
   herramientaId: string;
   existing?: SesionCoaching;
   onClose: () => void;
   onSaved: () => void;
+  esCliente?: boolean;
+  puedeVerInterpretacion?: boolean;
 }) {
   const h = getHerramienta(herramientaId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1176,7 +1221,8 @@ function DialogoSesion({
           </div>
         </div>
 
-        {/* ── Guía del coach (colapsable) ── */}
+        {/* ── Guía del coach (colapsable) — solo para consultores o clientes con acceso_interpretacion ── */}
+        {puedeVerInterpretacion && (
         <div style={{ background: "#F5F7FF", borderBottom: "1px solid #E0E7FF", padding: "14px 28px" }}>
           <details>
             <summary style={{ cursor: "pointer", fontSize: "13px", fontWeight: 700, color: "#0C4A6E", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1219,9 +1265,10 @@ function DialogoSesion({
             </div>
           </details>
         </div>
+        )}
 
         {/* ── Contenido del editor ── */}
-        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px", ...(esCliente ? { pointerEvents: "none" as const } : {}) }}>
           {h.tipo === "radar" && <RadarEditor datos={datos} setDatos={setDatos} />}
           {h.tipo === "creencias" && <CreenciasInstrumentado datos={datos} setDatos={setDatos} />}
           {h.tipo === "perfil" && <ContextoInstrumentado datos={datos} setDatos={setDatos} />}
@@ -1251,8 +1298,8 @@ function DialogoSesion({
             </label>
           </div>
 
-          {/* Análisis IA */}
-          {existing && (
+          {/* Análisis IA — solo si puedeVerInterpretacion */}
+          {existing && puedeVerInterpretacion && (
             <AnalisisIACoaching
               sesionId={existing.id}
               herramientaNombre={h.nombre}
@@ -1262,6 +1309,7 @@ function DialogoSesion({
               analisisActual={(datos as Record<string, unknown>)?.analisis_ia as string ?? null}
               analisisFecha={(datos as Record<string, unknown>)?.analisis_ia_fecha as string ?? null}
               onAnalisisGenerado={(t: string, f: string) => setDatos({ ...datos, analisis_ia: t, analisis_ia_fecha: f })}
+              readOnly={esCliente}
             />
           )}
           {!existing && (
@@ -1275,19 +1323,21 @@ function DialogoSesion({
         </div>
 
         <DialogFooter className="gap-2 px-7 pb-7 pt-4 border-t border-[#E0E7FF]">
-          {existing && (
+          {existing && !esCliente && (
             <Button variant="ghost" size="sm" onClick={eliminar} className="text-red-600 mr-auto">
               <Trash2 className="w-3 h-3 mr-1" /> Eliminar
             </Button>
           )}
-          <Button variant="outline" onClick={onClose} style={{ borderColor: "#E0E7FF" }}>Cancelar</Button>
-          <Button
-            onClick={guardar}
-            disabled={saving}
-            style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)", color: "white", border: "none", boxShadow: "0 4px 14px rgba(14,165,233,0.3)" }}
-          >
-            {saving ? "Guardando…" : "💾 Guardar sesión"}
-          </Button>
+          <Button variant="outline" onClick={onClose} style={{ borderColor: "#E0E7FF" }}>{esCliente ? "Cerrar" : "Cancelar"}</Button>
+          {!esCliente && (
+            <Button
+              onClick={guardar}
+              disabled={saving}
+              style={{ background: "linear-gradient(135deg, #0EA5E9, #6366F1)", color: "white", border: "none", boxShadow: "0 4px 14px rgba(14,165,233,0.3)" }}
+            >
+              {saving ? "Guardando…" : "💾 Guardar sesión"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
