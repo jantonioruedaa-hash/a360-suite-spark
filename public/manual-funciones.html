@@ -5353,11 +5353,13 @@ function openEvalPane(){
   if(!c){toast('⚠️ Cargo no cargado');return;}
   EVAL_CARGO=c;
   document.getElementById('evalPane').style.display='block';
+  document.getElementById('evalBackdrop').style.display='block';
   document.body.style.overflow='hidden';
   populateEvalPane();
 }
 function closeEvalPane(){
   document.getElementById('evalPane').style.display='none';
+  document.getElementById('evalBackdrop').style.display='none';
   document.body.style.overflow='';
 }
 
@@ -5380,11 +5382,13 @@ function openEvalDesempPane(){
   if(!c){toast('⚠️ Cargo no cargado');return;}
   EVAL_DESEMP_CARGO=c;
   document.getElementById('evalDesempPane').style.display='block';
+  document.getElementById('evalBackdrop').style.display='block';
   document.body.style.overflow='hidden';
   populateEvdPane();
 }
 function closeEvalDesempPane(){
   document.getElementById('evalDesempPane').style.display='none';
+  document.getElementById('evalBackdrop').style.display='none';
   document.body.style.overflow='';
 }
 function resetEvdPane(){
@@ -7143,10 +7147,12 @@ renderLogoEnTodosLados();
 updateStickyTop();
 </script>
 
+<div id="evalBackdrop" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,0.42);pointer-events:none"></div>
+
 <!-- ══════════════════════════════════════════════════
      EVAL PANE — Evaluación de Competencias y PDI (dinámico · v6)
      ══════════════════════════════════════════════════ -->
-<div id="evalPane" style="display:none;position:fixed;inset:0;z-index:200;background:var(--surf);overflow-y:auto;">
+<div id="evalPane" style="display:none;position:fixed;top:0;right:0;bottom:0;left:284px;z-index:200;background:var(--surf);overflow-y:auto;">
 
   <!-- Modal de sincronización -->
   <div id="syncModal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
@@ -7349,7 +7355,7 @@ updateStickyTop();
 <!-- ═══════════════════════════════════════════════════════════
      PANEL: EVALUACIÓN DE DESEMPEÑO
      ═══════════════════════════════════════════════════════════ -->
-<div id="evalDesempPane" style="display:none;position:fixed;inset:0;z-index:201;background:var(--surf);overflow-y:auto;">
+<div id="evalDesempPane" style="display:none;position:fixed;top:0;right:0;bottom:0;left:284px;z-index:201;background:var(--surf);overflow-y:auto;">
 
   <!-- Header sticky -->
   <div class="evd-pane-header" style="position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--h-from),var(--h-to));border-bottom:2px solid var(--h-acc);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
