@@ -94,7 +94,7 @@ function LeePanel() {
               {filas.map((f) => {
                 const pct = Math.round((f.workbooksCompletos / TOTAL_SESIONES) * 100);
                 return (
-                  <Link key={f.cliente_id} to="/app/clientes/$clienteId/lee" params={{ clienteId: f.cliente_id }}
+                  <Link key={f.cliente_id} to="/app/clientes/$clienteId/lee" params={{ clienteId: f.cliente_id }} search={{ capitulo: undefined }}
                     className="flex items-center gap-3 p-2.5 rounded hover:bg-muted/50 group">
                     <div className="w-8 h-8 rounded bg-gold/15 flex items-center justify-center shrink-0">
                       <GraduationCap className="w-4 h-4 text-gold" />

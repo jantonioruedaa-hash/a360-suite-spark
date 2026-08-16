@@ -45,7 +45,6 @@ import { Route as AppClientesClienteIdCoachingResultadosRouteImport } from './ro
 import { Route as AppClientesClienteIdCoachingRouteImport } from './routes/app.clientes.$clienteId.coaching'
 import { Route as AppClientesClienteIdAnalisisIaRouteImport } from './routes/app.clientes.$clienteId.analisis-ia'
 import { Route as AppClientesClienteIdActividadesRouteImport } from './routes/app.clientes.$clienteId.actividades'
-import { Route as AppClientesClienteIdLeeCapituloRouteImport } from './routes/app.clientes.$clienteId.lee.$capitulo'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -241,12 +240,6 @@ const AppClientesClienteIdActividadesRoute =
     path: '/actividades',
     getParentRoute: () => AppClientesClienteIdRoute,
   } as any)
-const AppClientesClienteIdLeeCapituloRoute =
-  AppClientesClienteIdLeeCapituloRouteImport.update({
-    id: '/$capitulo',
-    path: '/$capitulo',
-    getParentRoute: () => AppClientesClienteIdLeeRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -279,13 +272,12 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
-  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRouteWithChildren
+  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
   '/app/clientes/$clienteId/onboarding': typeof AppClientesClienteIdOnboardingRoute
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
   '/app/clientes/$clienteId/side-historial': typeof AppClientesClienteIdSideHistorialRoute
-  '/app/clientes/$clienteId/lee/$capitulo': typeof AppClientesClienteIdLeeCapituloRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -318,13 +310,12 @@ export interface FileRoutesByTo {
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
-  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRouteWithChildren
+  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
   '/app/clientes/$clienteId/onboarding': typeof AppClientesClienteIdOnboardingRoute
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
   '/app/clientes/$clienteId/side-historial': typeof AppClientesClienteIdSideHistorialRoute
-  '/app/clientes/$clienteId/lee/$capitulo': typeof AppClientesClienteIdLeeCapituloRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -358,13 +349,12 @@ export interface FileRoutesById {
   '/app/clientes/$clienteId/contactos': typeof AppClientesClienteIdContactosRoute
   '/app/clientes/$clienteId/cotizaciones': typeof AppClientesClienteIdCotizacionesRoute
   '/app/clientes/$clienteId/empresa': typeof AppClientesClienteIdEmpresaRoute
-  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRouteWithChildren
+  '/app/clientes/$clienteId/lee': typeof AppClientesClienteIdLeeRoute
   '/app/clientes/$clienteId/onboarding': typeof AppClientesClienteIdOnboardingRoute
   '/app/clientes/$clienteId/plan': typeof AppClientesClienteIdPlanRoute
   '/app/clientes/$clienteId/resumen': typeof AppClientesClienteIdResumenRoute
   '/app/clientes/$clienteId/side': typeof AppClientesClienteIdSideRoute
   '/app/clientes/$clienteId/side-historial': typeof AppClientesClienteIdSideHistorialRoute
-  '/app/clientes/$clienteId/lee/$capitulo': typeof AppClientesClienteIdLeeCapituloRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -405,7 +395,6 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
     | '/app/clientes/$clienteId/side-historial'
-    | '/app/clientes/$clienteId/lee/$capitulo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -444,7 +433,6 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
     | '/app/clientes/$clienteId/side-historial'
-    | '/app/clientes/$clienteId/lee/$capitulo'
   id:
     | '__root__'
     | '/'
@@ -483,7 +471,6 @@ export interface FileRouteTypes {
     | '/app/clientes/$clienteId/resumen'
     | '/app/clientes/$clienteId/side'
     | '/app/clientes/$clienteId/side-historial'
-    | '/app/clientes/$clienteId/lee/$capitulo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -749,29 +736,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClienteIdActividadesRouteImport
       parentRoute: typeof AppClientesClienteIdRoute
     }
-    '/app/clientes/$clienteId/lee/$capitulo': {
-      id: '/app/clientes/$clienteId/lee/$capitulo'
-      path: '/$capitulo'
-      fullPath: '/app/clientes/$clienteId/lee/$capitulo'
-      preLoaderRoute: typeof AppClientesClienteIdLeeCapituloRouteImport
-      parentRoute: typeof AppClientesClienteIdLeeRoute
-    }
   }
 }
-
-interface AppClientesClienteIdLeeRouteChildren {
-  AppClientesClienteIdLeeCapituloRoute: typeof AppClientesClienteIdLeeCapituloRoute
-}
-
-const AppClientesClienteIdLeeRouteChildren: AppClientesClienteIdLeeRouteChildren =
-  {
-    AppClientesClienteIdLeeCapituloRoute: AppClientesClienteIdLeeCapituloRoute,
-  }
-
-const AppClientesClienteIdLeeRouteWithChildren =
-  AppClientesClienteIdLeeRoute._addFileChildren(
-    AppClientesClienteIdLeeRouteChildren,
-  )
 
 interface AppClientesClienteIdRouteChildren {
   AppClientesClienteIdActividadesRoute: typeof AppClientesClienteIdActividadesRoute
@@ -781,7 +747,7 @@ interface AppClientesClienteIdRouteChildren {
   AppClientesClienteIdContactosRoute: typeof AppClientesClienteIdContactosRoute
   AppClientesClienteIdCotizacionesRoute: typeof AppClientesClienteIdCotizacionesRoute
   AppClientesClienteIdEmpresaRoute: typeof AppClientesClienteIdEmpresaRoute
-  AppClientesClienteIdLeeRoute: typeof AppClientesClienteIdLeeRouteWithChildren
+  AppClientesClienteIdLeeRoute: typeof AppClientesClienteIdLeeRoute
   AppClientesClienteIdOnboardingRoute: typeof AppClientesClienteIdOnboardingRoute
   AppClientesClienteIdPlanRoute: typeof AppClientesClienteIdPlanRoute
   AppClientesClienteIdResumenRoute: typeof AppClientesClienteIdResumenRoute
@@ -798,7 +764,7 @@ const AppClientesClienteIdRouteChildren: AppClientesClienteIdRouteChildren = {
   AppClientesClienteIdContactosRoute: AppClientesClienteIdContactosRoute,
   AppClientesClienteIdCotizacionesRoute: AppClientesClienteIdCotizacionesRoute,
   AppClientesClienteIdEmpresaRoute: AppClientesClienteIdEmpresaRoute,
-  AppClientesClienteIdLeeRoute: AppClientesClienteIdLeeRouteWithChildren,
+  AppClientesClienteIdLeeRoute: AppClientesClienteIdLeeRoute,
   AppClientesClienteIdOnboardingRoute: AppClientesClienteIdOnboardingRoute,
   AppClientesClienteIdPlanRoute: AppClientesClienteIdPlanRoute,
   AppClientesClienteIdResumenRoute: AppClientesClienteIdResumenRoute,

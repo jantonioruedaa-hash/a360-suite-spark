@@ -1,6 +1,5 @@
-import { createFileRoute, Outlet, useChildMatches, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +27,9 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/clientes/$clienteId/lee")({
   component: LeeWorkspace,
+  validateSearch: (search: Record<string, unknown>) => ({
+    capitulo: typeof search.capitulo === "string" ? Number(search.capitulo) : undefined,
+  }),
 });
 
 interface Programa {
@@ -56,15 +58,22 @@ function LeeWorkspace() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/lee" });
   const navigate = useNavigate();
   const { role } = useAuth();
-  const childMatches = useChildMatches();
   const esCliente = role === "cliente" || role === "participante";
   const [accesoInterpretacion, setAccesoInterpretacion] = useState(false);
+  const { capitulo: capituloSearch } = Route.useSearch();
+  const [selectedChapter, setSelectedChapter] = useState<number | null>(
+    capituloSearch != null && !isNaN(capituloSearch) ? capituloSearch : null,
+  );
 
-  // Capítulo activo desde URL (child route match)
-  const capMatch = childMatches.find((m) => m.routeId === "/app/clientes/$clienteId/lee/$capitulo");
-  const activeChapter = capMatch
-    ? parseInt((capMatch.params as { capitulo: string }).capitulo, 10)
-    : null;
+  const selectChapter = (chapter: number | null) => {
+    setSelectedChapter(chapter);
+    void navigate({
+      to: "/app/clientes/$clienteId/lee",
+      params: { clienteId },
+      search: { capitulo: chapter ?? undefined },
+      replace: true,
+    });
+  };
 
   // Vista toggle con localStorage
   const [vista, setVista] = useState<"facilitador" | "participante">(() => {
@@ -133,11 +142,6 @@ function LeeWorkspace() {
     cargar();
   };
 
-  const cerrarOverlay = useCallback(
-    () => navigate({ to: "/app/clientes/$clienteId/lee", params: { clienteId } }),
-    [clienteId, navigate],
-  );
-
   if (loading) return <div className="text-muted-foreground">Cargando programa…</div>;
 
   if (!programa) {
@@ -168,275 +172,157 @@ function LeeWorkspace() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      {/* Toggle de vista — solo visible para consultores o clientes con acceso_interpretacion */}
-      {puedeVerInterpretacion && (
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant={vista === "facilitador" ? "default" : "outline"}
-            onClick={() => cambiarVista("facilitador")}
-            className={vista === "facilitador" ? "bg-navy hover:bg-navy/90" : ""}
-          >
-            🗂 Vista facilitador
-          </Button>
-          <Button
-            size="sm"
-            variant={vista === "participante" ? "default" : "outline"}
-            onClick={() => cambiarVista("participante")}
-            className={vista === "participante" ? "bg-navy hover:bg-navy/90" : ""}
-          >
-            👤 Vista participante
-          </Button>
-        </div>
-      )}
-
-      {/* ── Vista facilitador (contenido original intacto) ── */}
-      {vista === "facilitador" && (
+      {selectedChapter !== null ? (
+        <ChapterDetailInline
+          chapter={selectedChapter}
+          programa={programa}
+          onClose={() => selectChapter(null)}
+        />
+      ) : (
         <>
-          <div className="flex items-start justify-between flex-wrap gap-3">
-            <div>
-              <h2 className="font-display text-2xl text-navy">Programa LEE — Workspace</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {LEE_OVERVIEW.duracionTotal} · {LEE_OVERVIEW.formato}
-              </p>
+          {/* Toggle de vista — solo visible para consultores o clientes con acceso_interpretacion */}
+          {puedeVerInterpretacion && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={vista === "facilitador" ? "default" : "outline"}
+                onClick={() => cambiarVista("facilitador")}
+                className={vista === "facilitador" ? "bg-navy hover:bg-navy/90" : ""}
+              >
+                🗂 Vista facilitador
+              </Button>
+              <Button
+                size="sm"
+                variant={vista === "participante" ? "default" : "outline"}
+                onClick={() => cambiarVista("participante")}
+                className={vista === "participante" ? "bg-navy hover:bg-navy/90" : ""}
+              >
+                👤 Vista participante
+              </Button>
             </div>
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Progreso global</div>
-              <div className="font-display text-2xl text-navy">{pctGlobal}%</div>
-              <div className="text-xs">{wbCompletos} / {TOTAL_SESIONES} sesiones</div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Card><CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground tracking-wider">Capítulos desbloqueados</div>
-              <div className="font-display text-2xl text-navy">{desbloqueados.size}/{LEE_CAPITULOS.length}</div>
-              <Progress value={(desbloqueados.size / LEE_CAPITULOS.length) * 100} className="h-1.5 mt-2" />
-            </CardContent></Card>
-            <Card><CardContent className="p-4">
-              <div className="text-[10px] uppercase text-muted-foreground tracking-wider">Sesiones con workbook</div>
-              <div className="font-display text-2xl text-navy">{wbCompletos}/{TOTAL_SESIONES}</div>
-              <Progress value={pctGlobal} className="h-1.5 mt-2" />
-            </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <Award className="w-8 h-8 text-gold" />
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground tracking-wider">Certificación</div>
-                <div className="text-sm font-medium">{pctGlobal >= 80 ? "Disponible 🎉" : `Faltan ${Math.max(0, Math.ceil(TOTAL_SESIONES * 0.8) - wbCompletos)} workbooks`}</div>
-              </div>
-            </CardContent></Card>
-          </div>
-
-          <div className="space-y-3">
-            {LEE_CAPITULOS.map((cap) => {
-              const open = desbloqueados.has(cap.numero);
-              const wbsCap = workbooks.filter((w) => w.capitulo_numero === cap.numero);
-              const wbCompletosCap = wbsCap.filter((w) => w.completado).length;
-              return (
-                <Card key={cap.numero} className={open ? "" : "opacity-60"}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {open ? <Unlock className="w-4 h-4 text-emerald-600" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
-                        <span className="text-[10px] font-mono text-gold font-bold">CAP {String(cap.numero).padStart(2, "0")}</span>
-                        <CardTitle className="text-sm">{cap.titulo}</CardTitle>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">{wbCompletosCap}/{cap.sesiones.length} sesiones</Badge>
-                        {!open && !esCliente && (
-                          <Button size="sm" variant="outline" onClick={() => desbloquear(cap.numero)}>
-                            <Unlock className="w-3 h-3 mr-1" /> Desbloquear
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-xs text-muted-foreground italic">{cap.objetivo}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {cap.pills.map((p, i) => (
-                        <Badge key={i} variant="outline" className="text-[10px] bg-navy/5">{p}</Badge>
-                      ))}
-                    </div>
-                    {open && (
-                      <ContenidoCapitulo
-                        cap={cap}
-                        workbooksDelCap={wbsCap}
-                        onAbrirWorkbook={(s) => setEditing({ capitulo: cap.numero, sesion: s })}
-                        onAbrirIA={(s) => setIaOpen({ capitulo: cap.numero, sesion: s })}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {editing && (
-            <WorkbookDialog
-              programaId={programa.id}
-              capitulo={editing.capitulo}
-              sesion={editing.sesion}
-              workbook={workbooks.find((w) => w.capitulo_numero === editing.capitulo && w.sesion_numero === editing.sesion) ?? null}
-              onClose={() => setEditing(null)}
-              onSaved={() => { setEditing(null); cargar(); }}
-            />
           )}
 
-          {iaOpen && (
-            <AnalisisIADialog
-              capitulo={iaOpen.capitulo}
-              sesion={iaOpen.sesion}
-              workbook={workbooks.find((w) => w.capitulo_numero === iaOpen.capitulo && w.sesion_numero === iaOpen.sesion) ?? null}
-              onClose={() => setIaOpen(null)}
+          {/* ── Vista facilitador (contenido original intacto) ── */}
+          {vista === "facilitador" && (
+            <>
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div>
+                  <h2 className="font-display text-2xl text-navy">Programa LEE — Workspace</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {LEE_OVERVIEW.duracionTotal} · {LEE_OVERVIEW.formato}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-muted-foreground">Progreso global</div>
+                  <div className="font-display text-2xl text-navy">{pctGlobal}%</div>
+                  <div className="text-xs">{wbCompletos} / {TOTAL_SESIONES} sesiones</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Card><CardContent className="p-4">
+                  <div className="text-[10px] uppercase text-muted-foreground tracking-wider">Capítulos desbloqueados</div>
+                  <div className="font-display text-2xl text-navy">{desbloqueados.size}/{LEE_CAPITULOS.length}</div>
+                  <Progress value={(desbloqueados.size / LEE_CAPITULOS.length) * 100} className="h-1.5 mt-2" />
+                </CardContent></Card>
+                <Card><CardContent className="p-4">
+                  <div className="text-[10px] uppercase text-muted-foreground tracking-wider">Sesiones con workbook</div>
+                  <div className="font-display text-2xl text-navy">{wbCompletos}/{TOTAL_SESIONES}</div>
+                  <Progress value={pctGlobal} className="h-1.5 mt-2" />
+                </CardContent></Card>
+                <Card><CardContent className="p-4 flex items-center gap-3">
+                  <Award className="w-8 h-8 text-gold" />
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground tracking-wider">Certificación</div>
+                    <div className="text-sm font-medium">{pctGlobal >= 80 ? "Disponible 🎉" : `Faltan ${Math.max(0, Math.ceil(TOTAL_SESIONES * 0.8) - wbCompletos)} workbooks`}</div>
+                  </div>
+                </CardContent></Card>
+              </div>
+
+              <div className="space-y-3">
+                {LEE_CAPITULOS.map((cap) => {
+                  const open = desbloqueados.has(cap.numero);
+                  const wbsCap = workbooks.filter((w) => w.capitulo_numero === cap.numero);
+                  const wbCompletosCap = wbsCap.filter((w) => w.completado).length;
+                  return (
+                    <Card key={cap.numero} className={open ? "" : "opacity-60"}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between gap-3 flex-wrap">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {open ? <Unlock className="w-4 h-4 text-emerald-600" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
+                            <span className="text-[10px] font-mono text-gold font-bold">CAP {String(cap.numero).padStart(2, "0")}</span>
+                            <CardTitle className="text-sm">{cap.titulo}</CardTitle>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px]">{wbCompletosCap}/{cap.sesiones.length} sesiones</Badge>
+                            {!open && !esCliente && (
+                              <Button size="sm" variant="outline" onClick={() => desbloquear(cap.numero)}>
+                                <Unlock className="w-3 h-3 mr-1" /> Desbloquear
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <p className="text-xs text-muted-foreground italic">{cap.objetivo}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {cap.pills.map((p, i) => (
+                            <Badge key={i} variant="outline" className="text-[10px] bg-navy/5">{p}</Badge>
+                          ))}
+                        </div>
+                        {open && (
+                          <ContenidoCapitulo
+                            cap={cap}
+                            workbooksDelCap={wbsCap}
+                            onAbrirWorkbook={(s) => setEditing({ capitulo: cap.numero, sesion: s })}
+                            onAbrirIA={(s) => setIaOpen({ capitulo: cap.numero, sesion: s })}
+                          />
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {editing && (
+                <WorkbookDialog
+                  programaId={programa.id}
+                  capitulo={editing.capitulo}
+                  sesion={editing.sesion}
+                  workbook={workbooks.find((w) => w.capitulo_numero === editing.capitulo && w.sesion_numero === editing.sesion) ?? null}
+                  onClose={() => setEditing(null)}
+                  onSaved={() => { setEditing(null); cargar(); }}
+                />
+              )}
+
+              {iaOpen && (
+                <AnalisisIADialog
+                  capitulo={iaOpen.capitulo}
+                  sesion={iaOpen.sesion}
+                  workbook={workbooks.find((w) => w.capitulo_numero === iaOpen.capitulo && w.sesion_numero === iaOpen.sesion) ?? null}
+                  onClose={() => setIaOpen(null)}
+                />
+              )}
+            </>
+          )}
+
+          {/* ── Vista participante ── */}
+          {vista === "participante" && (
+            <ChapterCardsView
+              workbooks={workbooks}
+              desbloqueados={desbloqueados}
+              onSelectChapter={selectChapter}
             />
           )}
         </>
       )}
-
-      {/* ── Vista participante ── */}
-      {vista === "participante" && (
-        <ChapterCardsView
-          programa={programa}
-          workbooks={workbooks}
-          desbloqueados={desbloqueados}
-          clienteId={clienteId}
-        />
-      )}
-
-      {/* ── Overlay: cubre header + sidebar con position:fixed ── */}
-      {activeChapter !== null && !isNaN(activeChapter) && (
-        <WorkbookOverlay
-          chapter={activeChapter}
-          programa={programa}
-          onClose={cerrarOverlay}
-        />
-      )}
-
-      {/* Stub silencioso — solo para que el router reconozca /lee/$capitulo */}
-      <Outlet />
     </div>
   );
 }
 
-// ── ChapterCardsView ──────────────────────────────────────────────────────────
+// ── ChapterDetailInline ───────────────────────────────────────────────────────
 
-type CapStatus = "bloqueado" | "completado" | "en-progreso" | "no-iniciado";
-
-function getCapStatus(cap: CapituloLEE, workbooks: Workbook[], desbloqueados: Set<number>): CapStatus {
-  if (!desbloqueados.has(cap.numero)) return "bloqueado";
-  const wbsCap = workbooks.filter((w) => w.capitulo_numero === cap.numero);
-  const wbCompletosCap = wbsCap.filter((w) => w.completado).length;
-  if (wbCompletosCap === 0) return "no-iniciado";
-  if (wbCompletosCap >= cap.sesiones.length) return "completado";
-  return "en-progreso";
-}
-
-const STATUS_BADGE: Record<CapStatus, { variant: "success" | "warning" | "muted"; label: string; icon: string }> = {
-  completado:    { variant: "success", label: "Completado",   icon: "✓" },
-  "en-progreso": { variant: "warning", label: "En progreso",  icon: "⏳" },
-  "no-iniciado": { variant: "muted",   label: "No iniciado",  icon: "○" },
-  bloqueado:     { variant: "muted",   label: "Bloqueado",    icon: "🔒" },
-};
-
-const ABRIR_LABEL: Record<CapStatus, string> = {
-  completado:    "Revisar workbook",
-  "en-progreso": "Continuar workbook ▶",
-  "no-iniciado": "Abrir workbook ▶",
-  bloqueado:     "",
-};
-
-function ChapterCardsView({
-  programa,
-  workbooks,
-  desbloqueados,
-  clienteId,
-}: {
-  programa: Programa;
-  workbooks: Workbook[];
-  desbloqueados: Set<number>;
-  clienteId: string;
-}) {
-  const navigate = useNavigate();
-  const wbCompletos = workbooks.filter((w) => w.completado).length;
-  const pctGlobal = Math.round((wbCompletos / TOTAL_SESIONES) * 100);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="font-display text-2xl text-navy">Programa LEE</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {LEE_OVERVIEW.duracionTotal} · {LEE_OVERVIEW.formato}
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-xs text-muted-foreground">Progreso global</div>
-          <div className="font-display text-2xl text-navy">{pctGlobal}%</div>
-          <div className="text-xs">{wbCompletos} / {TOTAL_SESIONES} sesiones</div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {LEE_CAPITULOS.map((cap) => {
-          const status = getCapStatus(cap, workbooks, desbloqueados);
-          const bloqueado = status === "bloqueado";
-          const badge = STATUS_BADGE[status];
-
-          return (
-            <div
-              key={cap.numero}
-              className={`border rounded-lg p-4 flex flex-col gap-3 bg-white transition-shadow${bloqueado ? " opacity-50" : " hover:shadow-md cursor-pointer"}`}
-              style={{ borderColor: bloqueado ? "#e2e8f0" : "#c9a84c40" }}
-              onClick={
-                !bloqueado
-                  ? () => navigate({
-                      to: "/app/clientes/$clienteId/lee/$capitulo",
-                      params: { clienteId, capitulo: String(cap.numero) },
-                    })
-                  : undefined
-              }
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs font-bold text-gold">
-                  CAP {String(cap.numero).padStart(2, "0")}
-                </span>
-                <StatusBadge variant={badge.variant} label={badge.label} icon={badge.icon} />
-              </div>
-              <div className="font-display text-sm font-semibold text-navy leading-snug flex-1">
-                {cap.titulo}
-              </div>
-              <p className="text-xs text-muted-foreground line-clamp-2">{cap.objetivo}</p>
-              {!bloqueado ? (
-                <Button
-                  size="sm"
-                  className="w-full bg-navy hover:bg-navy/90 text-white text-xs mt-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate({
-                      to: "/app/clientes/$clienteId/lee/$capitulo",
-                      params: { clienteId, capitulo: String(cap.numero) },
-                    });
-                  }}
-                >
-                  {ABRIR_LABEL[status]}
-                </Button>
-              ) : (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-auto">
-                  <Lock className="w-3 h-3" /> No disponible aún
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ── WorkbookOverlay ───────────────────────────────────────────────────────────
-
-function WorkbookOverlay({
+function ChapterDetailInline({
   chapter,
   programa,
   onClose,
@@ -509,84 +395,254 @@ function WorkbookOverlay({
     return () => window.removeEventListener("message", handler);
   }, [chapter, onClose]);
 
-  return createPortal(
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        display: "flex", flexDirection: "column",
-        background: "#0f1b3d",
-      }}
-    >
-      {/* Franja superior */}
-      <div
-        style={{
-          height: "44px", flexShrink: 0,
-          background: "#0f1b3d", borderBottom: "3px solid #c9a84c",
-          display: "flex", alignItems: "center",
-          justifyContent: "space-between", padding: "0 16px",
-        }}
-      >
-        <span style={{ color: "#c9a84c", fontWeight: 700, fontSize: "13px" }}>
+  return (
+    <div className="space-y-4">
+      {/* Header bar */}
+      <div className="flex items-center justify-between bg-navy rounded-lg px-4 py-2.5">
+        <span className="text-gold font-bold text-sm">
           LEE · Capítulo {String(chapter).padStart(2, "0")}
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div className="flex items-center gap-3">
           {(saving || ultimoGuardado) && (
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+            <span className="flex items-center gap-1.5 text-white/60 text-xs">
               {saving
-                ? <><Save style={{ width: "12px", height: "12px" }} /> Guardando…</>
-                : <><Check style={{ width: "12px", height: "12px", color: "#4ade80" }} /> Guardado {ultimoGuardado!.toLocaleTimeString()}</>
+                ? <><Save className="w-3 h-3" /> Guardando…</>
+                : <><Check className="w-3 h-3 text-green-400" /> Guardado {ultimoGuardado!.toLocaleTimeString()}</>
               }
             </span>
           )}
-          <button
+          <Button
+            size="sm"
+            variant="outline"
             onClick={onClose}
-            style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              color: "white", fontSize: "13px", fontWeight: 500,
-              background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.25)",
-              borderRadius: "4px", padding: "5px 14px", cursor: "pointer",
-            }}
+            className="text-white border-white/30 bg-white/10 hover:bg-white/20 text-xs"
           >
-            <X style={{ width: "14px", height: "14px" }} /> Volver a capítulos
-          </button>
+            <X className="w-3 h-3 mr-1" /> Volver a capítulos
+          </Button>
         </div>
       </div>
 
       {/* Contenido */}
       {bloqueado ? (
-        <div style={{
-          flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-          background: "#f5f0e8", gap: "12px",
-        }}>
-          <Lock style={{ width: "32px", height: "32px", color: "#6b7280" }} />
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#0f1b3d" }}>
-            Capítulo no disponible
-          </div>
-          <p style={{ fontSize: "14px", color: "#6b7280" }}>
-            Este capítulo aún no está desbloqueado para este cliente.
-          </p>
-          <button
-            onClick={onClose}
-            style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              color: "#0f1b3d", textDecoration: "underline", fontSize: "13px",
-              background: "none", border: "none", cursor: "pointer",
-            }}
-          >
-            <ArrowLeft style={{ width: "14px", height: "14px" }} /> Volver a capítulos
-          </button>
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+          <Lock className="w-8 h-8 text-muted-foreground" />
+          <div className="font-display text-xl text-navy">Capítulo no disponible</div>
+          <p className="text-sm text-muted-foreground">Este capítulo aún no está desbloqueado para este cliente.</p>
+          <Button variant="outline" onClick={onClose}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Volver a capítulos
+          </Button>
         </div>
       ) : (
         <iframe
           src={iframeUrl}
           title={`LEE Capítulo ${chapter}`}
-          style={{ flex: 1, border: "none", width: "100%" }}
+          style={{ height: "calc(100vh - 180px)", width: "100%", border: "none" }}
           allow="fullscreen"
         />
       )}
-    </div>,
-    document.body,
+    </div>
+  );
+}
+
+// ── ChapterCardsView ──────────────────────────────────────────────────────────
+
+type CapStatus = "bloqueado" | "completado" | "en-progreso" | "no-iniciado";
+
+function getCapStatus(cap: CapituloLEE, workbooks: Workbook[], desbloqueados: Set<number>): CapStatus {
+  if (!desbloqueados.has(cap.numero)) return "bloqueado";
+  const wbsCap = workbooks.filter((w) => w.capitulo_numero === cap.numero);
+  const wbCompletosCap = wbsCap.filter((w) => w.completado).length;
+  if (wbCompletosCap === 0) return "no-iniciado";
+  if (wbCompletosCap >= cap.sesiones.length) return "completado";
+  return "en-progreso";
+}
+
+const STATUS_BADGE: Record<CapStatus, { variant: "success" | "warning" | "muted"; label: string; icon: string }> = {
+  completado:    { variant: "success", label: "Completado",   icon: "✓" },
+  "en-progreso": { variant: "warning", label: "En progreso",  icon: "⏳" },
+  "no-iniciado": { variant: "muted",   label: "No iniciado",  icon: "○" },
+  bloqueado:     { variant: "muted",   label: "Bloqueado",    icon: "🔒" },
+};
+
+const ABRIR_LABEL: Record<CapStatus, string> = {
+  completado:    "Revisar workbook",
+  "en-progreso": "Continuar workbook ▶",
+  "no-iniciado": "Abrir workbook ▶",
+  bloqueado:     "",
+};
+
+function ChapterCardsView({
+  workbooks,
+  desbloqueados,
+  onSelectChapter,
+}: {
+  workbooks: Workbook[];
+  desbloqueados: Set<number>;
+  onSelectChapter: (chapter: number) => void;
+}) {
+  const [tab, setTab] = useState<"capitulos" | "progreso">("capitulos");
+  const wbCompletos = workbooks.filter((w) => w.completado).length;
+  const pctGlobal = Math.round((wbCompletos / TOTAL_SESIONES) * 100);
+  const nextChapter = LEE_CAPITULOS.find((cap) => {
+    const status = getCapStatus(cap, workbooks, desbloqueados);
+    return status === "en-progreso" || status === "no-iniciado";
+  });
+
+  return (
+    <div className="space-y-5">
+      {/* ── Hero portada ── */}
+      <div className="bg-navy rounded-xl p-6 text-white">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <div className="text-xs font-mono text-gold uppercase tracking-wider">Programa</div>
+            <h2 className="font-display text-3xl leading-tight">LEE</h2>
+            <p className="text-white/60 text-sm">{LEE_OVERVIEW.duracionTotal} · {LEE_OVERVIEW.formato}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="font-display text-4xl text-gold">{pctGlobal}%</div>
+            <div className="text-xs text-white/60 mt-0.5">{wbCompletos} / {TOTAL_SESIONES} sesiones</div>
+          </div>
+        </div>
+        <Progress value={pctGlobal} className="h-1.5 mt-4 bg-white/20 [&>div]:bg-gold" />
+        <div className="flex flex-wrap gap-3 mt-4">
+          {nextChapter ? (
+            <Button
+              onClick={() => onSelectChapter(nextChapter.numero)}
+              className="bg-gold hover:bg-gold/90 text-navy font-semibold text-sm"
+            >
+              Continuar → Capítulo {String(nextChapter.numero).padStart(2, "0")}
+            </Button>
+          ) : wbCompletos === TOTAL_SESIONES ? (
+            <div className="flex items-center gap-2 text-sm text-green-400 font-medium">
+              <Check className="w-4 h-4" /> Programa completado 🎉
+            </div>
+          ) : null}
+          <Button
+            variant="outline"
+            onClick={() => setTab("capitulos")}
+            className="text-white border-white/30 bg-white/10 hover:bg-white/20 text-sm"
+          >
+            Ir a sesión específica →
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
+      <div className="flex border-b">
+        {(["capitulos", "progreso"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              tab === t
+                ? "border-navy text-navy"
+                : "border-transparent text-muted-foreground hover:text-navy"
+            }`}
+          >
+            {t === "capitulos" ? "Capítulos" : "Mi progreso"}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Tab: Capítulos ── */}
+      {tab === "capitulos" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {LEE_CAPITULOS.map((cap) => {
+            const status = getCapStatus(cap, workbooks, desbloqueados);
+            const bloqueado = status === "bloqueado";
+            const badge = STATUS_BADGE[status];
+            return (
+              <div
+                key={cap.numero}
+                className={`border rounded-lg p-4 flex flex-col gap-3 bg-white transition-shadow${bloqueado ? " opacity-50" : " hover:shadow-md cursor-pointer"}`}
+                style={{ borderColor: bloqueado ? "#e2e8f0" : "#c9a84c40" }}
+                onClick={!bloqueado ? () => onSelectChapter(cap.numero) : undefined}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-bold text-gold">
+                    CAP {String(cap.numero).padStart(2, "0")}
+                  </span>
+                  <StatusBadge variant={badge.variant} label={badge.label} icon={badge.icon} />
+                </div>
+                <div className="font-display text-sm font-semibold text-navy leading-snug flex-1">
+                  {cap.titulo}
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2">{cap.objetivo}</p>
+                {!bloqueado ? (
+                  <Button
+                    size="sm"
+                    className="w-full bg-navy hover:bg-navy/90 text-white text-xs mt-auto"
+                    onClick={(e) => { e.stopPropagation(); onSelectChapter(cap.numero); }}
+                  >
+                    {ABRIR_LABEL[status]}
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-auto">
+                    <Lock className="w-3 h-3" /> No disponible aún
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Tab: Mi progreso ── */}
+      {tab === "progreso" && (
+        <div className="space-y-3">
+          {LEE_CAPITULOS.map((cap) => {
+            const status = getCapStatus(cap, workbooks, desbloqueados);
+            const bloqueado = status === "bloqueado";
+            const wbsCap = workbooks.filter((w) => w.capitulo_numero === cap.numero);
+            const completados = wbsCap.filter((w) => w.completado).length;
+            const total = cap.sesiones.length;
+            const pct = total > 0 ? Math.round((completados / total) * 100) : 0;
+            const badge = STATUS_BADGE[status];
+            return (
+              <div
+                key={cap.numero}
+                className={`border rounded-lg p-4 space-y-3 bg-white${bloqueado ? " opacity-50" : " hover:shadow-sm cursor-pointer"}`}
+                onClick={!bloqueado ? () => onSelectChapter(cap.numero) : undefined}
+              >
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-mono text-xs font-bold text-gold shrink-0">
+                      CAP {String(cap.numero).padStart(2, "0")}
+                    </span>
+                    <span className="text-sm font-medium text-navy truncate">{cap.titulo}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs text-muted-foreground">{completados}/{total} sesiones</span>
+                    <StatusBadge variant={badge.variant} label={badge.label} icon={badge.icon} />
+                  </div>
+                </div>
+                <Progress value={pct} className="h-1.5" />
+                <div className="flex gap-1 flex-wrap">
+                  {cap.sesiones.map((s) => {
+                    const wb = wbsCap.find((w) => w.sesion_numero === s.numero);
+                    return (
+                      <div
+                        key={s.numero}
+                        title={`Sesión ${s.numero}: ${s.titulo}`}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium ${
+                          wb?.completado
+                            ? "bg-emerald-100 text-emerald-700"
+                            : bloqueado
+                            ? "bg-muted/50 text-muted-foreground/50"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {s.numero}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
