@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Check, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
@@ -375,20 +374,7 @@ function ManualFuncionesViewer() {
     return () => window.removeEventListener("keydown", onKey);
   }, [handleBack]);
 
-  // Entitlement gates (clients only)
-  if (modEnabled === null) return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
-      <Loader2 style={{ width: "24px", height: "24px", color: "#94A3B8" }} className="animate-spin" />
-    </div>
-  );
-  if (modEnabled === false) return <ModuloNoIncluido />;
-
-  // Show hero for clients until they open the editor
-  if (esCliente && !editorAbierto) {
-    return <ClienteManualHero clienteId={clienteId} onAbrir={() => setEditorAbierto(true)} />;
-  }
-
-  // ── Bridge ──────────────────────────────────────────────────────────────────
+  // ── Bridge ── (moved before conditional returns to comply with Rules of Hooks)
   useEffect(() => {
     const handler = async (e: MessageEvent) => {
       // Validación 1: origin
@@ -503,16 +489,27 @@ function ManualFuncionesViewer() {
     return () => window.removeEventListener("message", handler);
   }, [clienteId]);
 
-  return createPortal(
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 9999,
-      display: "flex", flexDirection: "column",
-      background: "#0C4A6E",
-    }}>
+  // ── Entitlement gates (clients only) ──────────────────────────────────────
+  if (modEnabled === null) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
+      <Loader2 style={{ width: "24px", height: "24px", color: "#94A3B8" }} className="animate-spin" />
+    </div>
+  );
+  if (modEnabled === false) return <ModuloNoIncluido />;
+
+  // Show hero for clients until they open the editor
+  if (esCliente && !editorAbierto) {
+    return <ClienteManualHero clienteId={clienteId} onAbrir={() => setEditorAbierto(true)} />;
+  }
+
+  // ── Editor inline (sidebar siempre visible) ────────────────────────────────
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* Franja superior */}
       <div style={{
         height: "44px", flexShrink: 0,
         background: "#0C4A6E", borderBottom: "3px solid #0EA5E9",
+        borderRadius: "8px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 16px",
       }}>
@@ -547,10 +544,9 @@ function ManualFuncionesViewer() {
         ref={iframeRef}
         src={`/manual-funciones.html?clienteId=${clienteId}`}
         title="Manual de Funciones"
-        style={{ flex: 1, border: "none", width: "100%" }}
+        style={{ height: "calc(100vh - 180px)", width: "100%", border: "none", borderRadius: "8px" }}
         allow="fullscreen"
       />
-    </div>,
-    document.body,
+    </div>
   );
 }

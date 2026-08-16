@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import {
   ArrowRight, Plus, FileText,
   AlertTriangle, CheckCircle2, BarChart3, Target, Rocket, Users,
@@ -65,23 +66,38 @@ const OUTCOMES = [
 
 // ── Component ──────────────────────────────────────────────────────────────────
 function ManualFuncionesPanel() {
+  const { user } = useAuth();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [cargos, setCargos] = useState<CargoSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    Promise.all([
+    // Wait for auth session to be ready before querying — prevents JWT-stale race condition
+    if (!user) return;
+
+    setLoadError(false);
+    Promise.allSettled([
       supabase.from("clientes").select("id,nombre_empresa").order("nombre_empresa"),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase as any).from("manual_funciones_cargos").select("cliente_id,estado,area"),
-    ]).then(([{ data: cl }, { data: ca }]) => {
-      setClientes((cl ?? []) as Cliente[]);
-      setCargos((ca ?? []) as CargoSummary[]);
+    ]).then(([clResult, caResult]) => {
+      const cl = clResult.status === "fulfilled" ? clResult.value.data : null;
+      const ca = caResult.status === "fulfilled" ? caResult.value.data : null;
+      if (cl === null && ca === null) {
+        setLoadError(true);
+      } else {
+        setClientes((cl ?? []) as Cliente[]);
+        setCargos((ca ?? []) as CargoSummary[]);
+      }
+    }).finally(() => {
       setLoading(false);
     });
+
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
-  }, []);
+  }, [user]);
 
   const data = clientes.map((c) => {
     const myCargos = cargos.filter((x) => x.cliente_id === c.id);
@@ -239,6 +255,18 @@ function ManualFuncionesPanel() {
       {/* ── EMPRESAS ── */}
       {loading ? (
         <p style={{ color: "#64748B", fontSize: "14px" }}>Cargando empresas…</p>
+      ) : loadError ? (
+        <div style={{ background: "#FFF5F5", border: "1.5px solid #FCA5A5", borderRadius: "12px", padding: "24px 28px", display: "flex", alignItems: "center", gap: "14px" }}>
+          <AlertTriangle style={{ width: "20px", height: "20px", color: "#DC2626", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: 700, color: "#991B1B", marginBottom: "4px" }}>
+              No se pudo cargar la lista de clientes
+            </div>
+            <div style={{ fontSize: "13px", color: "#64748B" }}>
+              Error de conexión o sesión expirada. Recarga la página para intentar de nuevo.
+            </div>
+          </div>
+        </div>
       ) : clientes.length === 0 ? (
         <div style={{ textAlign: "center", padding: "56px 24px", background: "white", borderRadius: "16px", border: "1.5px dashed #E0E7FF" }}>
           <FileText style={{ width: "40px", height: "40px", color: "#CBD5E1", margin: "0 auto 16px" }} />
