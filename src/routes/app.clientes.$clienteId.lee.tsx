@@ -446,6 +446,7 @@ function WorkbookOverlay({
   onClose: () => void;
 }) {
   const [saving, setSaving] = useState(false);
+  const [ultimoGuardado, setUltimoGuardado] = useState<Date | null>(null);
   const programaIdRef = useRef<string>(programa.id);
   useEffect(() => { programaIdRef.current = programa.id; }, [programa.id]);
 
@@ -491,7 +492,7 @@ function WorkbookOverlay({
         setSaving(true);
         try {
           await guardarWorkbookHtml(pid, chapter, msg.payload);
-          toast.success("Progreso guardado");
+          setUltimoGuardado(new Date());
         } catch (err) {
           toast.error(err instanceof Error ? err.message : "Error al guardar");
         } finally {
@@ -529,9 +530,12 @@ function WorkbookOverlay({
           LEE · Capítulo {String(chapter).padStart(2, "0")}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {saving && (
+          {(saving || ultimoGuardado) && (
             <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
-              <Save style={{ width: "12px", height: "12px" }} /> Guardando…
+              {saving
+                ? <><Save style={{ width: "12px", height: "12px" }} /> Guardando…</>
+                : <><Check style={{ width: "12px", height: "12px", color: "#4ade80" }} /> Guardado {ultimoGuardado!.toLocaleTimeString()}</>
+              }
             </span>
           )}
           <button
@@ -756,6 +760,46 @@ function WorkbookDialog({
   );
   const [completado, setCompletado] = useState(workbook?.completado ?? false);
   const [saving, setSaving] = useState(false);
+  const [autoestado, setAutoestado] = useState<"idle" | "guardando" | "guardado" | "error">("idle");
+  const [wbUltimoGuardado, setWbUltimoGuardado] = useState<Date | null>(null);
+  const ultimaSerie = useRef<string>("");
+
+  const guardarSilencioso = useCallback(async (forzar = false) => {
+    if (!workbook) return;
+    const serial = JSON.stringify({ respuestas, completado });
+    if (!forzar && serial === ultimaSerie.current) return;
+    setAutoestado("guardando");
+    try {
+      const payload = { ...respuestas, __id: sesionKey(capitulo, sesion) };
+      const { error } = await supabase.from("lee_workbooks")
+        .update({ respuestas: payload, completado })
+        .eq("id", workbook.id);
+      if (error) throw error;
+      ultimaSerie.current = serial;
+      setWbUltimoGuardado(new Date());
+      setAutoestado("guardado");
+      setTimeout(() => setAutoestado((s) => s === "guardado" ? "idle" : s), 2000);
+    } catch {
+      setAutoestado("error");
+    }
+  }, [workbook, respuestas, completado, capitulo, sesion]);
+
+  useEffect(() => {
+    if (!workbook) return;
+    const t = setTimeout(() => { void guardarSilencioso(); }, 2000);
+    return () => clearTimeout(t);
+  }, [guardarSilencioso, workbook]);
+
+  useEffect(() => {
+    if (!workbook) return;
+    const i = setInterval(() => { void guardarSilencioso(); }, 30000);
+    return () => clearInterval(i);
+  }, [guardarSilencioso, workbook]);
+
+  const handleClose = useCallback(async () => {
+    await guardarSilencioso(true);
+    onClose();
+  }, [guardarSilencioso, onClose]);
 
   if (!cap || !ses) return null;
 
@@ -811,7 +855,7 @@ function WorkbookDialog({
   };
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog open onOpenChange={(o) => { if (!o) void handleClose(); }}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -872,7 +916,16 @@ function WorkbookDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          {workbook && (
+            <div className="text-xs flex items-center gap-1.5 text-muted-foreground mr-auto">
+              {autoestado === "guardando" && <><Save className="w-3 h-3 animate-pulse" /> Guardando…</>}
+              {autoestado === "guardado" && <><Check className="w-3 h-3 text-green-600" /> Guardado</>}
+              {autoestado === "error" && <span className="text-red-600">Error al guardar</span>}
+              {autoestado === "idle" && wbUltimoGuardado && <>Último guardado: {wbUltimoGuardado.toLocaleTimeString()}</>}
+              {autoestado === "idle" && !wbUltimoGuardado && <>Autosave activo</>}
+            </div>
+          )}
+          <Button variant="outline" onClick={() => void handleClose()}>Cancelar</Button>
           <Button onClick={guardar} disabled={saving} className="bg-navy hover:bg-navy/90">
             {saving ? "Guardando…" : "Guardar workbook"}
           </Button>
