@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Sparkles } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   ejesSugeridos, objetivosBSCSugeridos, estrategiasSugeridas, planOperativoSugerido,
   type SectorKey, type EjeEstrategico, type ObjetivoBSC, type EstrategiaSeleccion, type IniciativaOperativa, type PerspectivaBSC,
@@ -16,19 +16,15 @@ import {
 // ─────────────────────────────────────────────────────────
 export interface Sec06Data { ejes?: EjeEstrategico[]; narrativa?: string; }
 export function Sec06({ data, onChange, sector }: { data: Sec06Data; onChange: (d: Sec06Data) => void; sector: SectorKey }) {
-  const ejes = data.ejes ?? ejesSugeridos(sector);
+  const ejes = data.ejes?.length ? data.ejes : ejesSugeridos(sector);
   const upd = (i: number, k: keyof EjeEstrategico, v: string) =>
     onChange({ ...data, ejes: ejes.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const add = () => onChange({ ...data, ejes: [...ejes, { nombre: "", descripcion: "", prioridad: "Media" }] });
   const remove = (i: number) => onChange({ ...data, ejes: ejes.filter((_, idx) => idx !== i) });
-  const cargarSugeridos = () => onChange({ ...data, ejes: ejesSugeridos(sector) });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <p className="text-xs text-muted-foreground">Define los grandes pilares (3-7 ejes) que vertebran el plan. Cada objetivo y estrategia se asocia a un eje.</p>
-        <Button size="sm" variant="outline" onClick={cargarSugeridos}><Sparkles className="w-3 h-3 mr-1" />Cargar ejes sugeridos (sector)</Button>
-      </div>
+      <p className="text-xs text-muted-foreground">Define los grandes pilares (3-7 ejes) que vertebran el plan. Cada objetivo y estrategia se asocia a un eje.</p>
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-display text-navy">Ejes ({ejes.length})</h4>
@@ -71,19 +67,15 @@ const COLOR_PERS: Record<PerspectivaBSC, string> = {
 };
 export interface Sec07Data { objetivos?: ObjetivoBSC[]; }
 export function Sec07({ data, onChange }: { data: Sec07Data; onChange: (d: Sec07Data) => void }) {
-  const objs = data.objetivos ?? objetivosBSCSugeridos();
+  const objs = data.objetivos?.length ? data.objetivos : objetivosBSCSugeridos();
   const upd = (i: number, k: keyof ObjetivoBSC, v: string) =>
     onChange({ objetivos: objs.map((o, idx) => idx === i ? { ...o, [k]: v } : o) });
   const remove = (i: number) => onChange({ objetivos: objs.filter((_, idx) => idx !== i) });
   const addAt = (p: PerspectivaBSC) => onChange({ objetivos: [...objs, { perspectiva: p, objetivo: "", indicador: "", meta: "", plazo: "", responsable: "", iniciativa: "" }] });
-  const cargarSug = () => onChange({ objetivos: objetivosBSCSugeridos() });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <p className="text-xs text-muted-foreground">Objetivos SMART distribuidos en las 4 perspectivas del Balanced Scorecard. Cada objetivo debe tener indicador, meta cuantitativa, plazo y responsable.</p>
-        <Button size="sm" variant="outline" onClick={cargarSug}><Sparkles className="w-3 h-3 mr-1" />Cargar BSC sugerido</Button>
-      </div>
+      <p className="text-xs text-muted-foreground">Objetivos SMART distribuidos en las 4 perspectivas del Balanced Scorecard. Cada objetivo debe tener indicador, meta cuantitativa, plazo y responsable.</p>
       {PERSPECTIVAS.map((p) => {
         const lista = objs.map((o, idx) => ({ o, idx })).filter(({ o }) => o.perspectiva === p);
         return (
@@ -128,9 +120,8 @@ export function Sec07({ data, onChange }: { data: Sec07Data; onChange: (d: Sec07
 export type Sec08Data = EstrategiaSeleccion;
 export function Sec08({ data, onChange }: { data: Sec08Data; onChange: (d: Sec08Data) => void }) {
   const sug = estrategiasSugeridas();
-  const iniciativas = data.iniciativas ?? [];
+  const iniciativas = data.iniciativas?.length ? data.iniciativas : sug.iniciativas;
   const setI = (v: string[]) => onChange({ ...data, iniciativas: v });
-  const cargarSug = () => setI(sug.iniciativas);
 
   return (
     <div className="space-y-4">
@@ -209,13 +200,9 @@ export function Sec08({ data, onChange }: { data: Sec08Data; onChange: (d: Sec08
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Iniciativas estratégicas derivadas</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={cargarSug}><Sparkles className="w-3 h-3 mr-1" />Cargar sugeridas</Button>
-            <Button size="sm" variant="outline" onClick={() => setI([...iniciativas, ""])}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={() => setI([...iniciativas, ""])}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
         </div>
         <div className="space-y-2">
-          {iniciativas.length === 0 && <p className="text-xs text-muted-foreground italic">Sin iniciativas todavía. Pulsa "Cargar sugeridas" para empezar.</p>}
           {iniciativas.map((it, i) => (
             <div key={i} className="flex items-center gap-2">
               <Input className="h-8 text-sm" value={it} onChange={(e) => setI(iniciativas.map((x, idx) => idx === i ? e.target.value : x))} />
@@ -238,12 +225,11 @@ export interface Sec09Data {
   iniciativas?: IniciativaOperativa[];
 }
 export function Sec09({ data, onChange }: { data: Sec09Data; onChange: (d: Sec09Data) => void }) {
-  const inis = data.iniciativas ?? planOperativoSugerido();
+  const inis = data.iniciativas?.length ? data.iniciativas : planOperativoSugerido();
   const upd = (i: number, k: keyof IniciativaOperativa, v: string | number) =>
     onChange({ ...data, iniciativas: inis.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const add = () => onChange({ ...data, iniciativas: [...inis, { nombre: "", eje: "", responsable: "", fecha_inicio: "", fecha_fin: "", presupuesto: 0, kpi: "", estado: "Por iniciar" }] });
   const remove = (i: number) => onChange({ ...data, iniciativas: inis.filter((_, idx) => idx !== i) });
-  const cargarSug = () => onChange({ ...data, iniciativas: planOperativoSugerido() });
 
   const totalPpto = inis.reduce((a, b) => a + (Number(b.presupuesto) || 0), 0);
 
@@ -272,7 +258,6 @@ export function Sec09({ data, onChange }: { data: Sec09Data; onChange: (d: Sec09
           <h4 className="font-display text-navy">Plan operativo — Iniciativas</h4>
           <div className="flex items-center gap-3">
             <Badge variant="outline">Presupuesto total: ${totalPpto.toLocaleString()}</Badge>
-            <Button size="sm" variant="outline" onClick={cargarSug}><Sparkles className="w-3 h-3 mr-1" />Cargar plantilla</Button>
             <Button size="sm" variant="outline" onClick={add}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
           </div>
         </div>

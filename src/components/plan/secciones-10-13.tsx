@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Sparkles } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { ListaEditable } from "./ListaEditable";
 import {
   type SectorKey,
@@ -33,20 +33,18 @@ const COLOR_DIM: Record<DimensionESG, string> = {
 const DIMS: DimensionESG[] = ["Ambiental", "Social", "Gobernanza"];
 
 export function Sec10({ data, onChange, sector }: { data: Sec10Data; onChange: (d: Sec10Data) => void; sector: SectorKey }) {
-  const mat = data.materialidad ?? [];
-  const objs = data.objetivos ?? [];
+  const mat = data.materialidad?.length ? data.materialidad : materialidadSugerida(sector);
+  const objs = data.objetivos?.length ? data.objetivos : objetivosESGSugeridos();
 
   const updMat = (i: number, k: keyof MaterialidadESG, v: string | number) =>
     onChange({ ...data, materialidad: mat.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const remMat = (i: number) => onChange({ ...data, materialidad: mat.filter((_, idx) => idx !== i) });
   const addMat = () => onChange({ ...data, materialidad: [...mat, { tema: "", dimension: "Ambiental", impacto_negocio: 3, importancia_grupos: 3, prioridad: "Media", accion: "" }] });
-  const cargarMat = () => onChange({ ...data, materialidad: materialidadSugerida(sector) });
 
   const updObj = (i: number, k: keyof ObjetivoESG, v: string) =>
     onChange({ ...data, objetivos: objs.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const remObj = (i: number) => onChange({ ...data, objetivos: objs.filter((_, idx) => idx !== i) });
   const addObjAt = (d: DimensionESG) => onChange({ ...data, objetivos: [...objs, { dimension: d, objetivo: "", indicador: "", meta: "", plazo: "", responsable: "", ods: "" }] });
-  const cargarObj = () => onChange({ ...data, objetivos: objetivosESGSugeridos() });
 
   return (
     <div className="space-y-4">
@@ -61,29 +59,20 @@ export function Sec10({ data, onChange, sector }: { data: Sec10Data; onChange: (
         </div>
         <div>
           <Label>Marco de referencia adoptado</Label>
-          <ListaEditable items={data.marco_referencia ?? []} onChange={(v) => onChange({ ...data, marco_referencia: v })} placeholder="Ej. GRI, SASB, TCFD…" inputLabel="+ Marco" />
-          <div className="mt-2">
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, marco_referencia: marcoReferenciaESG() })}><Sparkles className="w-3 h-3 mr-1" />Cargar marcos sugeridos</Button>
-          </div>
+          <ListaEditable items={data.marco_referencia?.length ? data.marco_referencia : marcoReferenciaESG()} onChange={(v) => onChange({ ...data, marco_referencia: v })} placeholder="Ej. GRI, SASB, TCFD…" inputLabel="+ Marco" />
         </div>
       </div>
 
       <div>
         <Label>ODS priorizados</Label>
-        <ListaEditable items={data.ods_priorizados ?? []} onChange={(v) => onChange({ ...data, ods_priorizados: v })} placeholder="Ej. ODS 13 — Acción climática" inputLabel="+ ODS" />
-        <div className="mt-2">
-          <Button size="sm" variant="outline" onClick={() => onChange({ ...data, ods_priorizados: odsSugeridos(sector) })}><Sparkles className="w-3 h-3 mr-1" />Cargar ODS sugeridos (sector)</Button>
-        </div>
+        <ListaEditable items={data.ods_priorizados?.length ? data.ods_priorizados : odsSugeridos(sector)} onChange={(v) => onChange({ ...data, ods_priorizados: v })} placeholder="Ej. ODS 13 — Acción climática" inputLabel="+ ODS" />
       </div>
 
       {/* MATERIALIDAD */}
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Matriz de materialidad ({mat.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={cargarMat}><Sparkles className="w-3 h-3 mr-1" />Cargar materialidad sugerida</Button>
-            <Button size="sm" variant="outline" onClick={addMat}><Plus className="w-3 h-3 mr-1" />Tema</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={addMat}><Plus className="w-3 h-3 mr-1" />Tema</Button>
         </div>
         <div className="space-y-2 overflow-x-auto">
           <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-semibold border-b pb-1 min-w-[1100px]">
@@ -91,7 +80,6 @@ export function Sec10({ data, onChange, sector }: { data: Sec10Data; onChange: (
             <div className="col-span-1">Impacto neg.</div><div className="col-span-1">Imp. grupos</div>
             <div className="col-span-1">Prioridad</div><div className="col-span-3">Acción</div><div className="col-span-1"></div>
           </div>
-          {mat.length === 0 && <p className="text-xs text-muted-foreground italic">Sin temas materiales aún.</p>}
           {mat.map((r, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-start min-w-[1100px]">
               <Input className="col-span-3 h-8 text-sm" value={r.tema} onChange={(e) => updMat(i, "tema", e.target.value)} />
@@ -116,10 +104,7 @@ export function Sec10({ data, onChange, sector }: { data: Sec10Data; onChange: (
 
       {/* OBJETIVOS ESG */}
       <div className="a360-card p-4">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h4 className="font-display text-navy">Objetivos ESG ({objs.length})</h4>
-          <Button size="sm" variant="outline" onClick={cargarObj}><Sparkles className="w-3 h-3 mr-1" />Cargar objetivos sugeridos</Button>
-        </div>
+        <h4 className="font-display text-navy mb-3">Objetivos ESG ({objs.length})</h4>
         {DIMS.map((d) => {
           const lista = objs.map((o, idx) => ({ o, idx })).filter(({ o }) => o.dimension === d);
           return (
@@ -177,12 +162,11 @@ export function Sec10({ data, onChange, sector }: { data: Sec10Data; onChange: (
 const TIPOS_ALIANZA: TipoAlianza[] = ["Comercial", "Tecnológica", "I+D / Innovación", "Operativa / Logística", "Financiera", "Joint Venture", "Académica", "Institucional / Sectorial", "ESG / Comunidad"];
 
 export function Sec11({ data, onChange, sector }: { data: Sec11Data; onChange: (d: Sec11Data) => void; sector: SectorKey }) {
-  const al = data.alianzas ?? [];
+  const al = data.alianzas?.length ? data.alianzas : alianzasSugeridas(sector);
   const upd = (i: number, k: keyof Alianza, v: string) =>
     onChange({ ...data, alianzas: al.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const rem = (i: number) => onChange({ ...data, alianzas: al.filter((_, idx) => idx !== i) });
   const add = () => onChange({ ...data, alianzas: [...al, { socio: "", tipo: "Comercial", objetivo: "", aporte_propio: "", aporte_socio: "", modelo_relacion: "", estado: "Identificada", responsable: "", riesgo: "Medio", valor_esperado: "" }] });
-  const cargar = () => onChange({ ...data, alianzas: alianzasSugeridas(sector) });
 
   return (
     <div className="space-y-4">
@@ -204,10 +188,7 @@ export function Sec11({ data, onChange, sector }: { data: Sec11Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Mapa de alianzas ({al.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={cargar}><Sparkles className="w-3 h-3 mr-1" />Cargar alianzas sugeridas</Button>
-            <Button size="sm" variant="outline" onClick={add}><Plus className="w-3 h-3 mr-1" />Alianza</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={add}><Plus className="w-3 h-3 mr-1" />Alianza</Button>
         </div>
         <div className="space-y-2 overflow-x-auto">
           <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-semibold border-b pb-1 min-w-[1500px]">
@@ -217,7 +198,6 @@ export function Sec11({ data, onChange, sector }: { data: Sec11Data; onChange: (
             <div className="col-span-1">Estado</div><div className="col-span-1">Responsable</div>
             <div className="col-span-1">Riesgo</div><div className="col-span-1">Valor esperado</div>
           </div>
-          {al.length === 0 && <p className="text-xs text-muted-foreground italic">Sin alianzas registradas.</p>}
           {al.map((r, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-start min-w-[1500px]">
               <Input className="col-span-2 h-8 text-sm" value={r.socio} onChange={(e) => upd(i, "socio", e.target.value)} />
@@ -283,12 +263,11 @@ const COLOR_HOR: Record<HorizonteInnovacion, string> = {
 };
 
 export function Sec12({ data, onChange, sector }: { data: Sec12Data; onChange: (d: Sec12Data) => void; sector: SectorKey }) {
-  const inis = data.iniciativas ?? [];
+  const inis = data.iniciativas?.length ? data.iniciativas : iniciativasInnovacionSugeridas(sector);
   const upd = (i: number, k: keyof IniciativaInnovacion, v: string | number) =>
     onChange({ ...data, iniciativas: inis.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const rem = (i: number) => onChange({ ...data, iniciativas: inis.filter((_, idx) => idx !== i) });
   const add = (h: HorizonteInnovacion) => onChange({ ...data, iniciativas: [...inis, { nombre: "", tipo: "Producto", horizonte: h, descripcion: "", responsable: "", presupuesto: 0, kpi: "", estado: "Idea" }] });
-  const cargar = () => onChange({ ...data, iniciativas: iniciativasInnovacionSugeridas(sector) });
 
   const totalPpto = inis.reduce((a, b) => a + (Number(b.presupuesto) || 0), 0);
 
@@ -324,13 +303,11 @@ export function Sec12({ data, onChange, sector }: { data: Sec12Data; onChange: (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <Label>Metodologías de innovación</Label>
-          <ListaEditable items={data.metodologias ?? []} onChange={(v) => onChange({ ...data, metodologias: v })} placeholder="Ej. Design Thinking" inputLabel="+ Metodología" />
-          <div className="mt-2"><Button size="sm" variant="outline" onClick={() => onChange({ ...data, metodologias: metodologiasInnovacion() })}><Sparkles className="w-3 h-3 mr-1" />Cargar metodologías</Button></div>
+          <ListaEditable items={data.metodologias?.length ? data.metodologias : metodologiasInnovacion()} onChange={(v) => onChange({ ...data, metodologias: v })} placeholder="Ej. Design Thinking" inputLabel="+ Metodología" />
         </div>
         <div>
           <Label>Fuentes de financiamiento I+D+i</Label>
-          <ListaEditable items={data.fuentes_financiamiento ?? []} onChange={(v) => onChange({ ...data, fuentes_financiamiento: v })} placeholder="Ej. créditos fiscales" inputLabel="+ Fuente" />
-          <div className="mt-2"><Button size="sm" variant="outline" onClick={() => onChange({ ...data, fuentes_financiamiento: fuentesFinanciamientoIdi() })}><Sparkles className="w-3 h-3 mr-1" />Cargar fuentes</Button></div>
+          <ListaEditable items={data.fuentes_financiamiento?.length ? data.fuentes_financiamiento : fuentesFinanciamientoIdi()} onChange={(v) => onChange({ ...data, fuentes_financiamiento: v })} placeholder="Ej. créditos fiscales" inputLabel="+ Fuente" />
         </div>
       </div>
 
@@ -344,10 +321,7 @@ export function Sec12({ data, onChange, sector }: { data: Sec12Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Portafolio de innovación ({inis.length})</h4>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">Presupuesto total: ${totalPpto.toLocaleString()}</Badge>
-            <Button size="sm" variant="outline" onClick={cargar}><Sparkles className="w-3 h-3 mr-1" />Cargar plantilla</Button>
-          </div>
+          <Badge variant="outline">Presupuesto total: ${totalPpto.toLocaleString()}</Badge>
         </div>
         {HORIZ.map((h) => {
           const lista = inis.map((o, idx) => ({ o, idx })).filter(({ o }) => o.horizonte === h);
@@ -417,11 +391,11 @@ export function Sec12({ data, onChange, sector }: { data: Sec12Data; onChange: (
 const CAT_MK: IniciativaMarketing["categoria"][] = ["Marca", "Demand Gen", "Contenidos", "Performance", "ABM", "Eventos", "PR", "CRM / Fidelización", "Producto / Pricing"];
 
 export function Sec13({ data, onChange, sector }: { data: Sec13Data; onChange: (d: Sec13Data) => void; sector: SectorKey }) {
-  const segs = data.segmentacion ?? [];
-  const personas = data.buyer_personas ?? [];
-  const pvs = data.propuestas_valor ?? [];
-  const mix = data.marketing_mix ?? { producto: "", precio: "", plaza: "", promocion: "", personas: "", procesos: "", evidencia_fisica: "" };
-  const inis = data.iniciativas ?? [];
+  const segs = data.segmentacion?.length ? data.segmentacion : segmentosSugeridos(sector);
+  const personas = data.buyer_personas?.length ? data.buyer_personas : buyerPersonasSugeridos(sector);
+  const pvs = data.propuestas_valor?.length ? data.propuestas_valor : propuestasValorSugeridas(sector);
+  const mix = data.marketing_mix ?? marketingMixSugerido();
+  const inis = data.iniciativas?.length ? data.iniciativas : iniciativasMarketingSugeridas(sector);
 
   const totalPpto = inis.reduce((a, b) => a + (Number(b.presupuesto) || 0), 0);
 
@@ -439,10 +413,7 @@ export function Sec13({ data, onChange, sector }: { data: Sec13Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Segmentación de clientes ({segs.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, segmentacion: segmentosSugeridos(sector) })}><Sparkles className="w-3 h-3 mr-1" />Cargar segmentos sugeridos</Button>
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, segmentacion: [...segs, { nombre: "", descripcion: "", tamano_mercado: "", necesidad_clave: "", prioridad: "Media" }] })}><Plus className="w-3 h-3 mr-1" />Segmento</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={() => onChange({ ...data, segmentacion: [...segs, { nombre: "", descripcion: "", tamano_mercado: "", necesidad_clave: "", prioridad: "Media" }] })}><Plus className="w-3 h-3 mr-1" />Segmento</Button>
         </div>
         <div className="space-y-2 overflow-x-auto">
           <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-semibold border-b pb-1 min-w-[1100px]">
@@ -475,10 +446,7 @@ export function Sec13({ data, onChange, sector }: { data: Sec13Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Buyer personas ({personas.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, buyer_personas: buyerPersonasSugeridos(sector) })}><Sparkles className="w-3 h-3 mr-1" />Cargar personas sugeridas</Button>
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, buyer_personas: [...personas, { nombre: "", rol: "", motivaciones: "", dolores: "", canales: "" }] })}><Plus className="w-3 h-3 mr-1" />Persona</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={() => onChange({ ...data, buyer_personas: [...personas, { nombre: "", rol: "", motivaciones: "", dolores: "", canales: "" }] })}><Plus className="w-3 h-3 mr-1" />Persona</Button>
         </div>
         <div className="space-y-2 overflow-x-auto">
           <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-semibold border-b pb-1 min-w-[1200px]">
@@ -506,10 +474,7 @@ export function Sec13({ data, onChange, sector }: { data: Sec13Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Propuestas de valor por segmento ({pvs.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, propuestas_valor: propuestasValorSugeridas(sector) })}><Sparkles className="w-3 h-3 mr-1" />Cargar propuestas sugeridas</Button>
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, propuestas_valor: [...pvs, { segmento: "", problema: "", solucion: "", diferencial: "", prueba: "" }] })}><Plus className="w-3 h-3 mr-1" />Propuesta</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={() => onChange({ ...data, propuestas_valor: [...pvs, { segmento: "", problema: "", solucion: "", diferencial: "", prueba: "" }] })}><Plus className="w-3 h-3 mr-1" />Propuesta</Button>
         </div>
         <div className="space-y-3">
           {pvs.map((p, i) => {
@@ -532,10 +497,7 @@ export function Sec13({ data, onChange, sector }: { data: Sec13Data; onChange: (
 
       {/* MARKETING MIX 7P */}
       <div className="a360-card p-4">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h4 className="font-display text-navy">Marketing Mix (7P)</h4>
-          <Button size="sm" variant="outline" onClick={() => onChange({ ...data, marketing_mix: marketingMixSugerido() })}><Sparkles className="w-3 h-3 mr-1" />Cargar mix sugerido</Button>
-        </div>
+        <h4 className="font-display text-navy mb-3">Marketing Mix (7P)</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {(["producto","precio","plaza","promocion","personas","procesos","evidencia_fisica"] as const).map((k) => (
             <div key={k}>
@@ -576,7 +538,6 @@ export function Sec13({ data, onChange, sector }: { data: Sec13Data; onChange: (
           <h4 className="font-display text-navy">Plan de iniciativas de marketing ({inis.length})</h4>
           <div className="flex items-center gap-2">
             <Badge variant="outline">Presupuesto total: ${totalPpto.toLocaleString()}</Badge>
-            <Button size="sm" variant="outline" onClick={() => onChange({ ...data, iniciativas: iniciativasMarketingSugeridas(sector) })}><Sparkles className="w-3 h-3 mr-1" />Cargar plan sugerido</Button>
             <Button size="sm" variant="outline" onClick={() => onChange({ ...data, iniciativas: [...inis, { nombre: "", categoria: "Marca", objetivo: "", canal: "", kpi: "", presupuesto: 0, responsable: "", estado: "Por iniciar" }] })}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
           </div>
         </div>

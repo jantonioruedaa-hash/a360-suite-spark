@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Sparkles } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { ListaEditable } from "./ListaEditable";
 import {
   type SectorKey,
@@ -34,12 +34,11 @@ export type { Sec14Data, Sec15Data, Sec16Data, Sec17Data, Sec18Data };
 const AREAS_TAL: AreaTalento[] = ["Atracción", "Desarrollo", "Retención", "Cultura", "Compensación", "Bienestar", "DEI", "Liderazgo", "Sucesión"];
 
 export function Sec14({ data, onChange, sector }: { data: Sec14Data; onChange: (d: Sec14Data) => void; sector: SectorKey }) {
-  const inis = data.iniciativas ?? [];
+  const inis = data.iniciativas?.length ? data.iniciativas : iniciativasTalentoSugeridas(sector);
   const upd = (i: number, k: keyof IniciativaTalento, v: string | number) =>
     onChange({ ...data, iniciativas: inis.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const rem = (i: number) => onChange({ ...data, iniciativas: inis.filter((_, idx) => idx !== i) });
   const add = () => onChange({ ...data, iniciativas: [...inis, { nombre: "", area: "Atracción", objetivo: "", kpi: "", responsable: "RRHH", presupuesto: 0, estado: "Por iniciar" }] });
-  const cargar = () => onChange({ ...data, iniciativas: iniciativasTalentoSugeridas(sector) });
   const totalPpto = inis.reduce((a, b) => a + (Number(b.presupuesto) || 0), 0);
 
   return (
@@ -62,13 +61,11 @@ export function Sec14({ data, onChange, sector }: { data: Sec14Data; onChange: (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <Label>Valores culturales</Label>
-          <ListaEditable items={data.valores_culturales ?? []} onChange={(v) => onChange({ ...data, valores_culturales: v })} placeholder="Ej. Integridad" inputLabel="+ Valor" />
-          <div className="mt-2"><Button size="sm" variant="outline" onClick={() => onChange({ ...data, valores_culturales: valoresCulturalesSugeridos() })}><Sparkles className="w-3 h-3 mr-1" />Cargar valores sugeridos</Button></div>
+          <ListaEditable items={data.valores_culturales?.length ? data.valores_culturales : valoresCulturalesSugeridos()} onChange={(v) => onChange({ ...data, valores_culturales: v })} placeholder="Ej. Integridad" inputLabel="+ Valor" />
         </div>
         <div>
           <Label>Competencias clave</Label>
-          <ListaEditable items={data.competencias_clave ?? []} onChange={(v) => onChange({ ...data, competencias_clave: v })} placeholder="Ej. Liderazgo de equipos" inputLabel="+ Competencia" />
-          <div className="mt-2"><Button size="sm" variant="outline" onClick={() => onChange({ ...data, competencias_clave: competenciasClaveSugeridas(sector) })}><Sparkles className="w-3 h-3 mr-1" />Cargar competencias sugeridas</Button></div>
+          <ListaEditable items={data.competencias_clave?.length ? data.competencias_clave : competenciasClaveSugeridas(sector)} onChange={(v) => onChange({ ...data, competencias_clave: v })} placeholder="Ej. Liderazgo de equipos" inputLabel="+ Competencia" />
         </div>
       </div>
 
@@ -88,7 +85,6 @@ export function Sec14({ data, onChange, sector }: { data: Sec14Data; onChange: (
           <h4 className="font-display text-navy">Iniciativas de talento ({inis.length})</h4>
           <div className="flex items-center gap-2">
             <Badge variant="outline">Presupuesto: ${totalPpto.toLocaleString()}</Badge>
-            <Button size="sm" variant="outline" onClick={cargar}><Sparkles className="w-3 h-3 mr-1" />Cargar plantilla</Button>
             <Button size="sm" variant="outline" onClick={add}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
           </div>
         </div>
@@ -98,7 +94,6 @@ export function Sec14({ data, onChange, sector }: { data: Sec14Data; onChange: (
             <div className="col-span-3">Objetivo</div><div className="col-span-2">KPI</div>
             <div className="col-span-1">Responsable</div><div className="col-span-1">Ppto.</div><div className="col-span-1">Estado</div>
           </div>
-          {inis.length === 0 && <p className="text-xs text-muted-foreground italic">Sin iniciativas de talento aún.</p>}
           {inis.map((r, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-start min-w-[1300px]">
               <Input className="col-span-3 h-8 text-sm" value={r.nombre} onChange={(e) => upd(i, "nombre", e.target.value)} />
@@ -140,12 +135,11 @@ const CATS_TI: CategoriaTI[] = ["Infraestructura", "Datos & BI", "Aplicaciones",
 const NIV_MAD: MadurezDigital[] = ["Inicial", "En desarrollo", "Definida", "Gestionada", "Optimizada"];
 
 export function Sec15({ data, onChange, sector }: { data: Sec15Data; onChange: (d: Sec15Data) => void; sector: SectorKey }) {
-  const inis = data.iniciativas ?? [];
+  const inis = data.iniciativas?.length ? data.iniciativas : iniciativasTISugeridas(sector);
   const upd = (i: number, k: keyof IniciativaTI, v: string | number) =>
     onChange({ ...data, iniciativas: inis.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const rem = (i: number) => onChange({ ...data, iniciativas: inis.filter((_, idx) => idx !== i) });
   const add = () => onChange({ ...data, iniciativas: [...inis, { nombre: "", categoria: "Infraestructura", objetivo: "", kpi: "", responsable: "TI", presupuesto: 0, prioridad: "Media", estado: "Por iniciar" }] });
-  const cargar = () => onChange({ ...data, iniciativas: iniciativasTISugeridas(sector) });
   const totalPpto = inis.reduce((a, b) => a + (Number(b.presupuesto) || 0), 0);
 
   return (
@@ -190,7 +184,6 @@ export function Sec15({ data, onChange, sector }: { data: Sec15Data; onChange: (
           <h4 className="font-display text-navy">Iniciativas de TI / Digital ({inis.length})</h4>
           <div className="flex items-center gap-2">
             <Badge variant="outline">Presupuesto: ${totalPpto.toLocaleString()}</Badge>
-            <Button size="sm" variant="outline" onClick={cargar}><Sparkles className="w-3 h-3 mr-1" />Cargar plantilla</Button>
             <Button size="sm" variant="outline" onClick={add}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
           </div>
         </div>
@@ -201,7 +194,6 @@ export function Sec15({ data, onChange, sector }: { data: Sec15Data; onChange: (
             <div className="col-span-1">Resp.</div><div className="col-span-1">Ppto.</div>
             <div className="col-span-1">Prio.</div>
           </div>
-          {inis.length === 0 && <p className="text-xs text-muted-foreground italic">Sin iniciativas TI aún.</p>}
           {inis.map((r, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-start min-w-[1400px]">
               <Input className="col-span-3 h-8 text-sm" value={r.nombre} onChange={(e) => upd(i, "nombre", e.target.value)} />
@@ -242,20 +234,18 @@ export function Sec15({ data, onChange, sector }: { data: Sec15Data; onChange: (
 const CATS_RIESGO: CategoriaRiesgo[] = ["Estratégico", "Operacional", "Financiero", "Mercado", "Cumplimiento", "Tecnológico", "Reputacional", "ESG", "Talento"];
 
 export function Sec16({ data, onChange, sector }: { data: Sec16Data; onChange: (d: Sec16Data) => void; sector: SectorKey }) {
-  const riesgos = data.riesgos ?? [];
-  const mejoras = data.mejoras ?? [];
+  const riesgos = data.riesgos?.length ? data.riesgos : riesgosSugeridos(sector);
+  const mejoras = data.mejoras?.length ? data.mejoras : accionesMejoraSugeridas();
 
   const updR = (i: number, k: keyof RiesgoEstrategico, v: string | number) =>
     onChange({ ...data, riesgos: riesgos.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const remR = (i: number) => onChange({ ...data, riesgos: riesgos.filter((_, idx) => idx !== i) });
   const addR = () => onChange({ ...data, riesgos: [...riesgos, { nombre: "", categoria: "Estratégico", probabilidad: 3, impacto: 3, mitigacion: "", responsable: "", estado: "Identificado" }] });
-  const cargarR = () => onChange({ ...data, riesgos: riesgosSugeridos(sector) });
 
   const updM = (i: number, k: keyof AccionMejora, v: string) =>
     onChange({ ...data, mejoras: mejoras.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const remM = (i: number) => onChange({ ...data, mejoras: mejoras.filter((_, idx) => idx !== i) });
   const addM = () => onChange({ ...data, mejoras: [...mejoras, { proceso: "", problema: "", accion: "", responsable: "", plazo: "", estado: "Por iniciar", beneficio_esperado: "" }] });
-  const cargarM = () => onChange({ ...data, mejoras: accionesMejoraSugeridas() });
 
   return (
     <div className="space-y-4">
@@ -284,10 +274,7 @@ export function Sec16({ data, onChange, sector }: { data: Sec16Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Riesgos estratégicos ({riesgos.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={cargarR}><Sparkles className="w-3 h-3 mr-1" />Cargar riesgos sugeridos</Button>
-            <Button size="sm" variant="outline" onClick={addR}><Plus className="w-3 h-3 mr-1" />Riesgo</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={addR}><Plus className="w-3 h-3 mr-1" />Riesgo</Button>
         </div>
         <div className="space-y-2 overflow-x-auto">
           <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-semibold border-b pb-1 min-w-[1300px]">
@@ -295,7 +282,6 @@ export function Sec16({ data, onChange, sector }: { data: Sec16Data; onChange: (
             <div className="col-span-1">Prob (1-5)</div><div className="col-span-1">Impacto</div>
             <div className="col-span-3">Mitigación</div><div className="col-span-1">Resp.</div><div className="col-span-1">Estado</div>
           </div>
-          {riesgos.length === 0 && <p className="text-xs text-muted-foreground italic">Sin riesgos registrados.</p>}
           {riesgos.map((r, i) => {
             const exposicion = (r.probabilidad || 0) * (r.impacto || 0);
             const color = exposicion >= 15 ? "text-red-600" : exposicion >= 9 ? "text-amber-600" : "text-emerald-600";
@@ -332,10 +318,7 @@ export function Sec16({ data, onChange, sector }: { data: Sec16Data; onChange: (
       <div className="a360-card p-4">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h4 className="font-display text-navy">Acciones de mejora continua ({mejoras.length})</h4>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={cargarM}><Sparkles className="w-3 h-3 mr-1" />Cargar mejoras sugeridas</Button>
-            <Button size="sm" variant="outline" onClick={addM}><Plus className="w-3 h-3 mr-1" />Acción</Button>
-          </div>
+          <Button size="sm" variant="outline" onClick={addM}><Plus className="w-3 h-3 mr-1" />Acción</Button>
         </div>
         <div className="space-y-2 overflow-x-auto">
           <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-semibold border-b pb-1 min-w-[1300px]">
@@ -343,7 +326,6 @@ export function Sec16({ data, onChange, sector }: { data: Sec16Data; onChange: (
             <div className="col-span-3">Acción</div><div className="col-span-1">Resp.</div>
             <div className="col-span-1">Plazo</div><div className="col-span-1">Estado</div><div className="col-span-1">Beneficio</div>
           </div>
-          {mejoras.length === 0 && <p className="text-xs text-muted-foreground italic">Sin acciones de mejora.</p>}
           {mejoras.map((m, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-start min-w-[1300px]">
               <Input className="col-span-2 h-8 text-sm" value={m.proceso} onChange={(e) => updM(i, "proceso", e.target.value)} />
@@ -387,13 +369,12 @@ const COLOR_PER: Record<PerspectivaCMI, string> = {
 };
 
 export function Sec17({ data, onChange, sector }: { data: Sec17Data; onChange: (d: Sec17Data) => void; sector: SectorKey }) {
-  const objs = data.objetivos ?? [];
+  const objs = data.objetivos?.length ? data.objetivos : objetivosCMISugeridos(sector);
 
   const upd = (i: number, k: keyof ObjetivoCMI, v: string) =>
     onChange({ ...data, objetivos: objs.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const rem = (i: number) => onChange({ ...data, objetivos: objs.filter((_, idx) => idx !== i) });
   const addAt = (p: PerspectivaCMI) => onChange({ ...data, objetivos: [...objs, { perspectiva: p, objetivo: "", indicador: "", unidad: "", linea_base: "", meta: "", frecuencia: "Mensual", responsable: "", iniciativa: "" }] });
-  const cargar = () => onChange({ ...data, objetivos: objetivosCMISugeridos(sector) });
 
   return (
     <div className="space-y-4">
@@ -408,10 +389,7 @@ export function Sec17({ data, onChange, sector }: { data: Sec17Data; onChange: (
       </div>
 
       <div className="a360-card p-4">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h4 className="font-display text-navy">Objetivos del CMI ({objs.length})</h4>
-          <Button size="sm" variant="outline" onClick={cargar}><Sparkles className="w-3 h-3 mr-1" />Cargar plantilla CMI</Button>
-        </div>
+        <h4 className="font-display text-navy mb-3">Objetivos del CMI ({objs.length})</h4>
         {PERSPS.map((p) => {
           const lista = objs.map((o, idx) => ({ o, idx })).filter(({ o }) => o.perspectiva === p);
           return (
@@ -460,12 +438,11 @@ export function Sec17({ data, onChange, sector }: { data: Sec17Data; onChange: (
 // SECCIÓN 18 — Ejecución y portafolio de iniciativas
 // ════════════════════════════════════════════════════════
 export function Sec18({ data, onChange, sector }: { data: Sec18Data; onChange: (d: Sec18Data) => void; sector: SectorKey }) {
-  const inis = data.iniciativas ?? [];
+  const inis = data.iniciativas?.length ? data.iniciativas : iniciativasEjecucionSugeridas(sector);
   const upd = (i: number, k: keyof IniciativaEjecucion, v: string | number) =>
     onChange({ ...data, iniciativas: inis.map((x, idx) => idx === i ? { ...x, [k]: v } : x) });
   const rem = (i: number) => onChange({ ...data, iniciativas: inis.filter((_, idx) => idx !== i) });
   const add = () => onChange({ ...data, iniciativas: [...inis, { nombre: "", eje_estrategico: "", descripcion: "", responsable: "", fecha_inicio: "", fecha_fin: "", presupuesto: 0, prioridad: "Media", estado: "Por iniciar", kpi: "", dependencias: "" }] });
-  const cargar = () => onChange({ ...data, iniciativas: iniciativasEjecucionSugeridas(sector) });
   const totalPpto = inis.reduce((a, b) => a + (Number(b.presupuesto) || 0), 0);
   const porEstado = (e: string) => inis.filter((x) => x.estado === e).length;
 
@@ -493,7 +470,6 @@ export function Sec18({ data, onChange, sector }: { data: Sec18Data; onChange: (
             <Badge variant="outline" className="text-emerald-700">Completadas: {porEstado("Completada")}</Badge>
             <Badge variant="outline" className="text-amber-700">En curso: {porEstado("En curso")}</Badge>
             <Badge variant="outline" className="text-red-700">En riesgo: {porEstado("En riesgo")}</Badge>
-            <Button size="sm" variant="outline" onClick={cargar}><Sparkles className="w-3 h-3 mr-1" />Cargar plantilla</Button>
             <Button size="sm" variant="outline" onClick={add}><Plus className="w-3 h-3 mr-1" />Iniciativa</Button>
           </div>
         </div>
@@ -505,7 +481,6 @@ export function Sec18({ data, onChange, sector }: { data: Sec18Data; onChange: (
             <div className="col-span-1">Ppto.</div><div className="col-span-1">Prio.</div>
             <div className="col-span-1">Estado</div><div className="col-span-1">KPI</div>
           </div>
-          {inis.length === 0 && <p className="text-xs text-muted-foreground italic">Sin iniciativas.</p>}
           {inis.map((r, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-start min-w-[1700px]">
               <Input className="col-span-2 h-8 text-sm" value={r.nombre} onChange={(e) => upd(i, "nombre", e.target.value)} />

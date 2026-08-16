@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
 import { ListaEditable } from "./ListaEditable";
 import { lineasProductoSugeridas, pestelSugerido, efiSugerido, fodaSugerido, cameSugerido, valoresSugeridos, diagnosticoInternoSugerido, type SectorKey, type FactorPESTEL, type FactorEFI } from "@/lib/plan-catalogo";
-import { Sparkles } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────
 // SECCIÓN 1 — PRESENTACIÓN EJECUTIVA
@@ -123,7 +122,7 @@ export interface Sec03Data {
   factores?: FactorEFI[];
 }
 export function Sec03({ data, onChange, sector }: { data: Sec03Data; onChange: (d: Sec03Data) => void; sector: SectorKey }) {
-  const factores = data.factores ?? efiSugerido(sector);
+  const factores = data.factores?.length ? data.factores : efiSugerido(sector);
   const sumPesos = factores.reduce((a, b) => a + b.peso, 0);
   const score = factores.reduce((a, b) => a + b.peso * b.calificacion, 0);
   const upd = (i: number, k: keyof FactorEFI, v: string | number) =>
@@ -132,17 +131,6 @@ export function Sec03({ data, onChange, sector }: { data: Sec03Data; onChange: (
   const remove = (i: number) => onChange({ ...data, factores: factores.filter((_, idx) => idx !== i) });
 
   const guia = diagnosticoInternoSugerido(sector);
-  const cargarGuia = (k: keyof Sec03Data) => {
-    const v = (guia as unknown as Record<string, string>)[k];
-    if (v && !((data as Record<string, string>)[k] ?? "").trim()) onChange({ ...data, [k]: v });
-  };
-  const cargarTodaLaGuia = () => {
-    const next: Sec03Data = { ...data };
-    (Object.keys(guia) as (keyof Sec03Data)[]).forEach((k) => {
-      if (!((data as Record<string, string>)[k] ?? "").trim()) (next as Record<string, string>)[k as string] = (guia as unknown as Record<string, string>)[k as string];
-    });
-    onChange(next);
-  };
 
   const labels: [keyof Sec03Data, string][] = [
     ["recursos_clave", "Recursos clave"],
@@ -154,20 +142,15 @@ export function Sec03({ data, onChange, sector }: { data: Sec03Data; onChange: (
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <p className="text-xs text-muted-foreground">Cada campo trae una guía de preguntas/elementos a desarrollar según el sector. Edítala según la realidad de la empresa.</p>
-        <Button size="sm" variant="outline" onClick={cargarTodaLaGuia}><Sparkles className="w-3 h-3 mr-1" />Cargar guía base (sector)</Button>
-      </div>
+      <p className="text-xs text-muted-foreground">Cada campo trae una guía de preguntas/elementos a desarrollar según el sector. Edítala según la realidad de la empresa.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {labels.map(([k, l]) => {
-          const valor = (data as Record<string, string>)[k as string] ?? "";
-          const placeholder = (guia as unknown as Record<string, string>)[k as string];
+          const guiaValor = (guia as unknown as Record<string, string>)[k as string];
+          const valor = (data as Record<string, string>)[k as string] ?? guiaValor ?? "";
+          const placeholder = guiaValor;
           return (
             <div key={k as string}>
-              <div className="flex items-center justify-between">
-                <Label>{l}</Label>
-                <Button type="button" size="sm" variant="ghost" className="h-6 text-xs" onClick={() => cargarGuia(k)}>Cargar guía</Button>
-              </div>
+              <Label>{l}</Label>
               <Textarea rows={6} value={valor} placeholder={placeholder} onChange={(e) => onChange({ ...data, [k as string]: e.target.value })} />
             </div>
           );
