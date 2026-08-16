@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ import {
   listarSesionesCliente, crearSesion, actualizarSesion, eliminarSesion,
   progresoPorEtapa, etapaActual, type SesionCoaching,
 } from "@/lib/coaching-helpers";
-import { Plus, Check, Trash2, Sparkles, FileText, Clock, ChevronRight } from "lucide-react";
+import { Plus, Check, Trash2, Sparkles, FileText, Clock, ChevronRight, Save } from "lucide-react";
 import { AnalisisIACoaching } from "@/components/coaching/AnalisisIACoaching";
 import { SintesisProgramaIA } from "@/components/coaching/SintesisProgramaIA";
 import { CoachingExportImport } from "@/components/coaching/CoachingExportImport";
@@ -1157,6 +1157,44 @@ function DialogoSesion({
   const [datos, setDatos] = useState<any>(existing?.datos ?? {});
   const [completada, setCompletada] = useState(existing?.completada ?? false);
   const [saving, setSaving] = useState(false);
+  const [autoestado, setAutoestado] = useState<"idle" | "guardando" | "guardado" | "error">("idle");
+  const [ultimoGuardado, setUltimoGuardado] = useState<Date | null>(null);
+  const ultimaSerie = useRef<string>("");
+
+  const guardarSilencioso = useCallback(async (forzar = false) => {
+    if (!existing) return;
+    const serial = JSON.stringify({ datos, completada });
+    if (!forzar && serial === ultimaSerie.current) return;
+    setAutoestado("guardando");
+    try {
+      await actualizarSesion(existing.id, { datos, completada });
+      ultimaSerie.current = serial;
+      setUltimoGuardado(new Date());
+      setAutoestado("guardado");
+      setTimeout(() => setAutoestado((s) => s === "guardado" ? "idle" : s), 2000);
+    } catch {
+      setAutoestado("error");
+    }
+  }, [existing, datos, completada]);
+
+  useEffect(() => {
+    if (!existing) return;
+    const t = setTimeout(() => { void guardarSilencioso(); }, 2000);
+    return () => clearTimeout(t);
+  }, [guardarSilencioso, existing]);
+
+  useEffect(() => {
+    if (!existing) return;
+    const i = setInterval(() => { void guardarSilencioso(); }, 30000);
+    return () => clearInterval(i);
+  }, [guardarSilencioso, existing]);
+
+  // Intercepta todos los caminos de cierre (Cancelar, Esc, clic fuera) para
+  // forzar guardado antes del desmonte — mismo patrón que Plan Estratégico.
+  const handleClose = useCallback(async () => {
+    await guardarSilencioso(true);
+    onClose();
+  }, [guardarSilencioso, onClose]);
 
   if (!h) return null;
 
@@ -1193,7 +1231,7 @@ function DialogoSesion({
   };
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog open onOpenChange={(o) => { if (!o) void handleClose(); }}>
       <DialogContent className="w-[92vw] max-w-[1200px] max-h-[90vh] overflow-y-auto p-0">
 
         {/* ── Gradient header ── */}
@@ -1328,7 +1366,17 @@ function DialogoSesion({
               <Trash2 className="w-3 h-3 mr-1" /> Eliminar
             </Button>
           )}
-          <Button variant="outline" onClick={onClose} style={{ borderColor: "#E0E7FF" }}>{esCliente ? "Cerrar" : "Cancelar"}</Button>
+          {/* Autosave badge — visible only for existing sessions */}
+          {existing && (
+            <div className="text-xs flex items-center gap-1.5 text-muted-foreground mr-auto">
+              {autoestado === "guardando" && <><Save className="w-3 h-3 animate-pulse" /> Guardando…</>}
+              {autoestado === "guardado" && <><Check className="w-3 h-3 text-green-600" /> Guardado</>}
+              {autoestado === "error" && <span className="text-red-600">Error al guardar</span>}
+              {autoestado === "idle" && ultimoGuardado && <>Último guardado: {ultimoGuardado.toLocaleTimeString()}</>}
+              {autoestado === "idle" && !ultimoGuardado && <>Autosave activo</>}
+            </div>
+          )}
+          <Button variant="outline" onClick={() => void handleClose()} style={{ borderColor: "#E0E7FF" }}>{esCliente ? "Cerrar" : "Cancelar"}</Button>
           {!esCliente && (
             <Button
               onClick={guardar}
