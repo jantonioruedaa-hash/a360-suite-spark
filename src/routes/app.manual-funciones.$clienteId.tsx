@@ -183,35 +183,35 @@ function ClienteManualHero({ clienteId, onAbrir }: { clienteId: string; onAbrir:
   }, [clienteId]);
 
   return (
-    <div style={{ maxWidth: "860px", display: "flex", flexDirection: "column", gap: "32px" }}>
+    <div style={{ maxWidth: "860px", display: "flex", flexDirection: "column", gap: "12px" }}>
 
       {/* Hero */}
       <div style={{
         background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 55%, #312E81 100%)",
-        borderRadius: "20px", padding: "52px 48px 48px", position: "relative", overflow: "hidden",
+        borderRadius: "20px", padding: "24px 36px 20px", position: "relative", overflow: "hidden",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 50% 70% at 90% 10%, rgba(14,165,233,0.18), transparent)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 40% 60% at 10% 90%, rgba(99,102,241,0.12), transparent)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "44px", alignItems: "center" }}>
           <div style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(16px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#38BDF8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "14px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#38BDF8", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "6px" }}>
               Módulo Organizacional · A360 Suite
             </div>
-            <h1 style={{ fontSize: "clamp(28px, 3.5vw, 40px)", fontWeight: 900, color: "white", margin: "0 0 12px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: "clamp(22px, 2.6vw, 30px)", fontWeight: 900, color: "white", margin: "0 0 6px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               Manual de<br />Funciones
             </h1>
             {nombre && (
-              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", marginBottom: "20px" }}>{nombre}</div>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", marginBottom: "8px" }}>{nombre}</div>
             )}
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "28px" }}>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "nowrap", marginBottom: "12px" }}>
               {[
-                { val: total,    lbl: "Cargos documentados" },
+                { val: total,    lbl: "Cargos" },
                 { val: vigentes, lbl: "Vigentes" },
                 { val: areas,    lbl: "Áreas" },
               ].map((s) => (
-                <div key={s.lbl} style={{ background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "12px", padding: "10px 18px" }}>
-                  <div style={{ fontSize: "24px", fontWeight: 900, color: "white", lineHeight: 1 }}>{s.val}</div>
+                <div key={s.lbl} style={{ background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "10px", padding: "6px 12px" }}>
+                  <div style={{ fontSize: "18px", fontWeight: 900, color: "white", lineHeight: 1 }}>{s.val}</div>
                   <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{s.lbl}</div>
                 </div>
               ))}
@@ -220,7 +220,7 @@ function ClienteManualHero({ clienteId, onAbrir }: { clienteId: string; onAbrir:
               onClick={onAbrir}
               style={{
                 display: "inline-flex", alignItems: "center", gap: "8px",
-                padding: "14px 28px", borderRadius: "10px",
+                padding: "10px 22px", borderRadius: "10px",
                 background: "linear-gradient(135deg, #0EA5E9, #6366F1)",
                 color: "white", fontSize: "14px", fontWeight: 700,
                 border: "none", cursor: "pointer",
@@ -233,7 +233,7 @@ function ClienteManualHero({ clienteId, onAbrir }: { clienteId: string; onAbrir:
           </div>
 
           <div style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s" }}>
-            <svg viewBox="0 0 340 210" style={{ width: "100%", maxWidth: "340px", display: "block", margin: "0 auto" }}>
+            <svg viewBox="0 0 340 210" style={{ width: "100%", maxWidth: "280px", maxHeight: "130px", display: "block", margin: "0 auto" }}>
               <rect x="110" y="6" width="120" height="36" rx="9" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
               <text x="170" y="28" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" fontFamily="system-ui,sans-serif">EMPRESA</text>
               <line x1="170" y1="42" x2="170" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
@@ -271,22 +271,22 @@ function ClienteManualHero({ clienteId, onAbrir }: { clienteId: string; onAbrir:
       </div>
 
       {/* Outcomes */}
-      <div style={{ background: "white", border: "1.5px solid #E0F2FE", borderRadius: "16px", padding: "32px 36px" }}>
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#0EA5E9", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "6px" }}>
+      <div style={{ background: "white", border: "1.5px solid #E0F2FE", borderRadius: "16px", padding: "16px 24px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#0EA5E9", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "2px" }}>
           Tu módulo incluye
         </div>
-        <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#0C4A6E", margin: "0 0 20px", letterSpacing: "-0.01em" }}>
+        <h2 style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
           Con el Manual de Funciones logras:
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
           {OUTCOMES.map((o) => (
-            <div key={o.title} style={{ display: "flex", gap: "12px", background: "#F8FAFF", border: "1px solid #E0E7FF", borderRadius: "12px", padding: "16px 18px" }}>
-              <div style={{ width: "34px", height: "34px", borderRadius: "9px", background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <o.icon style={{ width: "16px", height: "16px", color: "#059669" }} />
+            <div key={o.title} style={{ display: "flex", gap: "10px", background: "#F8FAFF", border: "1px solid #E0E7FF", borderRadius: "10px", padding: "8px 14px" }}>
+              <div style={{ width: "26px", height: "26px", borderRadius: "7px", background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <o.icon style={{ width: "14px", height: "14px", color: "#059669" }} />
               </div>
               <div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: "#0C4A6E", marginBottom: "3px" }}>{o.title}</div>
-                <div style={{ fontSize: "12px", color: "#64748B", lineHeight: 1.6 }}>{o.desc}</div>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#0C4A6E", marginBottom: "2px" }}>{o.title}</div>
+                <div style={{ fontSize: "11px", color: "#64748B", lineHeight: 1.45 }}>{o.desc}</div>
               </div>
             </div>
           ))}
