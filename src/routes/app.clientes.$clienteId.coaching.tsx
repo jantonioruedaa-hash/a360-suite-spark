@@ -247,7 +247,7 @@ function CoachingClienteWorkspace() {
           {/* Actions */}
           <div className="flex gap-3.5 flex-wrap mb-12">
             <button style={BTN_PRIMARY} onClick={() => setActiveTab("herramientas")}>
-              + Registrar nueva herramienta
+              Iniciar sesión →
             </button>
             <button style={BTN_GHOST} onClick={() => setActiveTab("ia")}>
               🤖 Ver análisis IA
@@ -521,7 +521,7 @@ function CoachingClienteWorkspace() {
             {!esCliente && (
               <div className="relative z-10 shrink-0">
                 <button style={{ ...BTN_PRIMARY, fontSize: "15px", padding: "16px 36px" }} onClick={() => setActiveTab("herramientas")}>
-                  Registrar próxima herramienta →
+                  Iniciar próxima sesión →
                 </button>
                 <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginTop: "12px", textAlign: "right" }}>
                   Con análisis IA incluido · Resultados inmediatos
@@ -620,7 +620,8 @@ function CoachingClienteWorkspace() {
                       return (
                         <div
                           key={h.id}
-                          style={{ background: completa ? "#F0FDF4" : "white", border: `1px solid ${completa ? "#BBF7D0" : "#E0E7FF"}`, borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "14px", transition: "all 0.2s" }}
+                          style={{ background: completa ? "#F0FDF4" : "white", border: `1px solid ${completa ? "#BBF7D0" : "#E0E7FF"}`, borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "14px", transition: "all 0.2s", cursor: "pointer" }}
+                          onClick={() => { ultima ? setEditing(ultima) : setOpenNueva({ herramientaId: h.id }); }}
                           onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = "0 12px 32px rgba(14,165,233,0.1)"; el.style.borderColor = "#BAE6FD"; }}
                           onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = "none"; el.style.borderColor = completa ? "#BBF7D0" : "#E0E7FF"; }}
                         >
@@ -644,7 +645,7 @@ function CoachingClienteWorkspace() {
                           <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
                             {!esCliente && (
                               <button
-                                onClick={() => setOpenNueva({ herramientaId: h.id })}
+                                onClick={(e) => { e.stopPropagation(); setOpenNueva({ herramientaId: h.id }); }}
                                 style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: completa ? "#059669" : etapaActiveGrad(et.color), color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${et.color}30`, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                               >
                                 <Plus style={{ width: "14px", height: "14px" }} />
@@ -653,7 +654,7 @@ function CoachingClienteWorkspace() {
                             )}
                             {ultima && (
                               <button
-                                onClick={() => setEditing(ultima)}
+                                onClick={(e) => { e.stopPropagation(); setEditing(ultima); }}
                                 style={{ padding: "12px 14px", borderRadius: "10px", border: "1.5px solid #E0E7FF", background: "white", color: "#0369A1", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", ...(esCliente ? { flex: 1 } : {}) }}
                                 title="Ver último registro"
                               >
