@@ -46,9 +46,9 @@ export function usePlanSeccionAutosave<T extends Record<string, unknown>>(opts: 
     }
   }, [clienteId, columna, data, analisis_ia, analisis_ia_fecha]);
 
-  // Debounced save 5s después de cambios
+  // Debounced save 2s después de cambios (reducido de 5s para minimizar pérdida al navegar)
   useEffect(() => {
-    const t = setTimeout(() => { guardar(); }, 5000);
+    const t = setTimeout(() => { guardar(); }, 2000);
     return () => clearTimeout(t);
   }, [guardar]);
 

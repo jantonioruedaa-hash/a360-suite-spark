@@ -1,5 +1,5 @@
-import { createFileRoute, useParams, useSearch, Link } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { createFileRoute, useParams, useSearch, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { z } from "zod";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -178,10 +178,25 @@ function PlanPage() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/plan" });
   const { s: seccionKeyParam } = useSearch({ from: "/app/clientes/$clienteId/plan" });
   const { role } = useAuth();
+  const navigate = useNavigate();
   const [cliente, setCliente] = useState<ClienteCtx | null>(null);
   const [plan, setPlan]       = useState<PlanRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [accesoInterpretacion, setAccesoInterpretacion] = useState(false);
+
+  // Ref to SeccionEditor's guardarAhora — populated when a section mounts
+  const saveRef = useRef<(() => Promise<void>) | null>(null);
+  const setGuardarRef = useCallback((fn: () => Promise<void>) => { saveRef.current = fn; }, []);
+
+  // Save current section then navigate
+  const saveAndGo = useCallback(async (key?: string) => {
+    try { await saveRef.current?.(); } catch { /* navigate regardless */ }
+    if (key) {
+      navigate({ to: "/app/clientes/$clienteId/plan", params: { clienteId }, search: { s: key } });
+    } else {
+      navigate({ to: "/app/clientes/$clienteId/plan", params: { clienteId } });
+    }
+  }, [clienteId, navigate]);
 
   const esCliente = role === "cliente" || role === "participante";
 
@@ -295,7 +310,7 @@ function PlanPage() {
                   params={{ clienteId }}
                   search={{ s: s.key }}
                   disabled={!enabled}
-                  onClick={(e) => { if (!enabled) e.preventDefault(); }}
+                  onClick={(e) => { e.preventDefault(); if (enabled) void saveAndGo(s.key); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 5,
                     padding: "14px 12px",
@@ -356,6 +371,8 @@ function PlanPage() {
             analisisFecha={seccionData.analisis_ia_fecha ?? null}
             puedeVerInterpretacion={puedeVerInterpretacion}
             esCliente={esCliente}
+            setGuardarRef={setGuardarRef}
+            onGuardarYVolver={() => void saveAndGo()}
           />
         )}
 
@@ -366,6 +383,7 @@ function PlanPage() {
               to="/app/clientes/$clienteId/plan"
               params={{ clienteId }}
               search={{ s: prev.key }}
+              onClick={(e) => { e.preventDefault(); void saveAndGo(prev.key); }}
               style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: INDIGO, textDecoration: "none", padding: "8px 16px", borderRadius: 8, border: "1px solid #C7D2FE", background: "white", transition: "background 0.15s, border-color 0.15s" }}
               onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "#EEF2FF"; el.style.borderColor = INDIGO; }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "white"; el.style.borderColor = "#C7D2FE"; }}
@@ -380,6 +398,7 @@ function PlanPage() {
               to="/app/clientes/$clienteId/plan"
               params={{ clienteId }}
               search={{ s: next.key }}
+              onClick={(e) => { e.preventDefault(); void saveAndGo(next.key); }}
               style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: INDIGO, textDecoration: "none", padding: "8px 16px", borderRadius: 8, border: "1px solid #C7D2FE", background: "white", transition: "background 0.15s, border-color 0.15s" }}
               onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "#EEF2FF"; el.style.borderColor = INDIGO; }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "white"; el.style.borderColor = "#C7D2FE"; }}
@@ -396,7 +415,7 @@ function PlanPage() {
 }
 
 // ── Editor de sección ─────────────────────────────────────────────────────────
-function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis, analisisFecha, puedeVerInterpretacion, esCliente }: {
+function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis, analisisFecha, puedeVerInterpretacion, esCliente, setGuardarRef, onGuardarYVolver }: {
   clienteId: string;
   cliente: ClienteCtx;
   sectorKey: ReturnType<typeof detectSector>;
@@ -406,14 +425,22 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
   analisisFecha: string | null;
   puedeVerInterpretacion: boolean;
   esCliente: boolean;
+  setGuardarRef: (fn: () => Promise<void>) => void;
+  onGuardarYVolver: () => void;
 }) {
   const [data, setData]       = useState<Record<string, unknown>>(datos);
   const [iaTexto, setIaTexto] = useState<string | null>(analisis);
   const [iaFecha, setIaFecha] = useState<string | null>(analisisFecha);
 
-  const { estado, ultimoGuardado } = usePlanSeccionAutosave({
+  const { estado, ultimoGuardado, guardarAhora } = usePlanSeccionAutosave({
     clienteId, columna: seccion.columna, data, analisis_ia: iaTexto, analisis_ia_fecha: iaFecha,
   });
+
+  // Expose guardarAhora to PlanPage so tab/prev/next navigation can save first
+  useEffect(() => {
+    setGuardarRef(guardarAhora);
+    return () => setGuardarRef(() => Promise.resolve());
+  }, [guardarAhora, setGuardarRef]);
 
   const contexto = `Empresa: ${cliente.nombre_empresa} | Sector: ${cliente.sector || "—"} | País: ${cliente.pais || "—"} | Empleados: ${cliente.num_empleados || "—"} | Licencia: ${cliente.plan_licencia}`;
 
@@ -453,7 +480,24 @@ function SeccionEditor({ clienteId, cliente, sectorKey, seccion, datos, analisis
           <span style={{ color: "#818CF8", fontWeight: 900 }}>{String(seccion.numero).padStart(2, "0")}.</span>
           {seccion.titulo}
         </h2>
-        <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <AutosaveBadge estado={estado} ultimoGuardado={ultimoGuardado} />
+          <button
+            onClick={async () => { await guardarAhora(); onGuardarYVolver(); }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 13, fontWeight: 600, color: INDIGO,
+              padding: "6px 14px", borderRadius: 8,
+              border: "1.5px solid #C7D2FE", background: "white",
+              cursor: "pointer", transition: "background 0.15s, border-color 0.15s",
+            }}
+            onMouseEnter={e => { const el = e.currentTarget; el.style.background = "#EEF2FF"; el.style.borderColor = INDIGO; }}
+            onMouseLeave={e => { const el = e.currentTarget; el.style.background = "white"; el.style.borderColor = "#C7D2FE"; }}
+          >
+            <Check style={{ width: 13, height: 13 }} />
+            Guardar y volver al resumen
+          </button>
+        </div>
       </div>
 
       {/* Marco metodológico — gateado para clientes sin acceso */}
