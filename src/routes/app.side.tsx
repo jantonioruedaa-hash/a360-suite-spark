@@ -925,30 +925,106 @@ function TabSide({
           { val: "5", lbl: "Análisis con IA" },
         ]}
       >
-        <div style={{ display: "flex", gap: 14, marginBottom: 44, flexWrap: "wrap" }}>
-          {!esCliente && (
-            <button
-              onClick={() => setShowForm((v) => !v)}
-              style={{ padding: "14px 28px", borderRadius: 10, background: "linear-gradient(135deg,#0EA5E9,#6366F1)", color: "white", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(14,165,233,0.35)" }}
-            >
-              + Nueva sesión de diagnóstico
-            </button>
+        <>
+          {!sesion && !esCliente && (
+            <div style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "24px 28px", marginBottom: 24, maxWidth: 560 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+                Configurar diagnóstico
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <Label style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", display: "block", marginBottom: 6 }}>Cliente</Label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Select value={clienteId} onValueChange={setClienteId}>
+                    <SelectTrigger style={{ flex: 1, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white" }}>
+                      <SelectValue placeholder="Selecciona un cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}{c.ciudad ? ` · ${c.ciudad}` : ""}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <button onClick={() => setNuevoOpen(!nuevoOpen)} style={{ padding: "8px 14px", borderRadius: 8, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                    <Plus style={{ width: 16, height: 16, color: "white" }} />
+                  </button>
+                </div>
+              </div>
+
+              {nuevoOpen && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: 14, background: "rgba(0,0,0,0.2)", borderRadius: 10, marginBottom: 14, border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Empresa *</Label>
+                    <Input value={nuevoCliente.nombre_empresa} onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre_empresa: e.target.value })} style={{ marginTop: 4 }} />
+                  </div>
+                  <div>
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Sector</Label>
+                    <Input value={nuevoCliente.sector} onChange={(e) => setNuevoCliente({ ...nuevoCliente, sector: e.target.value })} style={{ marginTop: 4 }} />
+                  </div>
+                  <div>
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Tamaño</Label>
+                    <Input value={nuevoCliente.tamano} onChange={(e) => setNuevoCliente({ ...nuevoCliente, tamano: e.target.value })} placeholder="ej: 45 empleados" style={{ marginTop: 4 }} />
+                  </div>
+                  <div>
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>País</Label>
+                    <Input value={nuevoCliente.pais} onChange={(e) => setNuevoCliente({ ...nuevoCliente, pais: e.target.value })} style={{ marginTop: 4 }} />
+                  </div>
+                  <div>
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Ciudad</Label>
+                    <Input value={nuevoCliente.ciudad} onChange={(e) => setNuevoCliente({ ...nuevoCliente, ciudad: e.target.value })} style={{ marginTop: 4 }} />
+                  </div>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <button onClick={crearCliente} style={{ padding: "8px 20px", borderRadius: 8, background: "linear-gradient(135deg,#0C4A6E,#1E3A8A)", color: "white", fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer" }}>
+                      Crear cliente
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginBottom: 16 }}>
+                <Label style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", display: "block", marginBottom: 6 }}>Nombre de la sesión</Label>
+                <Input
+                  value={nombreSesion}
+                  onChange={(e) => setNombreSesion(e.target.value)}
+                  placeholder={`Diagnóstico ${new Date().toLocaleDateString("es-EC")}`}
+                />
+              </div>
+
+              <button
+                onClick={iniciar}
+                disabled={creando || !clienteId}
+                style={{
+                  width: "100%", padding: "13px 28px", borderRadius: 10,
+                  background: (creando || !clienteId) ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg,#0EA5E9,#6366F1)",
+                  color: "white", fontSize: 15, fontWeight: 700, border: "none",
+                  cursor: (creando || !clienteId) ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  boxShadow: (creando || !clienteId) ? "none" : "0 4px 20px rgba(14,165,233,0.35)",
+                }}
+              >
+                {creando && <Loader2 style={{ width: 18, height: 18 }} className="animate-spin" />}
+                Iniciar diagnóstico SIDE →
+              </button>
+            </div>
           )}
-          <button
-            onClick={() => onGoTab("historial")}
-            style={{ padding: "14px 24px", borderRadius: 10, background: esCliente ? "linear-gradient(135deg,#0EA5E9,#6366F1)" : "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: esCliente ? "none" : "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer", boxShadow: esCliente ? "0 4px 20px rgba(14,165,233,0.35)" : "none" }}
-          >
-            {esCliente ? "📋 Mis diagnósticos" : "📋 Ver historial"}
-          </button>
-          {esCliente && (
+
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             <button
-              onClick={() => setShowForm((v) => !v)}
-              style={{ padding: "14px 24px", borderRadius: 10, background: "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer" }}
+              onClick={() => onGoTab("historial")}
+              style={{ padding: "14px 24px", borderRadius: 10, background: esCliente ? "linear-gradient(135deg,#0EA5E9,#6366F1)" : "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: esCliente ? "none" : "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer", boxShadow: esCliente ? "0 4px 20px rgba(14,165,233,0.35)" : "none" }}
             >
-              + Nuevo diagnóstico
+              {esCliente ? "📋 Mis diagnósticos" : "📋 Ver historial"}
             </button>
-          )}
-        </div>
+            {esCliente && (
+              <button
+                onClick={() => setShowForm((v) => !v)}
+                style={{ padding: "14px 24px", borderRadius: 10, background: "rgba(255,255,255,0.1)", color: "white", fontSize: 15, fontWeight: 600, border: "1.5px solid rgba(255,255,255,0.3)", cursor: "pointer" }}
+              >
+                + Nuevo diagnóstico
+              </button>
+            )}
+          </div>
+        </>
       </Hero>
 
       {/* Session active banner */}
@@ -967,8 +1043,8 @@ function TabSide({
         </div>
       )}
 
-      {/* New session form */}
-      {showForm && (
+      {/* New session form — solo cliente (consultor usa el form inline en el hero) */}
+      {esCliente && showForm && (
         <div style={{ ...S.sectionWhite, borderBottom: "1px solid #E0E7FF" }}>
           <div style={{ maxWidth: 600 }}>
             <div style={S.secLabel}>Nueva sesión de diagnóstico</div>
