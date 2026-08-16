@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ArrowLeft, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/manual-funciones/$clienteId")({
@@ -309,6 +309,7 @@ function ManualFuncionesViewer() {
   const clienteNombre  = useRef<string>("");
 
   const [saving, setSaving]               = useState(false);
+  const [ultimoGuardado, setUltimoGuardado] = useState<Date | null>(null);
   const [editorAbierto, setEditorAbierto] = useState(!esCliente);
   // null = loading, true = allowed, false = not allowed
   const [modEnabled, setModEnabled]       = useState<boolean | null>(esCliente ? null : true);
@@ -489,7 +490,7 @@ function ManualFuncionesViewer() {
 
           // Actualizar set de UUIDs conocidos para el siguiente ciclo
           loadedUUIDs.current = payloadIds;
-          toast.success("Cambios guardados en la nube");
+          setUltimoGuardado(new Date());
         } catch (err) {
           toast.error("Error al guardar: " + (err instanceof Error ? err.message : String(err)));
         } finally {
@@ -519,9 +520,12 @@ function ManualFuncionesViewer() {
           Manual de Funciones
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {saving && (
+          {(saving || ultimoGuardado) && (
             <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
-              <Save style={{ width: "12px", height: "12px" }} /> Guardando…
+              {saving
+                ? <><Save style={{ width: "12px", height: "12px" }} /> Guardando…</>
+                : <><Check style={{ width: "12px", height: "12px", color: "#4ade80" }} /> Guardado {ultimoGuardado!.toLocaleTimeString()}</>
+              }
             </span>
           )}
           <button
