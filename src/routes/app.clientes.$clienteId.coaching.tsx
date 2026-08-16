@@ -180,6 +180,11 @@ function CoachingClienteWorkspace() {
     [sesiones]
   );
 
+  const herramientaRecomendadaId = useMemo(
+    () => HERRAMIENTAS_A360.find(h => !sesiones.some(s => s.herramienta_id === h.id && s.completada))?.id,
+    [sesiones]
+  );
+
   const heroStats = [
     { val: totalCompletadas, lbl: "Herramientas completadas" },
     { val: HERRAMIENTAS_A360.length, lbl: "Total herramientas" },
@@ -617,20 +622,21 @@ function CoachingClienteWorkspace() {
                       const ses = sesiones.filter((s) => s.herramienta_id === h.id);
                       const ultima = ses[0];
                       const completa = ses.some((s) => s.completada);
+                      const esRecomendada = !completa && h.id === herramientaRecomendadaId;
                       return (
                         <div
                           key={h.id}
-                          style={{ background: completa ? "#F0FDF4" : "white", border: `1px solid ${completa ? "#BBF7D0" : "#E0E7FF"}`, borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "14px", transition: "all 0.2s", cursor: "pointer" }}
+                          style={{ background: completa ? "#F0FDF4" : "white", border: esRecomendada ? `2px solid ${et.color}` : `1px solid ${completa ? "#BBF7D0" : "#E0E7FF"}`, borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "14px", transition: "all 0.2s", cursor: "pointer", boxShadow: esRecomendada ? `0 0 0 3px ${et.color}18` : "none" }}
                           onClick={() => { ultima ? setEditing(ultima) : setOpenNueva({ herramientaId: h.id }); }}
-                          onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = "0 12px 32px rgba(14,165,233,0.1)"; el.style.borderColor = "#BAE6FD"; }}
-                          onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = "none"; el.style.borderColor = completa ? "#BBF7D0" : "#E0E7FF"; }}
+                          onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-3px)"; el.style.boxShadow = esRecomendada ? `0 12px 32px ${et.color}20, 0 0 0 3px ${et.color}18` : "0 12px 32px rgba(14,165,233,0.1)"; el.style.borderColor = esRecomendada ? et.color : "#BAE6FD"; }}
+                          onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "none"; el.style.boxShadow = esRecomendada ? `0 0 0 3px ${et.color}18` : "none"; el.style.borderColor = esRecomendada ? et.color : completa ? "#BBF7D0" : "#E0E7FF"; }}
                         >
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                             <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: completa ? "#DCFCE7" : "linear-gradient(135deg, #EFF6FF, #EDE9FE)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", flexShrink: 0 }}>
                               {completa ? "✅" : "🛠️"}
                             </div>
-                            <span style={{ fontSize: "11px", fontWeight: 700, padding: "5px 12px", borderRadius: "999px", background: completa ? "#DCFCE7" : ses.length > 0 ? "#EFF6FF" : "#F5F7FF", color: completa ? "#059669" : ses.length > 0 ? "#0369A1" : "#94A3B8", flexShrink: 0 }}>
-                              {completa ? "Completada" : ses.length > 0 ? `${ses.length} registro${ses.length > 1 ? "s" : ""}` : "Pendiente"}
+                            <span style={{ fontSize: "11px", fontWeight: 700, padding: "5px 12px", borderRadius: "999px", background: completa ? "#DCFCE7" : esRecomendada ? `${et.color}15` : ses.length > 0 ? "#EFF6FF" : "#F5F7FF", color: completa ? "#059669" : esRecomendada ? et.color : ses.length > 0 ? "#0369A1" : "#94A3B8", flexShrink: 0 }}>
+                              {completa ? "Completada" : esRecomendada ? "✦ Recomendada" : ses.length > 0 ? `${ses.length} registro${ses.length > 1 ? "s" : ""}` : "Pendiente"}
                             </span>
                           </div>
                           <div>
