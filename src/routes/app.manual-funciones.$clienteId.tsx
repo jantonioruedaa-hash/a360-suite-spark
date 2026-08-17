@@ -551,7 +551,7 @@ function ManualFuncionesViewer() {
             position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem",
             zIndex: iframeActive ? 50 : -1,
             visibility: iframeActive ? "visible" : "hidden",
-            border: "none", width: "auto", height: "auto",
+            border: "none", width: "100%", height: "100%",
           }}
         />
 
