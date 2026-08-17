@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Check, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { ManualFuncionesLanding } from "@/components/manual-funciones/ManualFuncionesLanding";
+import { AreaCargosView } from "@/components/manual-funciones/AreaCargosView";
+import { CargoFichaOverlay } from "@/components/manual-funciones/CargoFichaOverlay";
 
 const ensurePlantillaClonada = createServerFn({ method: "POST" })
   .inputValidator((data: { clienteId: string }) => data)
@@ -328,6 +331,14 @@ function ManualFuncionesViewer() {
   const [editorAbierto, setEditorAbierto] = useState(!esCliente);
   // null = loading, true = allowed, false = not allowed
   const [modEnabled, setModEnabled]       = useState<boolean | null>(esCliente ? null : true);
+  const [iframeActive, setIframeActive]   = useState(false);
+
+  // Client-side navigation state
+  type SelectedArea = { id: string; name: string; colorIdx: number };
+  const [selectedArea, setSelectedArea]     = useState<SelectedArea | null>(null);
+  const [selectedCargo, setSelectedCargo]   = useState<string | null>(null);
+  const [userRolEmpresa, setUserRolEmpresa] = useState<string | null>(null);
+  const [restrictedAreaId, setRestrictedAreaId] = useState<string | null>(null);
 
   // Entitlement check — same 3-step chain as AppSidebar / app.crecimiento.tsx
   const { user } = useAuth();
@@ -336,13 +347,16 @@ function ManualFuncionesViewer() {
     let cancelled = false;
     (async () => {
       try {
-        const { data: eu } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: eu } = await (supabase as any)
           .from("empresa_usuarios")
-          .select("cliente_id")
+          .select("cliente_id,rol_empresa,area_id")
           .eq("user_id", user.id)
           .maybeSingle();
         if (cancelled) return;
         if (!eu?.cliente_id) { setModEnabled(false); return; }
+        setUserRolEmpresa(eu?.rol_empresa ?? null);
+        setRestrictedAreaId(eu?.area_id ?? null);
 
         const { data: cli } = await supabase
           .from("clientes")
@@ -385,10 +399,10 @@ function ManualFuncionesViewer() {
   }, [esCliente, navigate]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleBack(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !iframeActive) handleBack(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleBack]);
+  }, [handleBack, iframeActive]);
 
   // ── Bridge ── (moved before conditional returns to comply with Rules of Hooks)
   useEffect(() => {
@@ -499,6 +513,12 @@ function ManualFuncionesViewer() {
           setSaving(false);
         }
       }
+
+      // ── MF_EVAL_CLOSED → hide eval iframe ─────────────────────────────────
+      if (msg.type === "MF_EVAL_CLOSED") {
+        setIframeActive(false);
+        return;
+      }
     };
 
     window.addEventListener("message", handler);
@@ -518,7 +538,67 @@ function ManualFuncionesViewer() {
     return <ClienteManualHero clienteId={clienteId} onAbrir={() => setEditorAbierto(true)} />;
   }
 
-  // ── Editor inline (sidebar siempre visible) ────────────────────────────────
+  // ── Client: Landing → AreaCargosView → CargoFichaOverlay ────────────────────
+  if (esCliente) {
+    return (
+      <>
+        {/* Eval iframe — always mounted but invisible; z-50 only during eval sessions */}
+        <iframe
+          ref={iframeRef}
+          src={`/manual-funciones.html?clienteId=${clienteId}`}
+          title="Manual de Funciones — Evaluación"
+          style={{
+            position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem",
+            zIndex: iframeActive ? 50 : -1,
+            visibility: iframeActive ? "visible" : "hidden",
+            border: "none", width: "auto", height: "auto",
+          }}
+        />
+
+        {/* State machine: three mutually exclusive views */}
+        {!selectedArea && (
+          <ManualFuncionesLanding
+            clienteId={clienteId}
+            onSelectArea={(areaId, areaName, colorIdx) =>
+              setSelectedArea({ id: areaId, name: areaName, colorIdx })
+            }
+            onSelectCargo={(cargoId, areaId, areaName, colorIdx) => {
+              setSelectedArea({ id: areaId, name: areaName, colorIdx });
+              setSelectedCargo(cargoId);
+            }}
+          />
+        )}
+
+        {selectedArea && !selectedCargo && (
+          <AreaCargosView
+            clienteId={clienteId}
+            areaId={selectedArea.id}
+            areaName={selectedArea.name}
+            colorIdx={selectedArea.colorIdx}
+            userRolEmpresa={userRolEmpresa}
+            restrictedAreaId={restrictedAreaId}
+            onBack={() => setSelectedArea(null)}
+            onSelectCargo={(cargoId) => setSelectedCargo(cargoId)}
+          />
+        )}
+
+        {selectedArea && selectedCargo && (
+          <CargoFichaOverlay
+            clienteId={clienteId}
+            cargoId={selectedCargo}
+            areaName={selectedArea.name}
+            colorIdx={selectedArea.colorIdx}
+            iframeRef={iframeRef}
+            iframeActive={iframeActive}
+            onClose={() => setSelectedCargo(null)}
+            onEvalOpen={() => setIframeActive(true)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // ── Non-client: inline HTML editor (sidebar siempre visible) ──────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* Franja superior */}
