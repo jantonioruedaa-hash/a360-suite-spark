@@ -17,7 +17,15 @@ export default defineConfig({
     react(),
     tailwindcss(),
     tsconfigPaths(),
-    nitro({ preset: 'node-server' }),
+    nitro({
+      preset: 'node-server',
+      routeRules: {
+        '/manual-funciones.html':     { headers: { 'cache-control': 'no-cache' } },
+        '/marketing-digital.html':    { headers: { 'cache-control': 'no-cache' } },
+        '/marketing-digital-v9.html': { headers: { 'cache-control': 'no-cache' } },
+        '/lee-workbooks/**':          { headers: { 'cache-control': 'no-cache' } },
+      },
+    }),
   ],
   resolve: {
     dedupe: ['react', 'react-dom', '@tanstack/react-router'],
