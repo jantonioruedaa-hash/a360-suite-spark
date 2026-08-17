@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const RoleEnum = z.enum(["admin", "consultor", "cliente", "participante"]);
+export const RolEmpresaEnum = z.enum(["dueño", "jefe_area", "colaborador"]);
 export const AccessTokenSchema = z.string().min(10).optional().nullable();
 
 export const ListUsersExtraSchema = z.object({ accessToken: z.string().optional() });
@@ -25,7 +26,12 @@ export const InviteUserSchema = z.object({
   role: RoleEnum,
   clienteId: z.string().uuid().optional(),
   redirectTo: z.string().url().optional(),
-});
+  rolEmpresa: RolEmpresaEnum.optional(),
+  areaId: z.string().uuid().optional(),
+}).refine(
+  (d) => d.rolEmpresa !== "jefe_area" || !!d.areaId,
+  { message: "areaId es requerido cuando rolEmpresa es 'jefe_area'", path: ["areaId"] }
+);
 
 export const UpdateProfileSchema = z.object({
   accessToken: AccessTokenSchema,
@@ -36,7 +42,12 @@ export const UpdateProfileSchema = z.object({
   email: z.string().email("Correo electrónico inválido").optional(),
   role: RoleEnum.optional(),
   clienteId: z.string().uuid().nullable().optional(),
-});
+  rolEmpresa: RolEmpresaEnum.optional(),
+  areaId: z.string().uuid().optional(),
+}).refine(
+  (d) => d.rolEmpresa !== "jefe_area" || !!d.areaId,
+  { message: "areaId es requerido cuando rolEmpresa es 'jefe_area'", path: ["areaId"] }
+);
 
 export const ResetPasswordSchema = z.object({
   accessToken: AccessTokenSchema,

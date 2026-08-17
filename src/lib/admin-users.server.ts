@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type AdminRole = "admin" | "consultor" | "cliente" | "participante";
+export type RolEmpresa = "dueño" | "jefe_area" | "colaborador";
 export type AdminUserExtra = { id: string; banned_until: string | null; last_sign_in_at: string | null };
 
 export async function ensureAdmin(userId: string) {
@@ -102,6 +103,8 @@ export async function inviteAdminUser(data: {
   role: AdminRole;
   clienteId?: string;
   redirectTo?: string;
+  rolEmpresa?: RolEmpresa;
+  areaId?: string;
 }, adminUserId: string) {
   await ensureAdmin(adminUserId);
   const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
@@ -118,7 +121,7 @@ export async function inviteAdminUser(data: {
   await supabaseAdmin.from("user_roles").delete().eq("user_id", uid);
   const { error: rErr } = await supabaseAdmin.from("user_roles").insert({ user_id: uid, role: data.role });
   if (rErr) throwAdminError(rErr);
-  if (data.clienteId) await linkUserToCliente(uid, data.role, data.clienteId);
+  if (data.clienteId) await linkUserToCliente(uid, data.role, data.clienteId, data.rolEmpresa, data.areaId);
   return { id: uid };
 }
 
@@ -131,6 +134,8 @@ export async function updateAdminProfile(data: {
   email?: string;
   role?: AdminRole;
   clienteId?: string | null;
+  rolEmpresa?: RolEmpresa;
+  areaId?: string;
 }, adminUserId: string) {
   await ensureAdmin(adminUserId);
   const { error: pErr } = await supabaseAdmin.from("profiles").update({
@@ -153,7 +158,7 @@ export async function updateAdminProfile(data: {
     const { data: roleRow } = await supabaseAdmin
       .from("user_roles").select("role").eq("user_id", data.userId).maybeSingle();
     const role = (data.role ?? roleRow?.role) as AdminRole | undefined;
-    if (role) await linkUserToCliente(data.userId, role, data.clienteId);
+    if (role) await linkUserToCliente(data.userId, role, data.clienteId, data.rolEmpresa, data.areaId);
   }
   return { ok: true };
 }
@@ -200,14 +205,23 @@ export async function deleteAdminUser(data: { accessToken?: string | null; userI
   return { ok: true };
 }
 
-async function linkUserToCliente(userId: string, role: AdminRole, clienteId: string | null) {
+async function linkUserToCliente(
+  userId: string,
+  role: AdminRole,
+  clienteId: string | null,
+  rolEmpresa: RolEmpresa = "dueño",
+  areaId?: string,
+) {
   if (role === "cliente" || role === "participante") {
+    if (rolEmpresa === "jefe_area" && !areaId) {
+      throw new Error("areaId es requerido para rol 'jefe_area'");
+    }
     const { error: delErr } = await supabaseAdmin.from("empresa_usuarios").delete().eq("user_id", userId);
     if (delErr) throwAdminError(delErr);
     if (clienteId) {
       const { error } = await supabaseAdmin
         .from("empresa_usuarios")
-        .insert({ user_id: userId, cliente_id: clienteId, rol_empresa: "dueño" });
+        .insert({ user_id: userId, cliente_id: clienteId, rol_empresa: rolEmpresa, area_id: areaId ?? null });
       if (error) throwAdminError(error);
     }
   } else if (role === "consultor" && clienteId) {

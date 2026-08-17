@@ -1,11 +1,27 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Check, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const ensurePlantillaClonada = createServerFn({ method: "POST" })
+  .inputValidator((data: { clienteId: string }) => data)
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.rpc("clonar_plantilla_manual_funciones", {
+      p_cliente_id: data.clienteId,
+    });
+    if (error) console.error("[ensurePlantillaClonada]", error.message);
+    // No lanzamos excepción: la función es idempotente y un fallo no debe
+    // bloquear al usuario (abrirá el módulo con los cargos que ya tenga).
+  });
+
 export const Route = createFileRoute("/app/manual-funciones/$clienteId")({
+  loader: async ({ params }) => {
+    await ensurePlantillaClonada({ data: { clienteId: params.clienteId } });
+  },
   component: ManualFuncionesViewer,
 });
 

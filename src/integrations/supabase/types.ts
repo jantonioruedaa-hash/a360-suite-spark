@@ -855,6 +855,7 @@ export type Database = {
       }
       empresa_usuarios: {
         Row: {
+          area_id: string | null
           cliente_id: string
           created_at: string
           id: string
@@ -863,6 +864,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          area_id?: string | null
           cliente_id: string
           created_at?: string
           id?: string
@@ -871,6 +873,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          area_id?: string | null
           cliente_id?: string
           created_at?: string
           id?: string
@@ -884,6 +887,20 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_area_cliente_fk"
+            columns: ["cliente_id", "area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["cliente_id", "id"]
+          },
+          {
+            foreignKeyName: "eu_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
             referencedColumns: ["id"]
           },
         ]
@@ -1038,6 +1055,7 @@ export type Database = {
         Row: {
           aprobado_por: string | null
           area: string
+          area_id: string
           cargo: string
           cliente_id: string
           codigo: string | null
@@ -1054,12 +1072,12 @@ export type Database = {
           id: string
           jefe_inmediato: string | null
           kpis: Json | null
-          logo_url: string | null
           objetivo: string | null
           plan_carrera: string | null
           relaciones_externas: Json | null
           relaciones_internas: Json | null
           requisitos: Json | null
+          resultados_esperados: Json
           supervisa_a: Json | null
           updated_at: string | null
           vacante: boolean | null
@@ -1068,6 +1086,7 @@ export type Database = {
         Insert: {
           aprobado_por?: string | null
           area: string
+          area_id: string
           cargo: string
           cliente_id: string
           codigo?: string | null
@@ -1084,12 +1103,12 @@ export type Database = {
           id?: string
           jefe_inmediato?: string | null
           kpis?: Json | null
-          logo_url?: string | null
           objetivo?: string | null
           plan_carrera?: string | null
           relaciones_externas?: Json | null
           relaciones_internas?: Json | null
           requisitos?: Json | null
+          resultados_esperados?: Json
           supervisa_a?: Json | null
           updated_at?: string | null
           vacante?: boolean | null
@@ -1098,6 +1117,7 @@ export type Database = {
         Update: {
           aprobado_por?: string | null
           area?: string
+          area_id?: string
           cargo?: string
           cliente_id?: string
           codigo?: string | null
@@ -1114,12 +1134,12 @@ export type Database = {
           id?: string
           jefe_inmediato?: string | null
           kpis?: Json | null
-          logo_url?: string | null
           objetivo?: string | null
           plan_carrera?: string | null
           relaciones_externas?: Json | null
           relaciones_internas?: Json | null
           requisitos?: Json | null
+          resultados_esperados?: Json
           supervisa_a?: Json | null
           updated_at?: string | null
           vacante?: boolean | null
@@ -1138,6 +1158,49 @@ export type Database = {
             columns: ["consultor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mf_cargos_area_cliente_fk"
+            columns: ["cliente_id", "area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["cliente_id", "id"]
+          },
+          {
+            foreignKeyName: "mf_cargos_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_config: {
+        Row: {
+          cliente_id: string
+          logo_url: string | null
+          nombre_empresa: string | null
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          logo_url?: string | null
+          nombre_empresa?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          logo_url?: string | null
+          nombre_empresa?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_config_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
         ]
@@ -1294,6 +1357,119 @@ export type Database = {
             columns: ["consultor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_plantilla_areas: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: []
+      }
+      manual_plantilla_cargos: {
+        Row: {
+          aprobado_por: string | null
+          cargo: string
+          codigo: string | null
+          competencias_blandas: Json
+          competencias_tecnicas: Json
+          condiciones: Json
+          created_at: string
+          elaborado_por: string | null
+          estado: string
+          fecha_elaboracion: string | null
+          fecha_revision: string | null
+          funciones: Json
+          id: string
+          jefe_inmediato: string | null
+          kpis: Json
+          objetivo: string | null
+          plan_carrera: string | null
+          plantilla_area_id: string
+          relaciones_externas: Json
+          relaciones_internas: Json
+          requisitos: Json
+          resultados_esperados: Json
+          supervisa_a: Json
+          vacante: boolean
+          version: string
+        }
+        Insert: {
+          aprobado_por?: string | null
+          cargo: string
+          codigo?: string | null
+          competencias_blandas?: Json
+          competencias_tecnicas?: Json
+          condiciones?: Json
+          created_at?: string
+          elaborado_por?: string | null
+          estado?: string
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json
+          objetivo?: string | null
+          plan_carrera?: string | null
+          plantilla_area_id: string
+          relaciones_externas?: Json
+          relaciones_internas?: Json
+          requisitos?: Json
+          resultados_esperados?: Json
+          supervisa_a?: Json
+          vacante?: boolean
+          version?: string
+        }
+        Update: {
+          aprobado_por?: string | null
+          cargo?: string
+          codigo?: string | null
+          competencias_blandas?: Json
+          competencias_tecnicas?: Json
+          condiciones?: Json
+          created_at?: string
+          elaborado_por?: string | null
+          estado?: string
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json
+          objetivo?: string | null
+          plan_carrera?: string | null
+          plantilla_area_id?: string
+          relaciones_externas?: Json
+          relaciones_internas?: Json
+          requisitos?: Json
+          resultados_esperados?: Json
+          supervisa_a?: Json
+          vacante?: boolean
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_plantilla_cargos_plantilla_area_id_fkey"
+            columns: ["plantilla_area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_plantilla_areas"
             referencedColumns: ["id"]
           },
         ]
@@ -1643,6 +1819,10 @@ export type Database = {
     }
     Functions: {
       can_access_cliente: { Args: { _cliente_id: string }; Returns: boolean }
+      clonar_plantilla_manual_funciones: {
+        Args: { p_cliente_id: string }
+        Returns: undefined
+      }
       current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1815,4 +1995,3 @@ export const Constants = {
     },
   },
 } as const
-
