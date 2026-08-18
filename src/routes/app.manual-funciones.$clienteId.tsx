@@ -406,13 +406,16 @@ function ManualFuncionesViewer() {
 
   // ── Bridge ── (moved before conditional returns to comply with Rules of Hooks)
   useEffect(() => {
+    // Tipos de mensaje que no incluyen clienteId — exentos del guard por-cliente
+    const MSGS_SIN_CLIENTE_ID = new Set(["MF_EVAL_CLOSED"]);
+
     const handler = async (e: MessageEvent) => {
       // Validación 1: origin
       if (e.origin !== window.location.origin) return;
       const msg = e.data as { type?: string; clienteId?: string; cargos?: HtmlCargo[] };
       if (!msg?.type) return;
-      // Validación 2: clienteId activo
-      if (msg.clienteId !== clienteId) return;
+      // Validación 2: clienteId activo (excepto tipos en MSGS_SIN_CLIENTE_ID)
+      if (!MSGS_SIN_CLIENTE_ID.has(msg.type) && msg.clienteId !== clienteId) return;
 
       // ── MF_READY → inyectar datos ──────────────────────────────────────────
       if (msg.type === "MF_READY") {
