@@ -651,14 +651,29 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
   const handleOpenEval = useCallback(async (evalType: "competencias" | "desempeno") => {
     try {
       const freshCargo = await flushAndGetFreshCargo();
+
+      // renderCargoHTML in the HTML editor expects field names and types from
+      // supabaseToHtml(), not the raw Supabase/Cargo shape. Convert inline:
+      //   jefe_inmediato → jefe, elaborado_por → elaborado, aprobado_por → aprobado
+      //   funciones: [{descripcion,porcentaje_tiempo}] → string[]  (% not shown in HTML)
+      //   kpis: frecuencia → freq
+      //   dates: ISO → MM/YYYY
+      const htmlCargo = {
+        ...freshCargo,
+        jefe:      freshCargo.jefe_inmediato ?? "",
+        elaborado: freshCargo.elaborado_por  ?? "",
+        aprobado:  freshCargo.aprobado_por   ?? "",
+        fecha_elaboracion: fmtDate(freshCargo.fecha_elaboracion),
+        fecha_revision:    fmtDate(freshCargo.fecha_revision),
+        funciones: (freshCargo.funciones ?? []).map((f) => f.descripcion),
+        kpis: (freshCargo.kpis ?? []).map((k) => {
+          const row = k as KpiRow;
+          return { nombre: row.nombre, meta: row.meta, freq: row.frecuencia, formula: row.formula ?? "" };
+        }),
+      };
+
       iframeRef.current?.contentWindow?.postMessage(
-        {
-          type: "MF_OPEN_EVAL",
-          clienteId,
-          cargoId,
-          evalType,
-          cargoData: freshCargo,   // fresh data so cargoDataHash() in HTML stays in sync
-        },
+        { type: "MF_OPEN_EVAL", clienteId, cargoId, evalType, cargoData: htmlCargo },
         { targetOrigin: window.location.origin },
       );
       onEvalOpen();
