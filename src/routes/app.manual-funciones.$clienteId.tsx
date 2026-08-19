@@ -575,7 +575,7 @@ function ManualFuncionesViewer() {
         {/* Eval iframe — always mounted but invisible; z-50 only during eval sessions */}
         <iframe
           ref={iframeRef}
-          src={`/manual-funciones.html?clienteId=${clienteId}`}
+          src={`/manual-funciones.html?clienteId=${clienteId}&embed=1`}
           title="Manual de Funciones — Evaluación"
           style={{
             position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem",
