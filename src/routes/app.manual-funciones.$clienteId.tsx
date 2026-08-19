@@ -22,6 +22,16 @@ const ensurePlantillaClonada = createServerFn({ method: "POST" })
   });
 
 export const Route = createFileRoute("/app/manual-funciones/$clienteId")({
+  validateSearch: (search: Record<string, unknown>): {
+    v?: string; area?: string; areaName?: string; colorIdx?: number; cargo?: string;
+  } => ({
+    v:        typeof search.v        === "string" ? search.v        : undefined,
+    area:     typeof search.area     === "string" ? search.area     : undefined,
+    areaName: typeof search.areaName === "string" ? search.areaName : undefined,
+    colorIdx: typeof search.colorIdx === "string" ? Number(search.colorIdx) :
+              typeof search.colorIdx === "number" ? search.colorIdx : undefined,
+    cargo:    typeof search.cargo    === "string" ? search.cargo    : undefined,
+  }),
   loader: async ({ params }) => {
     await ensurePlantillaClonada({ data: { clienteId: params.clienteId } });
   },
@@ -326,19 +336,20 @@ function ManualFuncionesViewer() {
   const loadedUUIDs    = useRef<Set<string>>(new Set());
   const clienteNombre  = useRef<string>("");
 
-  const [saving, setSaving]               = useState(false);
-  const [ultimoGuardado, setUltimoGuardado] = useState<Date | null>(null);
-  const [editorAbierto, setEditorAbierto] = useState(!esCliente);
+  const [saving, setSaving]                   = useState(false);
+  const [ultimoGuardado, setUltimoGuardado]   = useState<Date | null>(null);
   // null = loading, true = allowed, false = not allowed
-  const [modEnabled, setModEnabled]       = useState<boolean | null>(esCliente ? null : true);
-  const [iframeActive, setIframeActive]   = useState(false);
-
-  // Client-side navigation state
-  type SelectedArea = { id: string; name: string; colorIdx: number };
-  const [selectedArea, setSelectedArea]     = useState<SelectedArea | null>(null);
-  const [selectedCargo, setSelectedCargo]   = useState<string | null>(null);
-  const [userRolEmpresa, setUserRolEmpresa] = useState<string | null>(null);
+  const [modEnabled, setModEnabled]           = useState<boolean | null>(esCliente ? null : true);
+  const [iframeActive, setIframeActive]       = useState(false);
+  const [userRolEmpresa, setUserRolEmpresa]   = useState<string | null>(null);
   const [restrictedAreaId, setRestrictedAreaId] = useState<string | null>(null);
+
+  // Client navigation state — derived from URL search params so browser back/forward work
+  const { v, area, areaName, colorIdx, cargo } = Route.useSearch();
+  const editorAbierto = esCliente ? v === "open" : true;
+  type SelectedArea = { id: string; name: string; colorIdx: number };
+  const selectedArea  = area ? { id: area, name: areaName ?? "", colorIdx: colorIdx ?? 0 } : null;
+  const selectedCargo = cargo ?? null;
 
   // Entitlement check — same 3-step chain as AppSidebar / app.crecimiento.tsx
   const { user } = useAuth();
@@ -392,17 +403,33 @@ function ManualFuncionesViewer() {
     return () => { cancelled = true; };
   }, [esCliente, user?.id]);
 
-  // For clients: Esc closes editor back to hero; for consultors: navigate away
+  // For clients: navigate one URL level back; for consultors: leave the module
   const handleBack = useCallback(() => {
-    if (esCliente) { setEditorAbierto(false); }
-    else { navigate({ to: "/app/manual-funciones" }); }
-  }, [esCliente, navigate]);
+    if (esCliente) {
+      if (area) {
+        navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open" } });
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: {} as any });
+      }
+    } else {
+      navigate({ to: "/app/manual-funciones" });
+    }
+  }, [esCliente, navigate, area, clienteId]);
 
+  // Guard: when cargo is in the URL, CargoFichaOverlay handles Escape (preserves auto-save)
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !iframeActive) handleBack(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !iframeActive && !cargo) handleBack();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleBack, iframeActive]);
+  }, [handleBack, iframeActive, cargo]);
+
+  // Reset eval iframe when cargo leaves the URL (browser back from ficha while eval is open)
+  useEffect(() => {
+    if (!cargo) setIframeActive(false);
+  }, [cargo]);
 
   // ── Bridge ── (moved before conditional returns to comply with Rules of Hooks)
   useEffect(() => {
@@ -538,7 +565,7 @@ function ManualFuncionesViewer() {
 
   // Show hero for clients until they open the editor
   if (esCliente && !editorAbierto) {
-    return <ClienteManualHero clienteId={clienteId} onAbrir={() => setEditorAbierto(true)} />;
+    return <ClienteManualHero clienteId={clienteId} onAbrir={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open" } })} />;
   }
 
   // ── Client: Landing → AreaCargosView → CargoFichaOverlay ────────────────────
@@ -558,17 +585,16 @@ function ManualFuncionesViewer() {
           }}
         />
 
-        {/* State machine: three mutually exclusive views */}
+        {/* State machine: three mutually exclusive views — navigation via URL search params */}
         {!selectedArea && (
           <ManualFuncionesLanding
             clienteId={clienteId}
-            onSelectArea={(areaId, areaName, colorIdx) =>
-              setSelectedArea({ id: areaId, name: areaName, colorIdx })
+            onSelectArea={(aId, aName, cIdx) =>
+              navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area: aId, areaName: aName, colorIdx: cIdx } })
             }
-            onSelectCargo={(cargoId, areaId, areaName, colorIdx) => {
-              setSelectedArea({ id: areaId, name: areaName, colorIdx });
-              setSelectedCargo(cargoId);
-            }}
+            onSelectCargo={(cargoId, aId, aName, cIdx) =>
+              navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area: aId, areaName: aName, colorIdx: cIdx, cargo: cargoId } })
+            }
           />
         )}
 
@@ -580,8 +606,10 @@ function ManualFuncionesViewer() {
             colorIdx={selectedArea.colorIdx}
             userRolEmpresa={userRolEmpresa}
             restrictedAreaId={restrictedAreaId}
-            onBack={() => setSelectedArea(null)}
-            onSelectCargo={(cargoId) => setSelectedCargo(cargoId)}
+            onBack={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open" } })}
+            onSelectCargo={(cargoId) =>
+              navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area, areaName, colorIdx, cargo: cargoId } })
+            }
           />
         )}
 
@@ -593,7 +621,7 @@ function ManualFuncionesViewer() {
             colorIdx={selectedArea.colorIdx}
             iframeRef={iframeRef}
             iframeActive={iframeActive}
-            onClose={() => setSelectedCargo(null)}
+            onClose={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area, areaName, colorIdx } })}
             onEvalOpen={() => setIframeActive(true)}
           />
         )}

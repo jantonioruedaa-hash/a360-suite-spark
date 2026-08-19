@@ -310,6 +310,7 @@ function ManualFuncionesPanel() {
                     <Link
                       to="/app/manual-funciones/$clienteId"
                       params={{ clienteId: c.id }}
+                      search={{}}
                       style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: "#0C4A6E", textDecoration: "none", padding: "8px 14px", borderRadius: "8px", border: "1.5px solid #E0E7FF", transition: "all 0.15s" }}
                       onMouseEnter={(e) => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "#0EA5E9"; el.style.color = "#0EA5E9"; }}
                       onMouseLeave={(e) => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "#E0E7FF"; el.style.color = "#0C4A6E"; }}
@@ -340,6 +341,7 @@ function ManualFuncionesPanel() {
                     <Link
                       to="/app/manual-funciones/$clienteId"
                       params={{ clienteId: c.id }}
+                      search={{}}
                       style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#0EA5E9", textDecoration: "none" }}
                     >
                       <Plus style={{ width: "12px", height: "12px" }} /> Crear primer cargo
