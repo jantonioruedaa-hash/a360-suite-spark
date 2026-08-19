@@ -319,6 +319,7 @@ textarea{text-align:justify}
 /* ── MODO EMBEBIDO (iframe cliente React — embed=1) ── */
 body.mf-embed #evalPane,
 body.mf-embed #evalDesempPane{left:0!important}
+body.mf-embed .eval-content{max-width:none!important;margin-left:0!important;margin-right:0!important}
 /* ── EVAL SECTIONS 8-9 ── */
 .eval-dato{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .eval-field{background:var(--surf);border-radius:var(--rads);padding:9px 12px;border:1px solid var(--bord)}
@@ -7220,7 +7221,7 @@ updateStickyTop();
   </div>
 
   <!-- Content -->
-  <div style="max-width:1100px;margin:0 auto;padding:20px 24px 40px">
+  <div class="eval-content" style="max-width:1100px;margin:0 auto;padding:20px 24px 40px">
 
     <!-- SECCIÓN 8 · EVALUACIÓN Y GAP ANALYSIS -->
     <div class="sec" id="sec8Eval">
@@ -7405,13 +7406,13 @@ updateStickyTop();
   </div>
 
   <!-- Título prominente del formulario -->
-  <div style="max-width:1100px;margin:0 auto;padding:20px 28px 0;background:#fff;border-bottom:1px solid var(--bord)">
+  <div class="eval-content" style="max-width:1100px;margin:0 auto;padding:20px 28px 0;background:#fff;border-bottom:1px solid var(--bord)">
     <h2 style="font-size:26px;font-weight:900;color:var(--h-from);letter-spacing:-0.02em;margin-bottom:4px">📋 Evaluación de Desempeño</h2>
     <p style="font-size:13px;color:var(--muted);margin-bottom:16px" id="evdSubtitulo">—</p>
   </div>
 
   <!-- Dynamic body -->
-  <div id="evdBody" style="max-width:1100px;margin:0 auto;padding:20px 24px 40px">
+  <div id="evdBody" class="eval-content" style="max-width:1100px;margin:0 auto;padding:20px 24px 40px">
     <p style="color:var(--muted);text-align:center;padding:40px">Cargando formulario...</p>
   </div>
 
