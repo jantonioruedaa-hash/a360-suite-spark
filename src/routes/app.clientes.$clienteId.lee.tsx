@@ -857,6 +857,8 @@ function WorkbookDialog({
     onClose();
   }, [guardarSilencioso, onClose]);
 
+  const fileRef = useRef<HTMLInputElement>(null);
+
   if (!cap || !ses) return null;
 
   const guardar = async () => {
@@ -886,8 +888,6 @@ function WorkbookDialog({
       setSaving(false);
     }
   };
-
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const handleExportJSON = () => {
     if (!schema) return toast.error("Esta sesión aún no tiene workbook instrumentado.");

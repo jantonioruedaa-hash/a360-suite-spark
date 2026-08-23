@@ -25,6 +25,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Supabase CLI temp files
+supabase/.temp/
+
 # Bun lockfile — Cloudflare Pages uses npm (package-lock.json); never commit bun.lockb
 bun.lockb
 

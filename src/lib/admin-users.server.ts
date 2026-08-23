@@ -216,9 +216,9 @@ async function linkUserToCliente(
     if (rolEmpresa === "jefe_area" && !areaId) {
       throw new Error("areaId es requerido para rol 'jefe_area'");
     }
-    const { error: delErr } = await supabaseAdmin.from("empresa_usuarios").delete().eq("user_id", userId);
-    if (delErr) throwAdminError(delErr);
     if (clienteId) {
+      const { error: delErr } = await supabaseAdmin.from("empresa_usuarios").delete().eq("user_id", userId);
+      if (delErr) throwAdminError(delErr);
       const { error } = await supabaseAdmin
         .from("empresa_usuarios")
         .insert({ user_id: userId, cliente_id: clienteId, rol_empresa: rolEmpresa, area_id: areaId ?? null });

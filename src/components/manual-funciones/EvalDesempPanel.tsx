@@ -253,8 +253,9 @@ function FixedScoreRow({ nombre, calificacion, observacion, tipo, onCalChange, o
 
 type EvalRec = Record<string, unknown> & { id: string };
 
-export function EvalDesempPanel({ cargo, onClose }: {
+export function EvalDesempPanel({ cargo, userRolEmpresa, onClose }: {
   cargo: Cargo;
+  userRolEmpresa: string | null;
   onClose: () => void;
 }) {
   const [evals, setEvals]               = useState<EvalRec[]>([]);
@@ -312,7 +313,7 @@ export function EvalDesempPanel({ cargo, onClose }: {
 
     const payload = {
       cargo_id:              cargo.id,
-      consultor_id:          user?.id ?? null,
+      consultor_id:          userRolEmpresa === "consultor" ? (user?.id ?? null) : null,
       nombre_evaluado:       form.nombre_evaluado,
       evaluador:             form.evaluador              || null,
       fecha_evaluacion:      form.fecha_evaluacion       || null,

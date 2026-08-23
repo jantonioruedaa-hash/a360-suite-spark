@@ -5,22 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Cargo, Funcion, Competencia } from "@/types/manual-funciones";
 import { NIVELES } from "@/types/manual-funciones";
 import { getAreaColor, getAreaIcon } from "./area-palette";
+import { EvalDesempPanel } from "./EvalDesempPanel";
 
-// ── Tabs ───────────────────────────────────────────────────────────────────────
-
-const TABS = [
-  { id: "identificacion", label: "Identificación" },
-  { id: "objetivo",       label: "Objetivo" },
-  { id: "funciones",      label: "Funciones" },
-  { id: "competencias",   label: "Competencias" },
-  { id: "kpis",           label: "KPIs" },
-  { id: "relaciones",     label: "Relaciones" },
-  { id: "condiciones",    label: "Condiciones" },
-  { id: "plan_carrera",   label: "Plan de Carrera" },
-  { id: "firmas",         label: "Firmas" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
 
 // KPI type extended with optional formula (not in base Cargo KPI type)
 type KpiRow = { nombre: string; meta: string; frecuencia: string; formula: string };
@@ -81,6 +67,21 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 10px" }}>
       {children}
     </h3>
+  );
+}
+
+function SecBlock({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <section style={{ marginBottom: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <div style={{ width: "3px", height: "18px", borderRadius: "2px", background: accent, flexShrink: 0 }} />
+        <h3 style={{ fontSize: "11px", fontWeight: 800, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.14em", margin: 0 }}>
+          {title}
+        </h3>
+        <div style={{ flex: 1, height: "1px", background: "#F1F5F9" }} />
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -384,6 +385,7 @@ function TagListEditor({
           value={draft}
           placeholder={placeholder}
           onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => { if (draft.trim()) add(); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
         <button
@@ -530,17 +532,19 @@ type Props = {
   colorIdx: number;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   iframeActive: boolean;
+  userRolEmpresa: string | null;
   onClose: () => void;
   onEvalOpen: () => void;
 };
 
-export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, iframeRef, iframeActive, onClose, onEvalOpen }: Props) {
+export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, iframeRef, iframeActive, userRolEmpresa, onClose, onEvalOpen }: Props) {
   const [localCargo, setLocalCargo] = useState<Cargo | null>(null);
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
   const [lastSaved, setLastSaved]   = useState<Date | null>(null);
   const [closing, setClosing]       = useState(false);
-  const [activeTab, setActiveTab]   = useState<TabId>("identificacion");
+  const [hasPending, setHasPending] = useState(false);
+  const [showEvalDesemp, setShowEvalDesemp] = useState(false);
 
   const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEditsRef = useRef<Partial<Cargo>>({});
@@ -587,11 +591,13 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
       throw err;
     } finally {
       setSaving(false);
+      setHasPending(false);
     }
   }, [cargoId]);
 
   const scheduleAutoSave = useCallback((edits: Partial<Cargo>) => {
     pendingEditsRef.current = { ...pendingEditsRef.current, ...edits };
+    setHasPending(true);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       const toSave = pendingEditsRef.current;
@@ -682,6 +688,15 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
     }
   }, [flushAndGetFreshCargo, iframeRef, clienteId, cargoId, onEvalOpen]);
 
+  const handleOpenEvalDesemp = useCallback(async () => {
+    try {
+      await flushAndGetFreshCargo();
+      setShowEvalDesemp(true);
+    } catch {
+      // executeSave already showed a toast
+    }
+  }, [flushAndGetFreshCargo]);
+
   // ── Escape to close ────────────────────────────────────────────────────────
 
   const handleEsc = useCallback((e: KeyboardEvent) => {
@@ -703,6 +718,16 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
       zIndex: 40, background: "#F8FAFC",
       display: "flex", flexDirection: "column", overflow: "hidden",
     }}>
+
+      {showEvalDesemp && localCargo ? (
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          <EvalDesempPanel
+            cargo={localCargo}
+            userRolEmpresa={userRolEmpresa}
+            onClose={() => setShowEvalDesemp(false)}
+          />
+        </div>
+      ) : (<>
 
       {/* ── Sticky header ── */}
       <div style={{ background: "white", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
@@ -727,6 +752,24 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
                 }
               </span>
             )}
+            <button
+              onClick={() => { void flushAndGetFreshCargo(); }}
+              disabled={!hasPending || saving}
+              style={{
+                display: "flex", alignItems: "center", gap: "4px",
+                fontSize: "12px", fontWeight: 600,
+                padding: "4px 12px", borderRadius: "6px", border: "none",
+                cursor: hasPending && !saving ? "pointer" : "default",
+                background: hasPending && !saving ? "#0C4A6E" : "#F1F5F9",
+                color:      hasPending && !saving ? "white"   : "#94A3B8",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { if (hasPending && !saving) (e.currentTarget as HTMLButtonElement).style.background = "#0A3D5C"; }}
+              onMouseLeave={(e) => { if (hasPending && !saving) (e.currentTarget as HTMLButtonElement).style.background = "#0C4A6E"; }}
+            >
+              <Save style={{ width: "12px", height: "12px" }} />
+              {saving ? "Guardando…" : "Guardar"}
+            </button>
             <button
               onClick={() => { void handleClose(); }}
               disabled={closing}
@@ -769,50 +812,34 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
           {/* Eval buttons — visible once cargo is loaded; disabled while closing */}
           {!loading && localCargo && (
             <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-              {(["competencias", "desempeno"] as const).map((et) => (
-                <button
-                  key={et}
-                  disabled={closing}
-                  onClick={() => { void handleOpenEval(et); }}
-                  style={{
-                    fontSize: "11px", fontWeight: 700,
-                    padding: "5px 12px", borderRadius: "8px", cursor: closing ? "default" : "pointer",
-                    background: et === "competencias" ? "#EDE9FE" : "#E0F2FE",
-                    color:      et === "competencias" ? "#7C3AED"  : "#0284C7",
-                    border:     et === "competencias" ? "1px solid #DDD6FE" : "1px solid #BAE6FD",
-                    opacity: closing ? 0.5 : 1,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {et === "competencias" ? "Evaluación Competencias / PDI" : "Evaluación Desempeño"}
-                </button>
-              ))}
+              <button
+                disabled={closing}
+                onClick={() => { void handleOpenEval("competencias"); }}
+                style={{
+                  fontSize: "11px", fontWeight: 700,
+                  padding: "5px 12px", borderRadius: "8px", cursor: closing ? "default" : "pointer",
+                  background: "#EDE9FE", color: "#7C3AED", border: "1px solid #DDD6FE",
+                  opacity: closing ? 0.5 : 1, whiteSpace: "nowrap",
+                }}
+              >
+                Evaluación Competencias / PDI
+              </button>
+              <button
+                disabled={closing}
+                onClick={() => { void handleOpenEvalDesemp(); }}
+                style={{
+                  fontSize: "11px", fontWeight: 700,
+                  padding: "5px 12px", borderRadius: "8px", cursor: closing ? "default" : "pointer",
+                  background: "#E0F2FE", color: "#0284C7", border: "1px solid #BAE6FD",
+                  opacity: closing ? 0.5 : 1, whiteSpace: "nowrap",
+                }}
+              >
+                Evaluación Desempeño
+              </button>
             </div>
           )}
         </div>
 
-        {/* Row 3: tab bar */}
-        <div style={{ display: "flex", overflowX: "auto", padding: "8px 24px 0", scrollbarWidth: "none" }}>
-          {TABS.map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: "8px 14px", fontSize: "13px", fontWeight: active ? 700 : 500,
-                  color: active ? dot : "#64748B",
-                  background: "none", border: "none", cursor: "pointer",
-                  borderBottom: active ? `2.5px solid ${dot}` : "2.5px solid transparent",
-                  whiteSpace: "nowrap", transition: "color 0.15s, border-color 0.15s",
-                  marginBottom: "-1px",
-                }}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* ── Scrollable content ── */}
@@ -825,18 +852,20 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
           <p style={{ color: "#94A3B8", fontSize: "14px" }}>No se pudo cargar el cargo.</p>
         ) : (
           <>
-            {activeTab === "identificacion" && <SecIdentificacion cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "objetivo"       && <SecObjetivo       cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "funciones"      && <SecFunciones      cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "competencias"   && <SecCompetencias   cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "kpis"           && <SecKpis           cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "relaciones"     && <SecRelaciones     cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "condiciones"    && <SecCondiciones    cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "plan_carrera"   && <SecPlanCarrera    cargo={localCargo} onChange={handleChange} />}
-            {activeTab === "firmas"         && <SecFirmas         cargo={localCargo} onChange={handleChange} />}
+            <SecBlock title="Identificación"        accent={dot}><SecIdentificacion cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Objetivo del cargo"    accent={dot}><SecObjetivo       cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Funciones"             accent={dot}><SecFunciones      cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Competencias"          accent={dot}><SecCompetencias   cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="KPIs"                  accent={dot}><SecKpis           cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Relaciones"            accent={dot}><SecRelaciones     cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Condiciones laborales" accent={dot}><SecCondiciones    cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Plan de carrera"       accent={dot}><SecPlanCarrera    cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Firmas"                accent={dot}><SecFirmas         cargo={localCargo} onChange={handleChange} /></SecBlock>
           </>
         )}
       </div>
+
+      </>)}
     </div>
   );
 }

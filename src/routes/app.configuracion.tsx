@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Save, Users, UserCog, UserPlus, Pencil, KeyRound, Trash2, Mail, Send, Lock, Unlock, Palette, FileText, Upload } from "lucide-react";
+import { Save, Users, UserCog, UserPlus, Pencil, KeyRound, Trash2, Mail, Send, Lock, Unlock, Palette, FileText, Upload, ShieldCheck } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   adminCreateUser, adminUpdateProfile, adminResetPassword, adminDeleteUser,
@@ -35,11 +35,13 @@ function Config() {
         <TabsList>
           <TabsTrigger value="perfil"><UserCog className="w-4 h-4 mr-2" />Mi perfil</TabsTrigger>
           {isAdmin && <TabsTrigger value="usuarios"><Users className="w-4 h-4 mr-2" />Usuarios</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="permisos"><ShieldCheck className="w-4 h-4 mr-2" />Permisos</TabsTrigger>}
           {canBranding && <TabsTrigger value="branding"><Palette className="w-4 h-4 mr-2" />Branding</TabsTrigger>}
           {canBranding && <TabsTrigger value="contenido"><FileText className="w-4 h-4 mr-2" />Contenido</TabsTrigger>}
         </TabsList>
         <TabsContent value="perfil" className="mt-6"><PerfilForm /></TabsContent>
         {isAdmin && <TabsContent value="usuarios" className="mt-6"><UsuariosAdmin /></TabsContent>}
+        {isAdmin && <TabsContent value="permisos" className="mt-6"><PermisosModuloAdmin /></TabsContent>}
         {canBranding && <TabsContent value="branding" className="mt-6"><BrandingForm /></TabsContent>}
         {canBranding && <TabsContent value="contenido" className="mt-6"><ContenidoEditor /></TabsContent>}
       </Tabs>
@@ -259,6 +261,8 @@ function PerfilForm() {
 }
 
 type ClienteOpt = { id: string; nombre_empresa: string };
+type AreaOpt = { id: string; nombre: string };
+type RolEmpresa = "dueño" | "jefe_area" | "colaborador";
 type UsuarioRow = {
   id: string;
   email: string;
@@ -268,7 +272,33 @@ type UsuarioRow = {
   banned: boolean;
   clienteId: string | null;
   clienteNombre: string | null;
+  rolEmpresa: string | null;
+  areaId: string | null;
 };
+
+type PermisoRow = {
+  id: string;
+  user_id: string;
+  user_email: string;
+  user_name: string | null;
+  modulo: string;
+  alcance_tipo: "area" | "todas";
+  alcance_area_id: string | null;
+  alcance_area_nombre: string | null;
+  puede_ver: boolean;
+  puede_editar: boolean;
+};
+
+type EmpresaUsuarioOpt = {
+  user_id: string;
+  email: string;
+  name: string | null;
+  rol_empresa: string;
+};
+
+const MODULOS_PERMISO = [
+  { value: "manual_funciones_evaluaciones", label: "Evaluaciones (Manual de Funciones)" },
+] as const;
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 function validarEmail(email: string): string | null {
@@ -319,7 +349,7 @@ function UsuariosAdmin() {
       supabase.from("profiles").select("id,email,name,company").order("email"),
       supabase.from("user_roles").select("user_id,role"),
       supabase.from("clientes").select("id,nombre_empresa,consultor_id").order("nombre_empresa"),
-      supabase.from("empresa_usuarios").select("user_id,cliente_id"),
+      supabase.from("empresa_usuarios").select("user_id,cliente_id,rol_empresa,area_id"),
       listExtrasFn({ data: {} }).catch((err) => { console.error("adminListUsersExtra failed:", err); return []; }),
     ]);
     const extrasArr = Array.isArray(extras) ? extras : [];
@@ -338,20 +368,23 @@ function UsuariosAdmin() {
     const allClientes = (cs ?? []) as Array<{ id: string; nombre_empresa: string; consultor_id: string | null }>;
     setClientes(allClientes.map((c) => ({ id: c.id, nombre_empresa: c.nombre_empresa })));
     // TODO(multi-empresa): si un usuario pertenece a >1 empresa, este map solo retiene la última.
-    const clienteByUser = new Map<string, string>(
-      (eu ?? []).map((e) => [e.user_id, e.cliente_id]),
+    const euByUser = new Map(
+      (eu ?? []).map((e) => [e.user_id, e]),
     );
 
     setRows((profiles ?? []).map((p) => {
       const role = rolesByUser.get(p.id) ?? null;
+      const euRow = euByUser.get(p.id);
       const link = allClientes.find((c) =>
-        (role === "cliente" || role === "participante") ? clienteByUser.get(p.id) === c.id :
+        (role === "cliente" || role === "participante") ? euRow?.cliente_id === c.id :
         role === "consultor" ? c.consultor_id === p.id : false,
       );
       return {
         id: p.id, email: p.email, name: p.name, company: p.company,
         role, banned: banByUser.get(p.id) ?? false,
         clienteId: link?.id ?? null, clienteNombre: link?.nombre_empresa ?? null,
+        rolEmpresa: euRow?.rol_empresa ?? null,
+        areaId: euRow?.area_id ?? null,
       };
     }));
     setLoading(false);
@@ -412,7 +445,14 @@ function UsuariosAdmin() {
                     <div className="text-xs text-muted-foreground">{u.email}</div>
                   </td>
                   <td className="py-2 px-2 text-muted-foreground">
-                    {u.clienteNombre ?? <span className="text-xs italic">— sin vincular</span>}
+                    {u.clienteNombre
+                      ? <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{u.clienteNombre}</span>
+                          {u.rolEmpresa && u.rolEmpresa !== "dueño" && (
+                            <Badge variant="outline" className="text-[10px] capitalize">{u.rolEmpresa.replace("_", " ")}</Badge>
+                          )}
+                        </div>
+                      : <span className="text-xs italic">— sin vincular</span>}
                   </td>
                   <td className="py-2 px-2">
                     <Select value={u.role ?? ""} onValueChange={(v) => cambiarRol(u.id, v as AppRole)} disabled={u.id === me?.id}>
@@ -557,22 +597,33 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
   onOpenChange: (v: boolean) => void;
   onSubmit: (input: {
     email: string; password?: string; name?: string; company?: string; specialty?: string;
-    role: AppRole; clienteId?: string;
+    role: AppRole; clienteId?: string; rolEmpresa?: RolEmpresa; areaId?: string;
   }) => Promise<void>;
 }) {
-  const [form, setForm] = useState({ email: "", password: "", name: "", company: "", specialty: "", role: "cliente" as AppRole, clienteId: "" });
+  const [form, setForm] = useState({ email: "", password: "", name: "", company: "", specialty: "", role: "cliente" as AppRole, clienteId: "", rolEmpresa: "" as RolEmpresa | "", areaId: "" });
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [areas, setAreas] = useState<AreaOpt[]>([]);
 
   useEffect(() => {
-    if (open) { setForm({ email: "", password: "", name: "", company: "", specialty: "", role: "cliente", clienteId: "" }); setTouched(false); }
+    if (open) { setForm({ email: "", password: "", name: "", company: "", specialty: "", role: "cliente", clienteId: "", rolEmpresa: "", areaId: "" }); setTouched(false); setAreas([]); }
   }, [open]);
+
+  const isInvite = mode === "invite";
+  const showCliente = form.role === "cliente" || form.role === "participante" || form.role === "consultor";
+  const showRolEmpresa = (form.role === "cliente" || form.role === "participante") && !!form.clienteId;
+  const showArea = showRolEmpresa && form.rolEmpresa === "jefe_area";
+  const areaErr = showArea && !form.areaId ? "El área es obligatoria para Jefe de Área" : null;
+
+  useEffect(() => {
+    if (!form.clienteId || !(form.role === "cliente" || form.role === "participante")) { setAreas([]); return; }
+    supabase.from("manual_areas").select("id,nombre").eq("cliente_id", form.clienteId).order("orden")
+      .then(({ data }) => setAreas(data ?? []));
+  }, [form.clienteId, form.role]);
 
   const emailErr = touched ? validarEmail(form.email) : null;
   const pwd = evaluarPassword(form.password);
-  const isInvite = mode === "invite";
-  const showCliente = form.role === "cliente" || form.role === "participante" || form.role === "consultor";
-  const canSubmit = !validarEmail(form.email) && (isInvite || pwd.ok);
+  const canSubmit = !validarEmail(form.email) && (isInvite || pwd.ok) && !areaErr;
 
   const submit = async () => {
     setTouched(true);
@@ -586,6 +637,8 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
       specialty: form.specialty || undefined,
       role: form.role,
       clienteId: form.clienteId || undefined,
+      ...(showRolEmpresa && form.rolEmpresa ? { rolEmpresa: form.rolEmpresa as RolEmpresa } : {}),
+      ...(showArea && form.areaId ? { areaId: form.areaId } : {}),
     });
     setSaving(false);
   };
@@ -627,7 +680,7 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Rol</Label>
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as AppRole, clienteId: "" })}>
+              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as AppRole, clienteId: "", rolEmpresa: "", areaId: "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {ROLES.map((r) => <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>)}
@@ -639,7 +692,7 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
                 <Label className="text-xs">
                   {form.role === "consultor" ? "Asignar como consultor de" : "Vincular a empresa"}
                 </Label>
-                <Select value={form.clienteId} onValueChange={(v) => setForm({ ...form, clienteId: v })}>
+                <Select value={form.clienteId} onValueChange={(v) => setForm({ ...form, clienteId: v, rolEmpresa: "", areaId: "" })}>
                   <SelectTrigger><SelectValue placeholder="Sin vincular" /></SelectTrigger>
                   <SelectContent>
                     {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}</SelectItem>)}
@@ -648,6 +701,33 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
               </div>
             )}
           </div>
+          {showRolEmpresa && (
+            <div>
+              <Label className="text-xs">Rol en empresa</Label>
+              <Select value={form.rolEmpresa || "__none__"} onValueChange={(v) => setForm({ ...form, rolEmpresa: v === "__none__" ? "" : v as RolEmpresa, areaId: "" })}>
+                <SelectTrigger><SelectValue placeholder="— dueño por defecto —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dueño">Dueño / RRHH</SelectItem>
+                  <SelectItem value="jefe_area">Jefe de Área</SelectItem>
+                  <SelectItem value="colaborador">Colaborador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {showArea && (
+            <div>
+              <Label className="text-xs">Área *</Label>
+              <Select value={form.areaId || "__none__"} onValueChange={(v) => setForm({ ...form, areaId: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecciona un área…" /></SelectTrigger>
+                <SelectContent>
+                  {areas.length === 0
+                    ? <SelectItem value="__none__" disabled>Sin áreas disponibles</SelectItem>
+                    : areas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {touched && areaErr && <p className="text-xs text-destructive mt-1">{areaErr}</p>}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
@@ -667,28 +747,41 @@ function EditarUsuarioDialog({ user, clientes, onClose, onSave }: {
   onClose: () => void;
   onSave: (input: {
     userId: string; name?: string | null; company?: string | null; specialty?: string | null;
-    email?: string; clienteId?: string | null;
+    email?: string; clienteId?: string | null; rolEmpresa?: RolEmpresa; areaId?: string | null;
   }) => Promise<void>;
 }) {
-  const [form, setForm] = useState({ name: "", company: "", specialty: "", email: "", clienteId: "" });
+  const [form, setForm] = useState({ name: "", company: "", specialty: "", email: "", clienteId: "", rolEmpresa: "" as RolEmpresa | "", areaId: "" });
   const [saving, setSaving] = useState(false);
+  const [areas, setAreas] = useState<AreaOpt[]>([]);
 
   useEffect(() => {
-    if (user) {
-      supabase.from("profiles").select("name,company,specialty,email").eq("id", user.id).maybeSingle()
-        .then(({ data }) => setForm({
-          name: data?.name ?? "",
-          company: data?.company ?? "",
-          specialty: data?.specialty ?? "",
-          email: data?.email ?? user.email,
-          clienteId: user.clienteId ?? "",
-        }));
-    }
+    if (!user) return;
+    Promise.all([
+      supabase.from("profiles").select("name,company,specialty,email").eq("id", user.id).maybeSingle(),
+      supabase.from("empresa_usuarios").select("rol_empresa,area_id").eq("user_id", user.id).maybeSingle(),
+    ]).then(([{ data: prof }, { data: eu }]) => setForm({
+      name: prof?.name ?? "",
+      company: prof?.company ?? "",
+      specialty: prof?.specialty ?? "",
+      email: prof?.email ?? (user?.email ?? ""),
+      clienteId: user?.clienteId ?? "",
+      rolEmpresa: (eu?.rol_empresa as RolEmpresa | null) ?? "",
+      areaId: eu?.area_id ?? "",
+    }));
   }, [user]);
 
+  const emailErr = user ? validarEmail(form.email) : null;
+  const showCliente = user?.role === "cliente" || user?.role === "participante" || user?.role === "consultor";
+  const showRolEmpresa = (user?.role === "cliente" || user?.role === "participante") && !!form.clienteId;
+  const showArea = showRolEmpresa && form.rolEmpresa === "jefe_area";
+
+  useEffect(() => {
+    if (!showRolEmpresa || !form.clienteId) { setAreas([]); return; }
+    supabase.from("manual_areas").select("id,nombre").eq("cliente_id", form.clienteId).order("orden")
+      .then(({ data }) => setAreas(data ?? []));
+  }, [showRolEmpresa, form.clienteId]);
+
   if (!user) return null;
-  const emailErr = validarEmail(form.email);
-  const showCliente = user.role === "cliente" || user.role === "participante" || user.role === "consultor";
 
   return (
     <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
@@ -708,7 +801,7 @@ function EditarUsuarioDialog({ user, clientes, onClose, onSave }: {
               <Label className="text-xs">
                 {user.role === "consultor" ? "Asignar como consultor de" : "Empresa vinculada"}
               </Label>
-              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v })}>
+              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v, rolEmpresa: "", areaId: "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— sin vincular —</SelectItem>
@@ -722,12 +815,38 @@ function EditarUsuarioDialog({ user, clientes, onClose, onSave }: {
               </p>
             </div>
           )}
+          {showRolEmpresa && (
+            <div>
+              <Label className="text-xs">Rol en empresa</Label>
+              <Select value={form.rolEmpresa || "__none__"} onValueChange={(v) => setForm({ ...form, rolEmpresa: v === "__none__" ? "" : v as RolEmpresa, areaId: "" })}>
+                <SelectTrigger><SelectValue placeholder="— sin especificar —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dueño">Dueño / RRHH</SelectItem>
+                  <SelectItem value="jefe_area">Jefe de Área</SelectItem>
+                  <SelectItem value="colaborador">Colaborador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {showArea && (
+            <div>
+              <Label className="text-xs">Área *</Label>
+              <Select value={form.areaId || "__none__"} onValueChange={(v) => setForm({ ...form, areaId: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecciona un área…" /></SelectTrigger>
+                <SelectContent>
+                  {areas.length === 0
+                    ? <SelectItem value="__none__" disabled>Sin áreas disponibles</SelectItem>
+                    : areas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button
             className="bg-gold hover:bg-gold/90 text-navy"
-            disabled={saving || !!emailErr}
+            disabled={saving || !!emailErr || (showArea && !form.areaId)}
             onClick={async () => {
               setSaving(true);
               await onSave({
@@ -736,7 +855,11 @@ function EditarUsuarioDialog({ user, clientes, onClose, onSave }: {
                 company: form.company || null,
                 specialty: form.specialty || null,
                 ...(form.email && form.email !== user.email ? { email: form.email } : {}),
-                ...(showCliente ? { clienteId: form.clienteId || null } : {}),
+                ...(showCliente ? {
+                  clienteId: form.clienteId || null,
+                  ...(showRolEmpresa && form.rolEmpresa ? { rolEmpresa: form.rolEmpresa as RolEmpresa } : {}),
+                  ...(showArea && form.areaId ? { areaId: form.areaId } : {}),
+                } : {}),
               });
               setSaving(false);
             }}
@@ -808,6 +931,358 @@ function ResetPasswordDialog({ user, onClose, onSubmit }: {
               setSaving(false);
             }}
           >{saving ? "Procesando…" : mode === "set" ? "Actualizar" : "Enviar correo"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Permisos por módulo ──────────────────────────────────────────────────────
+function PermisosModuloAdmin() {
+  const [selectedClienteId, setSelectedClienteId] = useState("");
+  const [clientes, setClientes]     = useState<ClienteOpt[]>([]);
+  const [permisos, setPermisos]     = useState<PermisoRow[]>([]);
+  const [euOpts, setEuOpts]         = useState<EmpresaUsuarioOpt[]>([]);
+  const [areas, setAreas]           = useState<AreaOpt[]>([]);
+  const [loading, setLoading]       = useState(false);
+  const [addOpen, setAddOpen]       = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.from("clientes").select("id,nombre_empresa").order("nombre_empresa")
+      .then(({ data }) => setClientes(data ?? []));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedClienteId) { setPermisos([]); setEuOpts([]); setAreas([]); return; }
+    setLoading(true);
+    void (async () => {
+      const { data: eu } = await (supabase as any)
+        .from("empresa_usuarios").select("user_id,rol_empresa")
+        .eq("cliente_id", selectedClienteId);
+
+      const { data: permsData } = await (supabase as any)
+        .from("permisos_usuario_modulo")
+        .select("id,user_id,modulo,alcance_tipo,alcance_area_id,puede_ver,puede_editar")
+        .eq("cliente_id", selectedClienteId);
+
+      const { data: areasData } = await supabase
+        .from("manual_areas").select("id,nombre")
+        .eq("cliente_id", selectedClienteId).order("orden");
+
+      const allIds = [...new Set([
+        ...(eu ?? []).map((e: any) => e.user_id as string),
+        ...(permsData ?? []).map((p: any) => p.user_id as string),
+      ])];
+      const { data: profs } = allIds.length
+        ? await supabase.from("profiles").select("id,email,name").in("id", allIds)
+        : { data: [] as { id: string; email: string; name: string | null }[] };
+
+      const profMap = new Map((profs ?? []).map((p) => [p.id, p]));
+      const areaMap = new Map((areasData ?? []).map((a) => [a.id, a.nombre]));
+
+      setEuOpts((eu ?? []).map((e: any) => {
+        const prof = profMap.get(e.user_id);
+        return { user_id: e.user_id, email: prof?.email ?? "", name: prof?.name ?? null, rol_empresa: e.rol_empresa };
+      }));
+
+      setPermisos((permsData ?? []).map((p: any) => {
+        const prof = profMap.get(p.user_id);
+        return {
+          ...p,
+          user_email: prof?.email ?? "—",
+          user_name:  prof?.name  ?? null,
+          alcance_area_nombre: p.alcance_area_id ? (areaMap.get(p.alcance_area_id) ?? "—") : null,
+        };
+      }));
+
+      setAreas(areasData ?? []);
+      setLoading(false);
+    })();
+  }, [selectedClienteId]);
+
+  const eliminar = async () => {
+    if (!deletingId) return;
+    const { error } = await (supabase as any)
+      .from("permisos_usuario_modulo").delete().eq("id", deletingId);
+    if (error) { toast.error("Error al eliminar"); return; }
+    setPermisos((prev) => prev.filter((p) => p.id !== deletingId));
+    setDeletingId(null);
+    toast.success("Permiso eliminado");
+  };
+
+  const moduloLabel = (val: string) =>
+    MODULOS_PERMISO.find((m) => m.value === val)?.label ?? val;
+
+  return (
+    <div className="a360-card a360-card-lg p-6 space-y-5">
+      <div>
+        <h2 className="font-display text-xl text-navy">Permisos por módulo</h2>
+        <p className="text-sm text-muted-foreground">
+          Accesos horizontales (cross-área) limitados a funcionalidades específicas.
+          Los permisos de jefe de área se gestionan en la pestaña Usuarios.
+        </p>
+      </div>
+
+      <div className="max-w-xs">
+        <Label className="text-xs">Empresa</Label>
+        <Select value={selectedClienteId} onValueChange={setSelectedClienteId}>
+          <SelectTrigger><SelectValue placeholder="Selecciona una empresa…" /></SelectTrigger>
+          <SelectContent>
+            {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {selectedClienteId && (
+        <>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">{permisos.length} permiso(s) asignado(s)</span>
+            <Button size="sm" className="bg-navy hover:bg-navy/90 text-primary-foreground" onClick={() => setAddOpen(true)}>
+              <UserPlus className="w-4 h-4 mr-1" />Agregar permiso
+            </Button>
+          </div>
+
+          {loading ? (
+            <div className="text-sm text-muted-foreground py-8 text-center">Cargando…</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-xs uppercase text-muted-foreground border-b">
+                  <tr>
+                    <th className="text-left py-2 px-2">Usuario</th>
+                    <th className="text-left py-2 px-2">Módulo</th>
+                    <th className="text-left py-2 px-2">Alcance</th>
+                    <th className="text-center py-2 px-2 w-24">Puede ver</th>
+                    <th className="text-center py-2 px-2 w-28">Puede editar</th>
+                    <th className="text-right py-2 px-2 w-16"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {permisos.map((p) => (
+                    <tr key={p.id} className="border-b hover:bg-muted/30">
+                      <td className="py-2 px-2">
+                        <div className="font-medium text-navy">{p.user_name ?? "—"}</div>
+                        <div className="text-xs text-muted-foreground">{p.user_email}</div>
+                      </td>
+                      <td className="py-2 px-2 text-muted-foreground">{moduloLabel(p.modulo)}</td>
+                      <td className="py-2 px-2">
+                        {p.alcance_tipo === "todas"
+                          ? <Badge variant="outline" className="text-[10px]">Todas las áreas</Badge>
+                          : <span className="text-xs">{p.alcance_area_nombre}</span>}
+                      </td>
+                      <td className="py-2 px-2 text-center">
+                        {p.puede_ver
+                          ? <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700">Sí</Badge>
+                          : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
+                      <td className="py-2 px-2 text-center">
+                        {p.puede_editar
+                          ? <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">Sí</Badge>
+                          : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
+                      <td className="py-2 px-2 text-right">
+                        <Button
+                          size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive"
+                          title="Eliminar permiso" onClick={() => setDeletingId(p.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {permisos.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-muted-foreground text-sm">
+                        Sin permisos asignados para esta empresa.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      <AgregarPermisoDialog
+        open={addOpen}
+        euOpts={euOpts}
+        areas={areas}
+        onOpenChange={setAddOpen}
+        onSubmit={async (row) => {
+          const { data, error } = await (supabase as any)
+            .from("permisos_usuario_modulo")
+            .insert({ ...row, cliente_id: selectedClienteId })
+            .select().single();
+          if (error) {
+            toast.error(error.code === "23505" ? "Este permiso ya existe para ese usuario y módulo" : "Error al guardar");
+            return;
+          }
+          const eu = euOpts.find((e) => e.user_id === row.user_id);
+          const an = row.alcance_area_id ? (areas.find((a) => a.id === row.alcance_area_id)?.nombre ?? "—") : null;
+          setPermisos((prev) => [...prev, {
+            ...data,
+            user_email: eu?.email ?? "—",
+            user_name: eu?.name ?? null,
+            alcance_area_nombre: an,
+          }]);
+          setAddOpen(false);
+          toast.success("Permiso agregado");
+        }}
+      />
+
+      <AlertDialog open={!!deletingId} onOpenChange={(o) => !o && setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar permiso</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción revoca el acceso al módulo inmediatamente. ¿Confirmar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={eliminar}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function AgregarPermisoDialog({ open, euOpts, areas, onOpenChange, onSubmit }: {
+  open: boolean;
+  euOpts: EmpresaUsuarioOpt[];
+  areas: AreaOpt[];
+  onOpenChange: (v: boolean) => void;
+  onSubmit: (row: {
+    user_id: string; modulo: string;
+    alcance_tipo: "area" | "todas"; alcance_area_id: string | null;
+    puede_ver: boolean; puede_editar: boolean;
+  }) => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    user_id: "", modulo: "manual_funciones_evaluaciones",
+    alcance_tipo: "todas" as "area" | "todas", alcance_area_id: "",
+    puede_ver: true, puede_editar: false,
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) setForm({
+      user_id: "", modulo: "manual_funciones_evaluaciones",
+      alcance_tipo: "todas", alcance_area_id: "",
+      puede_ver: true, puede_editar: false,
+    });
+  }, [open]);
+
+  const setPuedeVer    = (v: boolean) => setForm((f) => ({ ...f, puede_ver: v,    puede_editar: v ? f.puede_editar : false }));
+  const setPuedeEditar = (v: boolean) => setForm((f) => ({ ...f, puede_editar: v, puede_ver: v ? true : f.puede_ver }));
+
+  const canSubmit = !!form.user_id && (form.alcance_tipo === "todas" || !!form.alcance_area_id);
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setSaving(true);
+    await onSubmit({
+      user_id: form.user_id, modulo: form.modulo,
+      alcance_tipo: form.alcance_tipo,
+      alcance_area_id: form.alcance_tipo === "area" ? form.alcance_area_id || null : null,
+      puede_ver: form.puede_ver, puede_editar: form.puede_editar,
+    });
+    setSaving(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Agregar permiso de módulo</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs">Usuario *</Label>
+            <Select value={form.user_id} onValueChange={(v) => setForm((f) => ({ ...f, user_id: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecciona un usuario…" /></SelectTrigger>
+              <SelectContent>
+                {euOpts.map((eu) => (
+                  <SelectItem key={eu.user_id} value={eu.user_id}>
+                    {eu.name ? `${eu.name} · ${eu.rol_empresa} (${eu.email})` : `${eu.email} · ${eu.rol_empresa}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-xs">Módulo *</Label>
+            <Select value={form.modulo} onValueChange={(v) => setForm((f) => ({ ...f, modulo: v }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MODULOS_PERMISO.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs">Alcance *</Label>
+            <div className="flex gap-4">
+              {(["todas", "area"] as const).map((tipo) => (
+                <label key={tipo} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input
+                    type="radio" checked={form.alcance_tipo === tipo}
+                    onChange={() => setForm((f) => ({ ...f, alcance_tipo: tipo, alcance_area_id: "" }))}
+                    className="accent-navy"
+                  />
+                  {tipo === "todas" ? "Todas las áreas" : "Área específica"}
+                </label>
+              ))}
+            </div>
+            {form.alcance_tipo === "area" && (
+              <Select
+                value={form.alcance_area_id || "__none__"}
+                onValueChange={(v) => setForm((f) => ({ ...f, alcance_area_id: v === "__none__" ? "" : v }))}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecciona un área…" /></SelectTrigger>
+                <SelectContent>
+                  {areas.length === 0
+                    ? <SelectItem value="__none__" disabled>Sin áreas disponibles</SelectItem>
+                    : areas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">Capacidades</Label>
+            <div className="rounded-lg border divide-y">
+              {([
+                { key: "puede_ver",    label: "Puede ver",    desc: "Lectura de evaluaciones",                            val: form.puede_ver,    set: setPuedeVer },
+                { key: "puede_editar", label: "Puede editar", desc: "Crear y modificar evaluaciones (implica puede ver)", val: form.puede_editar, set: setPuedeEditar },
+              ] as const).map((cap) => (
+                <label key={cap.key} className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-muted/30">
+                  <div>
+                    <div className="text-sm font-medium">{cap.label}</div>
+                    <div className="text-xs text-muted-foreground">{cap.desc}</div>
+                  </div>
+                  <input
+                    type="checkbox" checked={cap.val}
+                    onChange={(e) => cap.set(e.target.checked)}
+                    className="w-4 h-4 accent-navy"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button className="bg-gold hover:bg-gold/90 text-navy" disabled={saving || !canSubmit} onClick={submit}>
+            {saving ? "Guardando…" : "Agregar permiso"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

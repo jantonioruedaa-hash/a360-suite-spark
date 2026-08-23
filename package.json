@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "vite dev",
+    "dev:prod": "vite dev --mode production",
+    "dev:finanzas": "vite dev --mode development",
     "build": "vite build",
     "build:railway": "vite build --config vite.config.railway.ts",
     "build:dev": "vite build --mode development",
