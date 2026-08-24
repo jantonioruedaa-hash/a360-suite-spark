@@ -5379,6 +5379,10 @@ function openEvalPane(){
   var c=null,i;
   for(i=0;i<cargos.length;i++){if(cargos[i].id===currentId){c=cargos[i];break;}}
   if(!c){toast('⚠️ Cargo no cargado');return;}
+  if(window.parent!==window){
+    window.parent.postMessage({type:'MF_OPEN_EVAL_COMP',clienteId:MF_CLIENT_ID,cargoId:currentId},location.origin);
+    return;
+  }
   EVAL_CARGO=c;
   document.getElementById('evalPane').style.display='block';
   document.getElementById('evalBackdrop').style.display='block';

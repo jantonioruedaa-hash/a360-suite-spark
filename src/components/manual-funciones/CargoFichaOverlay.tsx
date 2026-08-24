@@ -6,6 +6,7 @@ import type { Cargo, Funcion, Competencia } from "@/types/manual-funciones";
 import { NIVELES } from "@/types/manual-funciones";
 import { getAreaColor, getAreaIcon } from "./area-palette";
 import { EvalDesempPanel } from "./EvalDesempPanel";
+import { EvalCompPanel } from "./EvalCompPanel";
 
 
 // KPI type extended with optional formula (not in base Cargo KPI type)
@@ -545,6 +546,7 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
   const [closing, setClosing]       = useState(false);
   const [hasPending, setHasPending] = useState(false);
   const [showEvalDesemp, setShowEvalDesemp] = useState(false);
+  const [showEvalComp,   setShowEvalComp]   = useState(false);
 
   const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEditsRef = useRef<Partial<Cargo>>({});
@@ -697,6 +699,15 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
     }
   }, [flushAndGetFreshCargo]);
 
+  const handleOpenEvalComp = useCallback(async () => {
+    try {
+      await flushAndGetFreshCargo();
+      setShowEvalComp(true);
+    } catch {
+      // executeSave already showed a toast
+    }
+  }, [flushAndGetFreshCargo]);
+
   // ── Escape to close ────────────────────────────────────────────────────────
 
   const handleEsc = useCallback((e: KeyboardEvent) => {
@@ -719,7 +730,15 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
       display: "flex", flexDirection: "column", overflow: "hidden",
     }}>
 
-      {showEvalDesemp && localCargo ? (
+      {showEvalComp && localCargo ? (
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          <EvalCompPanel
+            cargo={localCargo}
+            userRolEmpresa={userRolEmpresa}
+            onClose={() => setShowEvalComp(false)}
+          />
+        </div>
+      ) : showEvalDesemp && localCargo ? (
         <div style={{ flex: 1, overflowY: "auto" }}>
           <EvalDesempPanel
             cargo={localCargo}
@@ -814,7 +833,7 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
             <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
               <button
                 disabled={closing}
-                onClick={() => { void handleOpenEval("competencias"); }}
+                onClick={() => { void handleOpenEvalComp(); }}
                 style={{
                   fontSize: "11px", fontWeight: 700,
                   padding: "5px 12px", borderRadius: "8px", cursor: closing ? "default" : "pointer",
