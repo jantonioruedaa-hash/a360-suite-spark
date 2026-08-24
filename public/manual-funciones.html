@@ -5409,6 +5409,10 @@ function openEvalDesempPane(){
   var c=null,i;
   for(i=0;i<cargos.length;i++){if(cargos[i].id===currentId){c=cargos[i];break;}}
   if(!c){toast('⚠️ Cargo no cargado');return;}
+  if(window.parent!==window){
+    window.parent.postMessage({type:'MF_OPEN_EVAL_DESEMP',clienteId:MF_CLIENT_ID,cargoId:currentId},location.origin);
+    return;
+  }
   EVAL_DESEMP_CARGO=c;
   document.getElementById('evalDesempPane').style.display='block';
   document.getElementById('evalBackdrop').style.display='block';

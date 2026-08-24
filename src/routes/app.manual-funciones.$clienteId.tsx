@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Check, Save, Users, BarChart3, Target, Rocket, BookOpen, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { EvalDesempPanel } from "@/components/manual-funciones/EvalDesempPanel";
+import type { Cargo } from "@/types/manual-funciones";
 import { ManualFuncionesLanding } from "@/components/manual-funciones/ManualFuncionesLanding";
 import { AreaCargosView } from "@/components/manual-funciones/AreaCargosView";
 import { CargoFichaOverlay } from "@/components/manual-funciones/CargoFichaOverlay";
@@ -325,6 +327,48 @@ function ClienteManualHero({ clienteId, onAbrir }: { clienteId: string; onAbrir:
   );
 }
 
+// ── EvalDesempCargoLoader ──────────────────────────────────────────────────────
+
+function EvalDesempCargoLoader({ cargoId, userRolEmpresa, onClose }: {
+  cargoId: string;
+  userRolEmpresa: string | null;
+  onClose: () => void;
+}) {
+  const [cargo, setCargo] = useState<Cargo | null>(null);
+  const [fetchError, setFetchError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from("manual_funciones_cargos").select("*").eq("id", cargoId).single()
+      .then(({ data, error }: { data: Cargo | null; error: unknown }) => {
+        if (cancelled) return;
+        if (error || !data) setFetchError(true);
+        else setCargo(data);
+      });
+    return () => { cancelled = true; };
+  }, [cargoId]);
+
+  return (
+    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem", zIndex: 60, background: "#F8FAFC", overflowY: "auto" }}>
+      {fetchError
+        ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "12px" }}>
+            <p style={{ color: "#64748B", fontSize: "14px", margin: 0 }}>No se pudo cargar el cargo.</p>
+            <button
+              onClick={onClose}
+              style={{ fontSize: "13px", fontWeight: 600, padding: "6px 16px", borderRadius: "8px", background: "#F1F5F9", border: "1px solid #E2E8F0", color: "#64748B", cursor: "pointer" }}
+            >Cerrar</button>
+          </div>
+        : !cargo
+          ? <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+              <Loader2 style={{ width: "28px", height: "28px", color: "#94A3B8" }} className="animate-spin" />
+            </div>
+          : <EvalDesempPanel cargo={cargo} userRolEmpresa={userRolEmpresa} onClose={onClose} />
+      }
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function ManualFuncionesViewer() {
@@ -343,6 +387,7 @@ function ManualFuncionesViewer() {
   const [iframeActive, setIframeActive]       = useState(false);
   const [userRolEmpresa, setUserRolEmpresa]   = useState<string | null>(null);
   const [restrictedAreaId, setRestrictedAreaId] = useState<string | null>(null);
+  const [evalDesempCargoId, setEvalDesempCargoId] = useState<string | null>(null);
 
   // Client navigation state — derived from URL search params so browser back/forward work
   const { v, area, areaName, colorIdx, cargo } = Route.useSearch();
@@ -549,6 +594,13 @@ function ManualFuncionesViewer() {
         setIframeActive(false);
         return;
       }
+
+      // ── MF_OPEN_EVAL_DESEMP → open React EvalDesempPanel over iframe ───────
+      if (msg.type === "MF_OPEN_EVAL_DESEMP") {
+        const d = e.data as { cargoId?: string };
+        if (d.cargoId) setEvalDesempCargoId(d.cargoId);
+        return;
+      }
     };
 
     window.addEventListener("message", handler);
@@ -632,6 +684,7 @@ function ManualFuncionesViewer() {
 
   // ── Non-client: inline HTML editor (sidebar siempre visible) ──────────────
   return (
+    <>
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* Franja superior */}
       <div style={{
@@ -676,5 +729,13 @@ function ManualFuncionesViewer() {
         allow="fullscreen"
       />
     </div>
+    {evalDesempCargoId && (
+      <EvalDesempCargoLoader
+        cargoId={evalDesempCargoId}
+        userRolEmpresa={null}
+        onClose={() => setEvalDesempCargoId(null)}
+      />
+    )}
+    </>
   );
 }
