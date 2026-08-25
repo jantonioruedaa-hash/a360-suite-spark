@@ -227,28 +227,44 @@ function SecObjetivo({ cargo, onChange }: SecProps) {
   );
 }
 
+const onAutoInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+  const el = e.currentTarget;
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
+};
+
 function SecFunciones({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const funciones = cargo.funciones ?? [];
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    containerRef.current?.querySelectorAll("textarea").forEach((el) => {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    });
+  }, [cargo.id, funciones.length]);
 
   const update = (i: number, patch: Partial<Funcion>) => {
     onChange({ funciones: funciones.map((f, idx) => idx === i ? { ...f, ...patch } : f) });
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <div ref={containerRef} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {funciones.length === 0 && <SectionEmpty label="Sin funciones — agrega la primera." />}
       {funciones.map((f, i) => (
         <div key={i} style={{
-          display: "flex", alignItems: "center", gap: "8px",
+          display: "flex", alignItems: "flex-start", gap: "8px",
           padding: "8px 12px", background: "#F8FAFC",
           borderRadius: "8px", border: "1px solid #E2E8F0",
         }}>
-          <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: "white", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
-          <input
-            style={{ ...INPUT_BASE, flex: 1 }}
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: "white", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "2px" }}>{i + 1}</div>
+          <textarea
+            rows={2}
+            style={{ ...INPUT_BASE, flex: 1, resize: "none", overflow: "hidden" }}
             value={f.descripcion}
             placeholder="Descripción de la función…"
             onChange={(e) => update(i, { descripcion: e.target.value })}
+            onInput={onAutoInput}
           />
           <input
             type="number"
@@ -332,29 +348,37 @@ function SecCompetencias({ cargo, onChange, accent }: SecProps & { accent: strin
 
 function SecKpis({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const kpis = (cargo.kpis ?? []) as KpiRow[];
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    containerRef.current?.querySelectorAll("textarea").forEach((el) => {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    });
+  }, [cargo.id, kpis.length]);
 
   const update = (i: number, patch: Partial<KpiRow>) => {
     onChange({ kpis: kpis.map((k, idx) => idx === i ? { ...k, ...patch } : k) as typeof cargo.kpis });
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <div ref={containerRef} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {kpis.length === 0 && <SectionEmpty label="Sin KPIs — agrega el primero." />}
       {kpis.map((k, i) => (
         <div key={i} style={{
           display: "grid", gridTemplateColumns: "28px 2fr 1fr 1fr 1fr auto",
-          alignItems: "center", gap: "8px",
+          alignItems: "flex-start", gap: "8px",
           padding: "8px 12px", background: "#F8FAFC",
           borderRadius: "8px", border: "1px solid #E2E8F0",
         }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0,
             background: `${accent}18`, color: accent,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "15px" }}>📊</div>
-          <input style={INPUT_BASE} value={k.nombre} placeholder="Indicador…" onChange={(e) => update(i, { nombre: e.target.value })} />
-          <input style={INPUT_BASE} value={k.meta}   placeholder="Meta…"      onChange={(e) => update(i, { meta: e.target.value })} />
+            fontSize: "15px", marginTop: "2px" }}>📊</div>
+          <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }} value={k.nombre} placeholder="Indicador…" onChange={(e) => update(i, { nombre: e.target.value })} onInput={onAutoInput} />
+          <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }} value={k.meta}   placeholder="Meta…"      onChange={(e) => update(i, { meta: e.target.value })}   onInput={onAutoInput} />
           <input style={INPUT_BASE} value={k.frecuencia} placeholder="Frecuencia…" onChange={(e) => update(i, { frecuencia: e.target.value })} />
-          <input style={INPUT_BASE} value={k.formula ?? ""} placeholder="Fórmula…" onChange={(e) => update(i, { formula: e.target.value })} />
+          <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }} value={k.formula ?? ""} placeholder="Fórmula…" onChange={(e) => update(i, { formula: e.target.value })} onInput={onAutoInput} />
           <DelBtn onClick={() => onChange({ kpis: kpis.filter((_, idx) => idx !== i) as typeof cargo.kpis })} />
         </div>
       ))}
