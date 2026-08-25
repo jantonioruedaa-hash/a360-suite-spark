@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Save, Users, BarChart3, Target, Rocket, BookOpen, Loc
 import { toast } from "sonner";
 import { EvalDesempPanel } from "@/components/manual-funciones/EvalDesempPanel";
 import { EvalCompPanel } from "@/components/manual-funciones/EvalCompPanel";
+import { useSidebar } from "@/components/ui/sidebar";
 import type { Cargo } from "@/types/manual-funciones";
 import { ManualFuncionesLanding } from "@/components/manual-funciones/ManualFuncionesLanding";
 import { AreaCargosView } from "@/components/manual-funciones/AreaCargosView";
@@ -335,6 +336,8 @@ function EvalDesempCargoLoader({ cargoId, userRolEmpresa, onClose }: {
   userRolEmpresa: string | null;
   onClose: () => void;
 }) {
+  const { state } = useSidebar();
+  const sidebarLeft = state === "collapsed" ? "3rem" : "16rem";
   const [cargo, setCargo] = useState<Cargo | null>(null);
   const [fetchError, setFetchError] = useState(false);
 
@@ -351,7 +354,7 @@ function EvalDesempCargoLoader({ cargoId, userRolEmpresa, onClose }: {
   }, [cargoId]);
 
   return (
-    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem", zIndex: 60, background: "#F8FAFC", overflowY: "auto" }}>
+    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: sidebarLeft, zIndex: 60, background: "#F8FAFC", overflowY: "auto" }}>
       {fetchError
         ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "12px" }}>
             <p style={{ color: "#64748B", fontSize: "14px", margin: 0 }}>No se pudo cargar el cargo.</p>
@@ -377,6 +380,8 @@ function EvalCompCargoLoader({ cargoId, userRolEmpresa, onClose }: {
   userRolEmpresa: string | null;
   onClose: () => void;
 }) {
+  const { state } = useSidebar();
+  const sidebarLeft = state === "collapsed" ? "3rem" : "16rem";
   const [cargo, setCargo] = useState<Cargo | null>(null);
   const [fetchError, setFetchError] = useState(false);
 
@@ -393,7 +398,7 @@ function EvalCompCargoLoader({ cargoId, userRolEmpresa, onClose }: {
   }, [cargoId]);
 
   return (
-    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem", zIndex: 60, background: "#F8FAFC", overflowY: "auto" }}>
+    <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: sidebarLeft, zIndex: 60, background: "#F8FAFC", overflowY: "auto" }}>
       {fetchError
         ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "12px" }}>
             <p style={{ color: "#64748B", fontSize: "14px", margin: 0 }}>No se pudo cargar el cargo.</p>

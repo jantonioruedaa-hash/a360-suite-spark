@@ -75,6 +75,15 @@ body{font-family:var(--font);background:var(--surf);color:var(--txt);font-size:1
 .sb-btn-out{background:rgba(255,255,255,.08);color:#fff;border:1.5px solid rgba(255,255,255,.3)}
 .sb-btn-out:hover{border-color:var(--h-acc);color:var(--h-acc)}
 
+/* ── SIDEBAR COLLAPSE ── */
+.sidebar{transition:width .2s ease}
+.sidebar.sb-collapsed{width:0!important;min-width:0;border-right:none;overflow:hidden}
+.sb-toggle{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;padding:0;line-height:1;flex-shrink:0;width:20px;text-align:center;margin-top:2px}
+.sb-toggle:hover{color:#fff}
+.sb-reopen-tab{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:100;background:var(--pri);color:#fff;border:none;border-radius:0 6px 6px 0;padding:12px 5px;cursor:pointer;font-size:13px;line-height:1;box-shadow:2px 0 8px rgba(0,0,0,.25);display:none;align-items:center}
+.sb-reopen-tab:hover{background:var(--h-acc);color:var(--pri)}
+body.sb-is-collapsed .sb-reopen-tab{display:flex}
+
 /* ── TOOLBAR ── */
 .toolbar{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,var(--h-from),var(--h-to));border-bottom:2px solid var(--acc);box-shadow:var(--sh2)}
 .tb-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px 8px;border-bottom:1px solid rgba(255,255,255,.12)}
@@ -516,8 +525,10 @@ body.mf-embed .eval-content{max-width:none!important;margin-left:0!important;mar
 .sec.sec-light{background:#F5F7FF}
 .sec.sec-white{background:#fff}
 
-/* ── STICKY CARGO HEADER WRAPPER ── */
-.cargo-sticky-header{position:sticky;top:0;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+/* ── STICKY WRAPPER (toolbar + cargo header as single unit) ── */
+#mfStickyWrap{position:sticky;top:0;z-index:250;transition:transform .25s ease}
+#mfStickyWrap.mf-headers-hidden{transform:translateY(-100%)}
+.cargo-sticky-header{position:relative!important;top:auto!important;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 
 /* ── TABS NAVEGACIÓN SECCIONES ── */
 .sec-tabs{background:linear-gradient(135deg,var(--h-from),var(--h-to));display:flex;overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(255,255,255,.08)}
@@ -531,12 +542,18 @@ body.mf-embed .eval-content{max-width:none!important;margin-left:0!important;mar
 </head>
 <body>
 <div class="shell">
+  <button class="sb-reopen-tab" onclick="toggleSidebarCollapse()" title="Expandir sidebar" aria-label="Expandir sidebar">▶</button>
 
   <!-- ── SIDEBAR ── -->
   <div class="sidebar">
     <div class="sb-header">
-      <div class="sb-logo">📋 Manual de Funciones</div>
-      <div class="sb-sub">Sistema BizOS · v3.0</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">
+        <div>
+          <div class="sb-logo">📋 Manual de Funciones</div>
+          <div class="sb-sub">Sistema BizOS · v3.0</div>
+        </div>
+        <button class="sb-toggle" onclick="toggleSidebarCollapse()" title="Colapsar sidebar" aria-label="Colapsar sidebar">◀</button>
+      </div>
       <div class="theme-picker" id="themePicker">
         <button class="theme-dot" id="themeDot1" onclick="setTheme(1)" title="Aurora" style="background:linear-gradient(135deg,#0C4A6E,#38BDF8)"></button>
         <button class="theme-dot" id="themeDot2" onclick="setTheme(2)" title="Plata" style="background:linear-gradient(135deg,#4A5568,#A0AEC0)"></button>
@@ -560,6 +577,8 @@ body.mf-embed .eval-content{max-width:none!important;margin-left:0!important;mar
   <!-- ── MAIN ── -->
   <div class="main">
 
+    <!-- STICKY WRAP: toolbar + cargo-sticky-header move here by loadCargo() -->
+    <div id="mfStickyWrap">
     <!-- TOOLBAR -->
     <div class="toolbar" id="toolbar" style="display:none">
       <div class="tb-top">
@@ -638,6 +657,7 @@ body.mf-embed .eval-content{max-width:none!important;margin-left:0!important;mar
         </div>
       </div>
     </div>
+    </div><!-- /#mfStickyWrap -->
 
     <!-- CONTENT -->
     <div class="content-wrap" id="contentWrap">
@@ -686,6 +706,19 @@ const MF_CLIENT_ID = new URLSearchParams(location.search).get('clienteId') || nu
 const IS_IFRAME = window.parent !== window && !!MF_CLIENT_ID;
 const IS_EMBED  = new URLSearchParams(location.search).get('embed') === '1';
 if (IS_EMBED) document.body.classList.add('mf-embed');
+
+/* ── Sidebar collapse ── */
+var SB_COLLAPSED_KEY='mf_sb_collapsed';
+function toggleSidebarCollapse(){
+  var sb=document.querySelector('.sidebar');
+  var collapsed=sb.classList.toggle('sb-collapsed');
+  document.body.classList.toggle('sb-is-collapsed',collapsed);
+  localStorage.setItem(SB_COLLAPSED_KEY,collapsed?'1':'0');
+}
+if(localStorage.getItem(SB_COLLAPSED_KEY)==='1'){
+  document.querySelector('.sidebar').classList.add('sb-collapsed');
+  document.body.classList.add('sb-is-collapsed');
+}
 
 /* ════════════════════════════════════
    DATA — CARGOS
@@ -3988,7 +4021,16 @@ function loadCargo(id){
     if(w&&open){w.classList.add('open');if(b)b.textContent='⚙️ Herramientas ▲';}
   })();
   initSecTabs();
-  updateStickyTop();
+  // Move .cargo-sticky-header into the sticky wrapper and reset hide state
+  (function(){
+    var wrap=document.getElementById('mfStickyWrap');
+    if(!wrap)return;
+    wrap.classList.remove('mf-headers-hidden');
+    _sbIsHidden=false;
+    _sbLastY=0;
+    var cs=document.querySelector('.cargo-sticky-header');
+    if(cs)wrap.appendChild(cs);
+  })();
 }
 
 function nivelBg(n){return{Básico:'#f1f5f9',Intermedio:'#dbeafe',Avanzado:'#d8f3dc',Experto:'var(--acc2)'}[n]||'#f1f5f9';}
@@ -5279,6 +5321,7 @@ function deleteCargo(){
   saveCargos(cargos);
   currentId=null;
   document.getElementById('toolbar').style.display='none';
+  clearStickyHeader();
   document.getElementById('contentWrap').innerHTML='<div class="empty"><div class="empty-icon">📋</div><h2>Manual Específico de Funciones</h2><p>Selecciona un cargo del menú lateral.</p></div>';
   renderSidebar();
   toast('🗑️ Cargo eliminado');
@@ -6805,6 +6848,7 @@ function goHome(){
   currentId=null;
   renderSidebar();
   document.getElementById('toolbar').style.display='none';
+  clearStickyHeader();
   document.getElementById('contentWrap').innerHTML='<div id="welcomeScreen"></div>';
   renderWelcome();
 }
@@ -7144,6 +7188,7 @@ function toggleToolbar(){
   var isOpen=wrap.classList.toggle('open');
   if(btn)btn.textContent=isOpen?'⚙️ Herramientas ▲':'⚙️ Herramientas ▾';
   try{localStorage.setItem('mf_toolbar_open',isOpen?'1':'0');}catch(e){}
+  setTimeout(updateStickyTop,320);
 }
 
 function initSecTabs(){
@@ -7173,12 +7218,32 @@ function initSecTabs(){
   sections.forEach(function(s){observer.observe(s);});
 }
 
-function updateStickyTop(){
-  var toolbar=document.querySelector('.toolbar');
-  var cargoSticky=document.querySelector('.cargo-sticky-header');
-  if(toolbar&&cargoSticky){cargoSticky.style.top=toolbar.offsetHeight+'px';}
-}
+function updateStickyTop(){}
 window.addEventListener('resize',updateStickyTop);
+
+/* ── Auto-hide sticky wrapper on scroll ── */
+var _sbLastY=0,_sbIsHidden=false;
+function clearStickyHeader(){
+  var wrap=document.getElementById('mfStickyWrap');
+  var cs=wrap&&wrap.querySelector('.cargo-sticky-header');
+  if(cs)cs.remove();
+  if(wrap)wrap.classList.remove('mf-headers-hidden');
+  _sbIsHidden=false;
+  _sbLastY=0;
+}
+document.querySelector('.main').addEventListener('scroll',function(e){
+  var y=e.target.scrollTop;
+  var wrap=document.getElementById('mfStickyWrap');
+  if(!wrap)return;
+  if(y>_sbLastY+8&&y>80&&!_sbIsHidden){
+    wrap.classList.add('mf-headers-hidden');
+    _sbIsHidden=true;
+  }else if(y<_sbLastY-8&&_sbIsHidden){
+    wrap.classList.remove('mf-headers-hidden');
+    _sbIsHidden=false;
+  }
+  _sbLastY=y;
+},{passive:true});
 renderSidebar();
 renderWelcome();
 renderLogoEnTodosLados();

@@ -811,7 +811,7 @@ export function EvalCompPanel({
       </div>
 
       {/* Body */}
-      <div style={{ padding: "24px", maxWidth: "960px", display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div style={{ padding: "24px", maxWidth: "960px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "14px" }}>
 
         {/* Historial */}
         <FormSection title={`Historial de evaluaciones (${loadingEvals ? "…" : evals.length})`} defaultOpen>

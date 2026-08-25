@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 import { X, Loader2, Plus, Trash2, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -551,6 +552,9 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
   const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEditsRef = useRef<Partial<Cargo>>({});
 
+  const { state: sidebarState } = useSidebar();
+  const sidebarLeft = sidebarState === "collapsed" ? "3rem" : "16rem";
+
   const { dot, bg, border } = getAreaColor(colorIdx);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -725,7 +729,7 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
 
   return (
     <div style={{
-      position: "fixed", top: 0, right: 0, bottom: 0, left: "16rem",
+      position: "fixed", top: 0, right: 0, bottom: 0, left: sidebarLeft,
       zIndex: 40, background: "#F8FAFC",
       display: "flex", flexDirection: "column", overflow: "hidden",
     }}>

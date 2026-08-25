@@ -421,7 +421,7 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose }: {
       </div>
 
       {/* Body */}
-      <div style={{ padding: "24px", maxWidth: "900px", display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "14px" }}>
 
         {/* Historial */}
         <FormSection title={`Historial de evaluaciones (${loadingEvals ? "…" : evals.length})`} defaultOpen>
