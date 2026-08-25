@@ -4028,6 +4028,7 @@ function loadCargo(id){
     wrap.classList.remove('mf-headers-hidden');
     _sbIsHidden=false;
     _sbLastY=0;
+    wrap.querySelectorAll('.cargo-sticky-header').forEach(function(el){el.remove();});
     var cs=document.querySelector('.cargo-sticky-header');
     if(cs)wrap.appendChild(cs);
   })();
