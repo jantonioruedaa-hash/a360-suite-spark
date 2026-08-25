@@ -4,6 +4,18 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
+// ── Paleta MF (formaliza colores en uso; no introduce tonos nuevos) ──────────
+
+export const MF = {
+  navy:    "#0C4A6E",
+  sky:     "#0EA5E9",
+  slate:   "#64748B",
+  muted:   "#94A3B8",
+  surface: "#F8FAFC",
+  border:  "#E8EDF2",
+  bg:      "#F1F5F9",
+} as const;
+
 // ── Constantes de estilo ───────────────────────────────────────────────────────
 
 export const LABEL: React.CSSProperties = {
@@ -62,6 +74,7 @@ export function FormSection({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ border: "1.5px solid #E2E8F0", borderRadius: "12px", overflow: "hidden" }}>
+      <div style={{ height: "3px", background: "#0C4A6E" }} />
       <button
         onClick={() => setOpen((o) => !o)}
         style={{

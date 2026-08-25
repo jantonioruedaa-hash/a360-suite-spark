@@ -182,8 +182,9 @@ export function AreaCargosView({
           onClick={onBack}
           style={{
             display: "inline-flex", alignItems: "center", gap: "5px",
-            fontSize: "12px", fontWeight: 600, color: "#64748B",
-            background: "none", border: "none", cursor: "pointer", padding: 0,
+            fontSize: "12px", fontWeight: 600, color: "#475569",
+            background: "#F1F5F9", border: "1px solid #E2E8F0", borderRadius: "8px",
+            cursor: "pointer", padding: "5px 12px",
             width: "fit-content",
           }}
         >

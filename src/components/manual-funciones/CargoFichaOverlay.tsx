@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { X, Loader2, Plus, Trash2, Check, Save } from "lucide-react";
+import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Cargo, Funcion, Competencia } from "@/types/manual-funciones";
@@ -72,17 +72,32 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+const SECTION_ICONS: Record<string, string> = {
+  "Identificación":        "🏷️",
+  "Objetivo del cargo":    "🎯",
+  "Funciones":             "⚙️",
+  "Competencias":          "💡",
+  "KPIs":                  "📊",
+  "Relaciones":            "🤝",
+  "Condiciones laborales": "🏢",
+  "Plan de carrera":       "🚀",
+  "Firmas":                "✍️",
+};
+
 function SecBlock({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  const icon = SECTION_ICONS[title];
   return (
-    <section style={{ marginBottom: "32px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-        <div style={{ width: "3px", height: "18px", borderRadius: "2px", background: accent, flexShrink: 0 }} />
-        <h3 style={{ fontSize: "11px", fontWeight: 800, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.14em", margin: 0 }}>
+    <section style={{ marginBottom: "20px", borderRadius: "12px", overflow: "hidden", border: "1.5px solid #E8EDF2" }}>
+      <div style={{ height: "3px", background: accent }} />
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px 20px", background: "#F8FAFC", borderBottom: "1px solid #EEF2F7" }}>
+        {icon && <span style={{ fontSize: "14px", lineHeight: 1 }}>{icon}</span>}
+        <h3 style={{ fontSize: "11px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.14em", margin: 0 }}>
           {title}
         </h3>
-        <div style={{ flex: 1, height: "1px", background: "#F1F5F9" }} />
       </div>
-      {children}
+      <div style={{ padding: "20px", background: "white" }}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -129,7 +144,7 @@ function SecIdentificacion({ cargo, onChange }: SecProps) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "18px 24px" }}>
       {/* Cargo name */}
-      <div style={{ gridColumn: "1 / -1" }}>
+      <div style={{ gridColumn: "1 / -1", background: "white", border: "1px solid #E8EDF2", borderRadius: "10px", padding: "10px 14px" }}>
         <Label>Nombre del cargo</Label>
         <input style={INPUT_BASE} value={cargo.cargo} onChange={(e) => onChange({ cargo: e.target.value })} />
       </div>
@@ -194,7 +209,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function Pair({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div style={{ background: "white", border: "1px solid #E8EDF2", borderRadius: "10px", padding: "10px 14px" }}>
       <Label>{label}</Label>
       {children}
     </div>
@@ -212,7 +227,7 @@ function SecObjetivo({ cargo, onChange }: SecProps) {
   );
 }
 
-function SecFunciones({ cargo, onChange }: SecProps) {
+function SecFunciones({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const funciones = cargo.funciones ?? [];
 
   const update = (i: number, patch: Partial<Funcion>) => {
@@ -228,7 +243,7 @@ function SecFunciones({ cargo, onChange }: SecProps) {
           padding: "8px 12px", background: "#F8FAFC",
           borderRadius: "8px", border: "1px solid #E2E8F0",
         }}>
-          <span style={{ fontSize: "13px", color: "#94A3B8", flexShrink: 0, minWidth: "20px" }}>{i + 1}.</span>
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: "white", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
           <input
             style={{ ...INPUT_BASE, flex: 1 }}
             value={f.descripcion}
@@ -252,16 +267,17 @@ function SecFunciones({ cargo, onChange }: SecProps) {
   );
 }
 
-function SecCompetencias({ cargo, onChange }: SecProps) {
+function SecCompetencias({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const blandas  = cargo.competencias_blandas ?? [];
   const tecnicas = cargo.competencias_tecnicas ?? [];
 
   const CompList = ({
-    items, title, field,
+    items, title, field, icon,
   }: {
     items: Competencia[];
     title: string;
     field: "competencias_blandas" | "competencias_tecnicas";
+    icon: string;
   }) => (
     <div>
       <SectionTitle>{title}</SectionTitle>
@@ -274,6 +290,10 @@ function SecCompetencias({ cargo, onChange }: SecProps) {
               padding: "6px 12px", background: "#F8FAFC",
               borderRadius: "8px", border: "1px solid #E2E8F0",
             }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                background: `${accent}18`, color: accent,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "15px" }}>{icon}</div>
               <input
                 style={{ ...INPUT_BASE, flex: 1 }}
                 value={c.nombre}
@@ -304,13 +324,13 @@ function SecCompetencias({ cargo, onChange }: SecProps) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <CompList items={blandas}  title="Competencias blandas"   field="competencias_blandas" />
-      <CompList items={tecnicas} title="Competencias técnicas"  field="competencias_tecnicas" />
+      <CompList items={blandas}  title="Competencias blandas"   field="competencias_blandas" icon="🤝" />
+      <CompList items={tecnicas} title="Competencias técnicas"  field="competencias_tecnicas" icon="⚙️" />
     </div>
   );
 }
 
-function SecKpis({ cargo, onChange }: SecProps) {
+function SecKpis({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const kpis = (cargo.kpis ?? []) as KpiRow[];
 
   const update = (i: number, patch: Partial<KpiRow>) => {
@@ -322,11 +342,15 @@ function SecKpis({ cargo, onChange }: SecProps) {
       {kpis.length === 0 && <SectionEmpty label="Sin KPIs — agrega el primero." />}
       {kpis.map((k, i) => (
         <div key={i} style={{
-          display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
+          display: "grid", gridTemplateColumns: "28px 2fr 1fr 1fr 1fr auto",
           alignItems: "center", gap: "8px",
           padding: "8px 12px", background: "#F8FAFC",
           borderRadius: "8px", border: "1px solid #E2E8F0",
         }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+            background: `${accent}18`, color: accent,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "15px" }}>📊</div>
           <input style={INPUT_BASE} value={k.nombre} placeholder="Indicador…" onChange={(e) => update(i, { nombre: e.target.value })} />
           <input style={INPUT_BASE} value={k.meta}   placeholder="Meta…"      onChange={(e) => update(i, { meta: e.target.value })} />
           <input style={INPUT_BASE} value={k.frecuencia} placeholder="Frecuencia…" onChange={(e) => update(i, { frecuencia: e.target.value })} />
@@ -335,8 +359,8 @@ function SecKpis({ cargo, onChange }: SecProps) {
         </div>
       ))}
       {kpis.length === 0 || (
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr auto", paddingLeft: "12px" }}>
-          {["Indicador", "Meta", "Frecuencia", "Fórmula", ""].map((h) => (
+        <div style={{ display: "grid", gridTemplateColumns: "28px 2fr 1fr 1fr 1fr auto", gap: "8px", paddingLeft: "12px" }}>
+          {["", "Indicador", "Meta", "Frecuencia", "Fórmula", ""].map((h) => (
             <span key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#CBD5E1", textTransform: "uppercase" }}>{h}</span>
           ))}
         </div>
@@ -755,8 +779,25 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
       {/* ── Sticky header ── */}
       <div style={{ background: "white", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
 
+        {/* Breadcrumb: ← {areaName} — navigates back to AreaCargosView (area preserved) */}
+        <button
+          onClick={() => { void handleClose(); }}
+          disabled={closing}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: "4px",
+            fontSize: "12px", fontWeight: 600, color: "#475569",
+            background: "#F1F5F9", border: "1px solid #E2E8F0", borderRadius: "8px",
+            cursor: closing ? "default" : "pointer",
+            padding: "5px 12px", margin: "8px 24px 4px",
+            opacity: closing ? 0.5 : 1,
+          }}
+        >
+          <ArrowLeft style={{ width: "13px", height: "13px" }} />
+          {areaName}
+        </button>
+
         {/* Row 1: area pill + save status + close */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 24px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px 0" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: "5px",
             fontSize: "12px", fontWeight: 600,
@@ -877,9 +918,9 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
           <>
             <SecBlock title="Identificación"        accent={dot}><SecIdentificacion cargo={localCargo} onChange={handleChange} /></SecBlock>
             <SecBlock title="Objetivo del cargo"    accent={dot}><SecObjetivo       cargo={localCargo} onChange={handleChange} /></SecBlock>
-            <SecBlock title="Funciones"             accent={dot}><SecFunciones      cargo={localCargo} onChange={handleChange} /></SecBlock>
-            <SecBlock title="Competencias"          accent={dot}><SecCompetencias   cargo={localCargo} onChange={handleChange} /></SecBlock>
-            <SecBlock title="KPIs"                  accent={dot}><SecKpis           cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Funciones"             accent={dot}><SecFunciones      cargo={localCargo} onChange={handleChange} accent={dot} /></SecBlock>
+            <SecBlock title="Competencias"          accent={dot}><SecCompetencias   cargo={localCargo} onChange={handleChange} accent={dot} /></SecBlock>
+            <SecBlock title="KPIs"                  accent={dot}><SecKpis           cargo={localCargo} onChange={handleChange} accent={dot} /></SecBlock>
             <SecBlock title="Relaciones"            accent={dot}><SecRelaciones     cargo={localCargo} onChange={handleChange} /></SecBlock>
             <SecBlock title="Condiciones laborales" accent={dot}><SecCondiciones    cargo={localCargo} onChange={handleChange} /></SecBlock>
             <SecBlock title="Plan de carrera"       accent={dot}><SecPlanCarrera    cargo={localCargo} onChange={handleChange} /></SecBlock>

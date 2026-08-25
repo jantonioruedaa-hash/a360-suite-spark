@@ -527,7 +527,6 @@ body.mf-embed .eval-content{max-width:none!important;margin-left:0!important;mar
 
 /* ── STICKY WRAPPER (toolbar + cargo header as single unit) ── */
 #mfStickyWrap{position:sticky;top:0;z-index:250;transition:transform .25s ease}
-#mfStickyWrap.mf-headers-hidden{transform:translateY(-100%)}
 .cargo-sticky-header{position:relative!important;top:auto!important;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 
 /* ── TABS NAVEGACIÓN SECCIONES ── */
@@ -4021,16 +4020,22 @@ function loadCargo(id){
     if(w&&open){w.classList.add('open');if(b)b.textContent='⚙️ Herramientas ▲';}
   })();
   initSecTabs();
-  // Move .cargo-sticky-header into the sticky wrapper and reset hide state
+  // Move #secTabs into sticky wrapper (tabs always visible; toolbar auto-hides separately)
   (function(){
     var wrap=document.getElementById('mfStickyWrap');
     if(!wrap)return;
-    wrap.classList.remove('mf-headers-hidden');
+    wrap.style.transform='';
     _sbIsHidden=false;
     _sbLastY=0;
-    wrap.querySelectorAll('.cargo-sticky-header').forEach(function(el){el.remove();});
-    var cs=document.querySelector('.cargo-sticky-header');
-    if(cs)wrap.appendChild(cs);
+    wrap.querySelectorAll('#mfTabsShell').forEach(function(el){el.remove();});
+    var tabs=document.querySelector('.ficha-card #secTabs');
+    if(tabs){
+      var shell=document.createElement('div');
+      shell.id='mfTabsShell';
+      shell.style.cssText='max-width:1040px;margin:0 auto;padding:0 36px';
+      shell.appendChild(tabs);
+      wrap.appendChild(shell);
+    }
   })();
 }
 
@@ -7189,7 +7194,6 @@ function toggleToolbar(){
   var isOpen=wrap.classList.toggle('open');
   if(btn)btn.textContent=isOpen?'⚙️ Herramientas ▲':'⚙️ Herramientas ▾';
   try{localStorage.setItem('mf_toolbar_open',isOpen?'1':'0');}catch(e){}
-  setTimeout(updateStickyTop,320);
 }
 
 function initSecTabs(){
@@ -7219,16 +7223,13 @@ function initSecTabs(){
   sections.forEach(function(s){observer.observe(s);});
 }
 
-function updateStickyTop(){}
-window.addEventListener('resize',updateStickyTop);
-
 /* ── Auto-hide sticky wrapper on scroll ── */
 var _sbLastY=0,_sbIsHidden=false;
 function clearStickyHeader(){
   var wrap=document.getElementById('mfStickyWrap');
-  var cs=wrap&&wrap.querySelector('.cargo-sticky-header');
-  if(cs)cs.remove();
-  if(wrap)wrap.classList.remove('mf-headers-hidden');
+  var shell=wrap&&wrap.querySelector('#mfTabsShell');
+  if(shell)shell.remove();
+  if(wrap)wrap.style.transform='';
   _sbIsHidden=false;
   _sbLastY=0;
 }
@@ -7236,11 +7237,13 @@ document.querySelector('.main').addEventListener('scroll',function(e){
   var y=e.target.scrollTop;
   var wrap=document.getElementById('mfStickyWrap');
   if(!wrap)return;
+  var toolbar=document.getElementById('toolbar');
+  var tbH=toolbar?toolbar.offsetHeight:0;
   if(y>_sbLastY+8&&y>80&&!_sbIsHidden){
-    wrap.classList.add('mf-headers-hidden');
+    wrap.style.transform='translateY(-'+tbH+'px)';
     _sbIsHidden=true;
   }else if(y<_sbLastY-8&&_sbIsHidden){
-    wrap.classList.remove('mf-headers-hidden');
+    wrap.style.transform='';
     _sbIsHidden=false;
   }
   _sbLastY=y;
@@ -7248,7 +7251,6 @@ document.querySelector('.main').addEventListener('scroll',function(e){
 renderSidebar();
 renderWelcome();
 renderLogoEnTodosLados();
-updateStickyTop();
 </script>
 
 <div id="evalBackdrop" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,0.42);pointer-events:none"></div>
