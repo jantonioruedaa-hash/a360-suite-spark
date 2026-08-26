@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAreaColor, getAreaIcon } from "./area-palette";
 
@@ -130,15 +130,60 @@ function AreaCard({ area, cargos, colorIdx, onSelectArea, onSelectCargo }: AreaC
 
 type Props = {
   clienteId: string;
+  canManage: boolean;
   onSelectArea: (areaId: string, areaName: string, colorIdx: number) => void;
   onSelectCargo: (cargoId: string, areaId: string, areaName: string, colorIdx: number) => void;
 };
 
-export function ManualFuncionesLanding({ clienteId, onSelectArea, onSelectCargo }: Props) {
+export function ManualFuncionesLanding({ clienteId, canManage, onSelectArea, onSelectCargo }: Props) {
   const [empresa, setEmpresa] = useState("");
   const [areas, setAreas] = useState<AreaRow[]>([]);
   const [cargos, setCargos] = useState<CargoItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Nueva Área dialog
+  const [showDialog, setShowDialog] = useState(false);
+  const [newAreaName, setNewAreaName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const openDialog = () => {
+    setNewAreaName("");
+    setSaveError(null);
+    setShowDialog(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const closeDialog = () => {
+    if (saving) return;
+    setShowDialog(false);
+  };
+
+  const handleCreateArea = async () => {
+    const nombre = newAreaName.trim();
+    if (!nombre || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("manual_areas")
+      .insert({ cliente_id: clienteId, nombre, orden: areas.length })
+      .select("id,nombre,orden")
+      .single();
+    if (error || !data) {
+      setSaveError(error?.message ?? "Error al crear el área");
+      setSaving(false);
+      return;
+    }
+    const newArea = data as AreaRow;
+    const newIdx = areas.length;
+    setAreas((prev) => [...prev, newArea]);
+    setShowDialog(false);
+    setNewAreaName("");
+    setSaving(false);
+    onSelectArea(newArea.id, newArea.nombre, newIdx);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -234,11 +279,43 @@ export function ManualFuncionesLanding({ clienteId, onSelectArea, onSelectCargo 
       {areas.length === 0 ? (
         <div style={{ textAlign: "center", padding: "48px 24px", color: "#94A3B8", fontSize: "14px" }}>
           No hay áreas configuradas aún.
+          {canManage && (
+            <div style={{ marginTop: "16px" }}>
+              <button
+                onClick={openDialog}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  fontSize: "13px", fontWeight: 700, color: "white",
+                  background: "#0C4A6E", border: "none", borderRadius: "10px",
+                  padding: "10px 18px", cursor: "pointer",
+                }}
+              >
+                <Plus style={{ width: "14px", height: "14px" }} />
+                Nueva Área
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <>
-          <div style={{ fontSize: "12px", fontWeight: 600, color: "#94A3B8", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            {areas.length} área{areas.length !== 1 ? "s" : ""}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ fontSize: "12px", fontWeight: 600, color: "#94A3B8", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              {areas.length} área{areas.length !== 1 ? "s" : ""}
+            </div>
+            {canManage && (
+              <button
+                onClick={openDialog}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "5px",
+                  fontSize: "12px", fontWeight: 700, color: "#0EA5E9",
+                  background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px",
+                  padding: "6px 12px", cursor: "pointer",
+                }}
+              >
+                <Plus style={{ width: "12px", height: "12px" }} />
+                Nueva Área
+              </button>
+            )}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "14px" }}>
             {areas.map((area, idx) => (
@@ -253,6 +330,93 @@ export function ManualFuncionesLanding({ clienteId, onSelectArea, onSelectCargo 
             ))}
           </div>
         </>
+      )}
+
+      {/* Nueva Área dialog */}
+      {showDialog && (
+        <div
+          onClick={closeDialog}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "rgba(0,0,0,0.45)", display: "flex",
+            alignItems: "center", justifyContent: "center", padding: "24px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white", borderRadius: "16px", padding: "28px",
+              width: "100%", maxWidth: "400px",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            {/* Dialog header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E" }}>Nueva Área</div>
+              <button
+                onClick={closeDialog}
+                disabled={saving}
+                style={{ background: "none", border: "none", cursor: saving ? "default" : "pointer", color: "#94A3B8", padding: "4px" }}
+              >
+                <X style={{ width: "18px", height: "18px" }} />
+              </button>
+            </div>
+
+            {/* Input */}
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>
+                Nombre del área
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
+                value={newAreaName}
+                onChange={(e) => setNewAreaName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") void handleCreateArea(); if (e.key === "Escape") closeDialog(); }}
+                placeholder="Ej: Recursos Humanos"
+                style={{
+                  width: "100%", padding: "10px 14px", fontSize: "14px",
+                  border: "1.5px solid #E2E8F0", borderRadius: "10px",
+                  color: "#0C4A6E", outline: "none", boxSizing: "border-box",
+                }}
+              />
+              {saveError && (
+                <div style={{ marginTop: "8px", fontSize: "12px", color: "#DC2626" }}>{saveError}</div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                onClick={closeDialog}
+                disabled={saving}
+                style={{
+                  padding: "9px 18px", fontSize: "13px", fontWeight: 600,
+                  color: "#64748B", background: "#F1F5F9",
+                  border: "1px solid #E2E8F0", borderRadius: "10px", cursor: saving ? "default" : "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => void handleCreateArea()}
+                disabled={saving || !newAreaName.trim()}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  padding: "9px 18px", fontSize: "13px", fontWeight: 700,
+                  color: "white", background: saving || !newAreaName.trim() ? "#94A3B8" : "#0C4A6E",
+                  border: "none", borderRadius: "10px",
+                  cursor: saving || !newAreaName.trim() ? "default" : "pointer",
+                }}
+              >
+                {saving
+                  ? <Loader2 style={{ width: "13px", height: "13px" }} className="animate-spin" />
+                  : <Plus style={{ width: "13px", height: "13px" }} />}
+                {saving ? "Creando…" : "Crear área"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

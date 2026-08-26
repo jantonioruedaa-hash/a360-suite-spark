@@ -677,7 +677,10 @@ function ManualFuncionesViewer() {
   }
 
   // ── Client: Landing → AreaCargosView → CargoFichaOverlay ────────────────────
-  if (esCliente) {
+  // TEMP: localStorage flag allows non-client users to preview the React experience
+  // Remove `previewReact` and the `|| previewReact` below when rolling out to everyone.
+  const previewReact = typeof window !== "undefined" && localStorage.getItem("mf_react") === "1";
+  if (esCliente || previewReact) {
     return (
       <>
         {/* Eval iframe — always mounted but invisible; z-50 only during eval sessions */}
@@ -697,6 +700,7 @@ function ManualFuncionesViewer() {
         {!selectedArea && (
           <ManualFuncionesLanding
             clienteId={clienteId}
+            canManage={!esCliente}
             onSelectArea={(aId, aName, cIdx) =>
               navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area: aId, areaName: aName, colorIdx: cIdx } })
             }
