@@ -716,6 +716,7 @@ function ManualFuncionesViewer() {
             areaId={selectedArea.id}
             areaName={selectedArea.name}
             colorIdx={selectedArea.colorIdx}
+            canManage={!esCliente}
             userRolEmpresa={userRolEmpresa}
             restrictedAreaId={restrictedAreaId}
             onBack={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open" } })}

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, Loader2, UserCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ChevronRight, Loader2, Plus, UserCircle2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAreaColor, getAreaIcon } from "./area-palette";
 
@@ -116,6 +116,7 @@ type Props = {
   areaId: string;         // manual_areas.id — used for permission gate
   areaName: string;       // display label only (cargo filter uses areaId)
   colorIdx: number;       // palette index from landing
+  canManage: boolean;
   userRolEmpresa: string | null;
   restrictedAreaId: string | null; // empresa_usuarios.area_id; null = no restriction
   onBack: () => void;
@@ -127,6 +128,7 @@ export function AreaCargosView({
   areaId,
   areaName,
   colorIdx,
+  canManage,
   userRolEmpresa,
   restrictedAreaId,
   onBack,
@@ -134,6 +136,44 @@ export function AreaCargosView({
 }: Props) {
   const [cargos, setCargos] = useState<CargoCard[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Nuevo Cargo dialog
+  const [showDialog, setShowDialog] = useState(false);
+  const [newCargoName, setNewCargoName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const openDialog = () => {
+    setNewCargoName("");
+    setSaveError(null);
+    setShowDialog(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const closeDialog = () => { if (!saving) setShowDialog(false); };
+
+  const handleCreateCargo = async () => {
+    const nombre = newCargoName.trim();
+    if (!nombre || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("manual_funciones_cargos")
+      .insert({ cliente_id: clienteId, cargo: nombre, area: areaName, area_id: areaId })
+      .select("id,cargo")
+      .single();
+    if (error || !data) {
+      setSaveError(error?.message ?? "Error al crear el cargo");
+      setSaving(false);
+      return;
+    }
+    setSaving(false);
+    setShowDialog(false);
+    setNewCargoName("");
+    onSelectCargo((data as { id: string }).id);
+  };
 
   // Permission gate: jefe_area can only see their own area
   useEffect(() => {
@@ -223,6 +263,27 @@ export function AreaCargosView({
         </div>
       </div>
 
+      {/* Toolbar: cargo count + Nuevo Cargo button */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {!loading && (
+          <div style={{ fontSize: "12px", fontWeight: 600, color: "#94A3B8",
+                        letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            {cargos.length === 0 ? "Sin cargos" : `${cargos.length} cargo${cargos.length !== 1 ? "s" : ""}`}
+          </div>
+        )}
+        {canManage && (
+          <button onClick={openDialog} style={{
+            display: "inline-flex", alignItems: "center", gap: "5px",
+            fontSize: "12px", fontWeight: 700, color: "#0EA5E9",
+            background: "#F0F9FF", border: "1.5px solid #BAE6FD", borderRadius: "8px",
+            padding: "6px 12px", cursor: "pointer", marginLeft: "auto",
+          }}>
+            <Plus style={{ width: "12px", height: "12px" }} />
+            Nuevo Cargo
+          </button>
+        )}
+      </div>
+
       {/* Cargo list */}
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "160px" }}>
@@ -235,6 +296,19 @@ export function AreaCargosView({
           color: "#94A3B8", fontSize: "14px",
         }}>
           Esta área no tiene cargos asignados aún.
+          {canManage && (
+            <div style={{ marginTop: "16px" }}>
+              <button onClick={openDialog} style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                fontSize: "13px", fontWeight: 700, color: "white",
+                background: "#0C4A6E", border: "none", borderRadius: "10px",
+                padding: "10px 18px", cursor: "pointer",
+              }}>
+                <Plus style={{ width: "14px", height: "14px" }} />
+                Nuevo Cargo
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -248,6 +322,75 @@ export function AreaCargosView({
               onClick={() => onSelectCargo(c.id)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Nuevo Cargo dialog */}
+      {showDialog && (
+        <div onClick={closeDialog} style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "white", borderRadius: "16px", padding: "28px",
+            width: "100%", maxWidth: "400px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E" }}>Nuevo Cargo</div>
+                <div style={{ fontSize: "11px", color: "#94A3B8", marginTop: "2px" }}>Área: {areaName}</div>
+              </div>
+              <button onClick={closeDialog} disabled={saving}
+                style={{ background: "none", border: "none", cursor: saving ? "default" : "pointer", color: "#94A3B8", padding: "4px" }}>
+                <X style={{ width: "18px", height: "18px" }} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748B",
+                            textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>
+                Nombre del cargo
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
+                value={newCargoName}
+                onChange={(e) => setNewCargoName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") void handleCreateCargo(); if (e.key === "Escape") closeDialog(); }}
+                placeholder="Ej: Coordinador de Nómina"
+                style={{
+                  width: "100%", padding: "10px 14px", fontSize: "14px",
+                  border: "1.5px solid #E2E8F0", borderRadius: "10px",
+                  color: "#0C4A6E", outline: "none", boxSizing: "border-box",
+                }}
+              />
+              {saveError && <div style={{ marginTop: "8px", fontSize: "12px", color: "#DC2626" }}>{saveError}</div>}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={closeDialog} disabled={saving} style={{
+                padding: "9px 18px", fontSize: "13px", fontWeight: 600,
+                color: "#64748B", background: "#F1F5F9",
+                border: "1px solid #E2E8F0", borderRadius: "10px", cursor: saving ? "default" : "pointer",
+              }}>Cancelar</button>
+              <button onClick={() => void handleCreateCargo()}
+                disabled={saving || !newCargoName.trim()} style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "9px 18px", fontSize: "13px", fontWeight: 700,
+                color: "white",
+                background: saving || !newCargoName.trim() ? "#94A3B8" : "#0C4A6E",
+                border: "none", borderRadius: "10px",
+                cursor: saving || !newCargoName.trim() ? "default" : "pointer",
+              }}>
+                {saving
+                  ? <Loader2 style={{ width: "13px", height: "13px" }} className="animate-spin" />
+                  : <Plus style={{ width: "13px", height: "13px" }} />}
+                {saving ? "Creando…" : "Crear cargo"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
