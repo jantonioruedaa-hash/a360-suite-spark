@@ -580,6 +580,7 @@ type Props = {
   cargoId: string;
   areaName: string;
   colorIdx: number;
+  canManage: boolean;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   iframeActive: boolean;
   userRolEmpresa: string | null;
@@ -587,7 +588,7 @@ type Props = {
   onEvalOpen: () => void;
 };
 
-export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, iframeRef, iframeActive, userRolEmpresa, onClose, onEvalOpen }: Props) {
+export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canManage, iframeRef, iframeActive, userRolEmpresa, onClose, onEvalOpen }: Props) {
   const [localCargo, setLocalCargo] = useState<Cargo | null>(null);
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
@@ -596,6 +597,8 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
   const [hasPending, setHasPending] = useState(false);
   const [showEvalDesemp, setShowEvalDesemp] = useState(false);
   const [showEvalComp,   setShowEvalComp]   = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting]               = useState(false);
 
   const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEditsRef = useRef<Partial<Cargo>>({});
@@ -706,6 +709,25 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
     onClose();
   }, [flushAndGetFreshCargo, onClose]);
 
+  // ── Delete cargo (evaluations cascade in DB) ─────────────────────────────
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
+      .from("manual_funciones_cargos")
+      .delete()
+      .eq("id", cargoId);
+    if (error) {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+      toast.error("Error al eliminar el cargo: " + error.message);
+      return;
+    }
+    // manual_funciones_evaluaciones(_desempeno) ON DELETE CASCADE — no extra work needed
+    onClose();
+  };
+
   // ── Open HTML evaluation pane via iframe bridge ───────────────────────────
 
   const handleOpenEval = useCallback(async (evalType: "competencias" | "desempeno") => {
@@ -800,6 +822,69 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
         </div>
       ) : (<>
 
+      {/* ── Delete confirmation modal ── */}
+      {showDeleteConfirm && (
+        <div onClick={() => { if (!deleting) setShowDeleteConfirm(false); }} style={{
+          position: "fixed", inset: 0, zIndex: 10000,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "white", borderRadius: "16px", padding: "28px",
+            width: "100%", maxWidth: "420px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "20px" }}>
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
+                background: "#FFF5F5", border: "1px solid #FEE2E2",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Trash2 style={{ width: "18px", height: "18px", color: "#EF4444" }} />
+              </div>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", marginBottom: "6px" }}>
+                  Eliminar cargo
+                </div>
+                <div style={{ fontSize: "13px", color: "#64748B", lineHeight: 1.6 }}>
+                  Esto eliminará permanentemente{" "}
+                  <strong style={{ color: "#0C4A6E" }}>{localCargo?.cargo}</strong>{" "}
+                  y toda su historia de evaluaciones. Esta acción no se puede deshacer.
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                style={{
+                  padding: "9px 18px", fontSize: "13px", fontWeight: 600,
+                  color: "#64748B", background: "#F1F5F9",
+                  border: "1px solid #E2E8F0", borderRadius: "10px",
+                  cursor: deleting ? "default" : "pointer",
+                }}
+              >Cancelar</button>
+              <button
+                onClick={() => void handleDelete()}
+                disabled={deleting}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  padding: "9px 18px", fontSize: "13px", fontWeight: 700,
+                  color: "white", background: deleting ? "#94A3B8" : "#DC2626",
+                  border: "none", borderRadius: "10px",
+                  cursor: deleting ? "default" : "pointer",
+                }}
+              >
+                {deleting
+                  ? <Loader2 style={{ width: "13px", height: "13px" }} className="animate-spin" />
+                  : <Trash2 style={{ width: "13px", height: "13px" }} />}
+                {deleting ? "Eliminando…" : "Eliminar cargo"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Sticky header ── */}
       <div style={{ background: "white", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
 
@@ -858,6 +943,25 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, ifra
               <Save style={{ width: "12px", height: "12px" }} />
               {saving ? "Guardando…" : "Guardar"}
             </button>
+            {canManage && !loading && localCargo && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={closing || deleting}
+                aria-label="Eliminar cargo"
+                title="Eliminar cargo"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: "30px", height: "30px", borderRadius: "8px",
+                  background: "#FFF5F5", border: "1px solid #FEE2E2",
+                  cursor: closing || deleting ? "default" : "pointer",
+                  color: "#EF4444", opacity: closing || deleting ? 0.4 : 1,
+                }}
+                onMouseEnter={(e) => { if (!closing && !deleting) (e.currentTarget as HTMLButtonElement).style.background = "#FEE2E2"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#FFF5F5"; }}
+              >
+                <Trash2 style={{ width: "15px", height: "15px" }} />
+              </button>
+            )}
             <button
               onClick={() => { void handleClose(); }}
               disabled={closing}

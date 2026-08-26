@@ -732,6 +732,7 @@ function ManualFuncionesViewer() {
             cargoId={selectedCargo}
             areaName={selectedArea.name}
             colorIdx={selectedArea.colorIdx}
+            canManage={!esCliente}
             iframeRef={iframeRef}
             iframeActive={iframeActive}
             userRolEmpresa={userRolEmpresa}
