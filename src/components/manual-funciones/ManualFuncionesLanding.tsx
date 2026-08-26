@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAreaColor, getAreaIcon } from "./area-palette";
 
@@ -25,11 +25,13 @@ type AreaCardProps = {
   area: AreaRow;
   cargos: CargoItem[];
   colorIdx: number;
+  canManage: boolean;
   onSelectArea: () => void;
+  onDelete: () => void;
   onSelectCargo: (id: string, areaId: string, areaName: string, colorIdx: number) => void;
 };
 
-function AreaCard({ area, cargos, colorIdx, onSelectArea, onSelectCargo }: AreaCardProps) {
+function AreaCard({ area, cargos, colorIdx, canManage, onSelectArea, onDelete, onSelectCargo }: AreaCardProps) {
   const { bg, border, dot } = getAreaColor(colorIdx);
   const [hovered, setHovered] = useState(false);
   const visible = cargos.slice(0, 6);
@@ -83,6 +85,22 @@ function AreaCard({ area, cargos, colorIdx, onSelectArea, onSelectCargo }: AreaC
           }}>
             <span style={{ color: "white", fontSize: "11px", fontWeight: 700 }}>{cargos.length}</span>
           </div>
+        )}
+        {canManage && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            title="Eliminar área"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: "26px", height: "26px", borderRadius: "7px", flexShrink: 0,
+              background: hovered ? "#FFF5F5" : "transparent",
+              border: `1px solid ${hovered ? "#FEE2E2" : "transparent"}`,
+              color: hovered ? "#EF4444" : "transparent",
+              cursor: "pointer", transition: "color 0.15s, background 0.15s, border-color 0.15s",
+            }}
+          >
+            <Trash2 style={{ width: "13px", height: "13px" }} />
+          </button>
         )}
       </div>
 
@@ -140,6 +158,48 @@ export function ManualFuncionesLanding({ clienteId, canManage, onSelectArea, onS
   const [areas, setAreas] = useState<AreaRow[]>([]);
   const [cargos, setCargos] = useState<CargoItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Eliminar Área dialog
+  const [areaToDelete, setAreaToDelete] = useState<{ area: AreaRow; cargoCount: number } | null>(null);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteConfirmInputRef = useRef<HTMLInputElement>(null);
+
+  const openDeleteDialog = (area: AreaRow, cargoCount: number) => {
+    setAreaToDelete({ area, cargoCount });
+    setDeleteConfirmName("");
+    setDeleteError(null);
+    if (cargoCount === 0) setTimeout(() => deleteConfirmInputRef.current?.focus(), 50);
+  };
+
+  const closeDeleteDialog = () => {
+    if (deleting) return;
+    setAreaToDelete(null);
+    setDeleteConfirmName("");
+    setDeleteError(null);
+  };
+
+  const handleDeleteArea = async () => {
+    if (!areaToDelete || deleting) return;
+    if (deleteConfirmName.trim() !== areaToDelete.area.nombre) return;
+    setDeleting(true);
+    setDeleteError(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
+      .from("manual_areas")
+      .delete()
+      .eq("id", areaToDelete.area.id);
+    if (error) {
+      setDeleteError(error.message);
+      setDeleting(false);
+      return;
+    }
+    setAreas((prev) => prev.filter((a) => a.id !== areaToDelete.area.id));
+    setAreaToDelete(null);
+    setDeleteConfirmName("");
+    setDeleting(false);
+  };
 
   // Nueva Área dialog
   const [showDialog, setShowDialog] = useState(false);
@@ -324,12 +384,112 @@ export function ManualFuncionesLanding({ clienteId, canManage, onSelectArea, onS
                 area={area}
                 cargos={cargosByArea.get(area.nombre) ?? []}
                 colorIdx={idx}
+                canManage={canManage}
                 onSelectArea={() => onSelectArea(area.id, area.nombre, idx)}
+                onDelete={() => openDeleteDialog(area, cargosByArea.get(area.nombre)?.length ?? 0)}
                 onSelectCargo={onSelectCargo}
               />
             ))}
           </div>
         </>
+      )}
+
+      {/* Eliminar Área dialog */}
+      {areaToDelete && (
+        <div onClick={closeDeleteDialog} style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "white", borderRadius: "16px", padding: "28px",
+            width: "100%", maxWidth: "440px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "14px", marginBottom: "20px" }}>
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
+                background: "#FFF5F5", border: "1px solid #FEE2E2",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Trash2 style={{ width: "18px", height: "18px", color: "#EF4444" }} />
+              </div>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E", marginBottom: "6px" }}>
+                  Eliminar área
+                </div>
+                {areaToDelete.cargoCount > 0 ? (
+                  <div style={{ fontSize: "13px", color: "#64748B", lineHeight: 1.6 }}>
+                    El área <strong style={{ color: "#0C4A6E" }}>{areaToDelete.area.nombre}</strong> tiene{" "}
+                    <strong>{areaToDelete.cargoCount} cargo{areaToDelete.cargoCount !== 1 ? "s" : ""}</strong>.
+                    Elimínalos o reasígnalos a otra área antes de borrarla.
+                  </div>
+                ) : (
+                  <div style={{ fontSize: "13px", color: "#64748B", lineHeight: 1.6 }}>
+                    Escribe <strong style={{ color: "#0C4A6E" }}>{areaToDelete.area.nombre}</strong> para confirmar.
+                    Esta acción eliminará el área permanentemente y no se puede deshacer.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {areaToDelete.cargoCount === 0 && (
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748B",
+                              textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>
+                  Nombre del área
+                </div>
+                <input
+                  ref={deleteConfirmInputRef}
+                  type="text"
+                  value={deleteConfirmName}
+                  onChange={(e) => setDeleteConfirmName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && deleteConfirmName.trim() === areaToDelete.area.nombre) void handleDeleteArea();
+                    if (e.key === "Escape") closeDeleteDialog();
+                  }}
+                  placeholder={areaToDelete.area.nombre}
+                  style={{
+                    width: "100%", padding: "10px 14px", fontSize: "14px",
+                    border: `1.5px solid ${deleteConfirmName.trim() === areaToDelete.area.nombre ? "#EF4444" : "#E2E8F0"}`,
+                    borderRadius: "10px", color: "#0C4A6E", outline: "none", boxSizing: "border-box",
+                    transition: "border-color 0.15s",
+                  }}
+                />
+                {deleteError && <div style={{ marginTop: "8px", fontSize: "12px", color: "#DC2626" }}>{deleteError}</div>}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={closeDeleteDialog} disabled={deleting} style={{
+                padding: "9px 18px", fontSize: "13px", fontWeight: 600,
+                color: "#64748B", background: "#F1F5F9",
+                border: "1px solid #E2E8F0", borderRadius: "10px", cursor: deleting ? "default" : "pointer",
+              }}>
+                {areaToDelete.cargoCount > 0 ? "Entendido" : "Cancelar"}
+              </button>
+              {areaToDelete.cargoCount === 0 && (
+                <button
+                  onClick={() => void handleDeleteArea()}
+                  disabled={deleting || deleteConfirmName.trim() !== areaToDelete.area.nombre}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "6px",
+                    padding: "9px 18px", fontSize: "13px", fontWeight: 700,
+                    color: "white",
+                    background: deleting || deleteConfirmName.trim() !== areaToDelete.area.nombre ? "#94A3B8" : "#DC2626",
+                    border: "none", borderRadius: "10px",
+                    cursor: deleting || deleteConfirmName.trim() !== areaToDelete.area.nombre ? "default" : "pointer",
+                  }}
+                >
+                  {deleting
+                    ? <Loader2 style={{ width: "13px", height: "13px" }} className="animate-spin" />
+                    : <Trash2 style={{ width: "13px", height: "13px" }} />}
+                  {deleting ? "Eliminando…" : "Eliminar área"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Nueva Área dialog */}
