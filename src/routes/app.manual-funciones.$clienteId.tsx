@@ -435,6 +435,7 @@ function ManualFuncionesViewer() {
   const [iframeActive, setIframeActive]       = useState(false);
   const [userRolEmpresa, setUserRolEmpresa]   = useState<string | null>(null);
   const [restrictedAreaId, setRestrictedAreaId] = useState<string | null>(null);
+  const [pumCanManage, setPumCanManage]       = useState(false);
   const [evalDesempCargoId, setEvalDesempCargoId] = useState<string | null>(null);
   const [evalCompCargoId,   setEvalCompCargoId]   = useState<string | null>(null);
 
@@ -462,6 +463,19 @@ function ManualFuncionesViewer() {
         if (!eu?.cliente_id) { setModEnabled(false); return; }
         setUserRolEmpresa(eu?.rol_empresa ?? null);
         setRestrictedAreaId(eu?.area_id ?? null);
+
+        // Check if this user has edit permission for MF CRUD via permisos_usuario_modulo
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: pum } = await (supabase as any)
+          .from("permisos_usuario_modulo")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("cliente_id", clienteId)
+          .eq("modulo", "manual_funciones_cargos")
+          .eq("puede_editar", true)
+          .limit(1);
+        if (cancelled) return;
+        setPumCanManage((pum ?? []).length > 0);
 
         const { data: cli } = await supabase
           .from("clientes")
@@ -700,7 +714,7 @@ function ManualFuncionesViewer() {
         {!selectedArea && (
           <ManualFuncionesLanding
             clienteId={clienteId}
-            canManage={!esCliente}
+            canManage={!esCliente || pumCanManage}
             onSelectArea={(aId, aName, cIdx) =>
               navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area: aId, areaName: aName, colorIdx: cIdx } })
             }
@@ -716,7 +730,7 @@ function ManualFuncionesViewer() {
             areaId={selectedArea.id}
             areaName={selectedArea.name}
             colorIdx={selectedArea.colorIdx}
-            canManage={!esCliente}
+            canManage={!esCliente || pumCanManage}
             userRolEmpresa={userRolEmpresa}
             restrictedAreaId={restrictedAreaId}
             onBack={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open" } })}
@@ -732,7 +746,7 @@ function ManualFuncionesViewer() {
             cargoId={selectedCargo}
             areaName={selectedArea.name}
             colorIdx={selectedArea.colorIdx}
-            canManage={!esCliente}
+            canManage={!esCliente || pumCanManage}
             iframeRef={iframeRef}
             iframeActive={iframeActive}
             userRolEmpresa={userRolEmpresa}

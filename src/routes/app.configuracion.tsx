@@ -298,6 +298,7 @@ type EmpresaUsuarioOpt = {
 
 const MODULOS_PERMISO = [
   { value: "manual_funciones_evaluaciones", label: "Evaluaciones (Manual de Funciones)" },
+  { value: "manual_funciones_cargos",       label: "Cargos y Áreas (Manual de Funciones)" },
 ] as const;
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
