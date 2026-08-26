@@ -464,25 +464,25 @@ function ManualFuncionesViewer() {
         setUserRolEmpresa(eu?.rol_empresa ?? null);
         setRestrictedAreaId(eu?.area_id ?? null);
 
-        // Check if this user has edit permission for MF CRUD via permisos_usuario_modulo
+        // pum and clientes are independent — run in parallel to avoid an extra sequential RTT
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: pum } = await (supabase as any)
-          .from("permisos_usuario_modulo")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("cliente_id", clienteId)
-          .eq("modulo", "manual_funciones_cargos")
-          .eq("puede_editar", true)
-          .limit(1);
+        const [{ data: pum }, { data: cli }] = await Promise.all([
+          (supabase as any)
+            .from("permisos_usuario_modulo")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("cliente_id", clienteId)
+            .eq("modulo", "manual_funciones_cargos")
+            .eq("puede_editar", true)
+            .limit(1),
+          supabase
+            .from("clientes")
+            .select("plan_licencia")
+            .eq("id", eu.cliente_id)
+            .maybeSingle(),
+        ]);
         if (cancelled) return;
         setPumCanManage((pum ?? []).length > 0);
-
-        const { data: cli } = await supabase
-          .from("clientes")
-          .select("plan_licencia")
-          .eq("id", eu.cliente_id)
-          .maybeSingle();
-        if (cancelled) return;
         if (!cli?.plan_licencia) { setModEnabled(false); return; }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
