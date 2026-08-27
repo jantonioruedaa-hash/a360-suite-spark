@@ -545,10 +545,9 @@ function SecFirmas({ cargo, onChange }: SecProps) {
       onEdit: (v: string) => onChange({ elaborado_por: v || null }),
     },
     {
-      // No DB column for revisado_por — blank signature line until one is added
       line: "Revisado por",
-      value: "",
-      onEdit: undefined,
+      value: cargo.revisado_por ?? "",
+      onEdit: (v: string) => onChange({ revisado_por: v || null }),
     },
     {
       line: "Aprobado por",
@@ -691,7 +690,7 @@ function buildCargoHTML(cargo: Cargo, areaName: string, empresaNombre: string, d
   // 9. Firmas
   const firmaBoxes = [
     { label: "Elaborado por", val: cargo.elaborado_por ?? "" },
-    { label: "Revisado por",  val: ""                       },
+    { label: "Revisado por",  val: cargo.revisado_por ?? "" },
     { label: "Aprobado por",  val: cargo.aprobado_por  ?? "" },
   ].map(({ label, val }) =>
     `<div class="fbox"><div class="fline"></div><div class="flabel">${esc(label)}</div>` +
@@ -712,8 +711,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
 .empresa{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px}
 .ctitle-main{font-size:26px;font-weight:900;color:#0C4A6E;letter-spacing:-.02em;margin-bottom:5px}
 .cmeta{font-size:12px;color:#64748B}
-.sec{margin-bottom:18px;border-radius:10px;overflow:hidden;border:1.5px solid #E8EDF2;break-inside:avoid;page-break-inside:avoid}
-.sec-head{background:${dot};color:white;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:7px 16px}
+.sec{margin-bottom:18px;border-radius:10px;border:1.5px solid #E8EDF2}
+.sec-head{background:${dot};color:white;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:7px 16px;break-after:avoid;page-break-after:avoid}
 .sec-body{padding:16px;background:white}
 .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 14px}
 .pair{background:#F8FAFC;border-radius:7px;padding:8px 11px;border:1px solid #E8EDF2}
@@ -721,18 +720,18 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
 .pv{font-size:13px;color:#1E293B}
 .tb{font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap}
 .empty{color:#CBD5E1;font-size:13px;font-style:italic}
-.frow{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:5px}
+.frow{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
 .num{min-width:21px;height:21px;border-radius:5px;color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .fdesc{flex:1;font-size:13px;color:#334155}
 .pct{font-size:11px;color:#94A3B8;flex-shrink:0;align-self:center}
 .cgroup{margin-bottom:13px}
 .ctitle{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
-.crow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:4px}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:4px;break-inside:avoid;page-break-inside:avoid}
 .cnombre{font-size:13px;color:#334155;flex:1}
 .nbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0}
 .ktable{width:100%;border-collapse:collapse;font-size:12px}
 .ktable th{background:#0C4A6E;color:white;padding:7px 10px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left}
-.ktable td{padding:7px 10px;border-bottom:1px solid #E2E8F0;color:#334155;vertical-align:top}
+.ktable td{padding:7px 10px;border-bottom:1px solid #E2E8F0;color:#334155;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
 .ktable tr:last-child td{border-bottom:none}
 .rgroup{margin-bottom:11px}
 .rl{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
@@ -747,7 +746,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
 @media print{
   .topbar{display:none!important}
   body{background:white}
-  .doc{padding:0;max-width:100%}
+  .doc{padding:0 0 8px;max-width:100%}
+  .footer{margin-top:10px}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }`;
 

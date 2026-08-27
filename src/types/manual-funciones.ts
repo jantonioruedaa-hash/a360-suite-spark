@@ -176,6 +176,7 @@ export type Cargo = {
   kpis: KPI[];
   elaborado_por: string | null;
   aprobado_por: string | null;
+  revisado_por: string | null;
   fecha_elaboracion: string | null;
   fecha_revision: string | null;
   plan_carrera: string | null;
@@ -194,7 +195,7 @@ export const FORM_BLANK: FormDatos = {
   cargo: "", area: "", area_id: null, jefe_inmediato: "", codigo: "", version: "1.0",
   estado: "vigente", vacante: false, objetivo: "",
   funciones: [], competencias_blandas: [], competencias_tecnicas: [], kpis: [],
-  elaborado_por: "", aprobado_por: "", fecha_elaboracion: "", fecha_revision: "",
+  elaborado_por: "", aprobado_por: "", revisado_por: null, fecha_elaboracion: "", fecha_revision: "",
   plan_carrera: "",
   relaciones_internas: [], relaciones_externas: [],
   condiciones: {}, resultados_esperados: [],
