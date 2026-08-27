@@ -12,6 +12,7 @@ import { EvalCompPanel } from "./EvalCompPanel";
 
 // KPI type extended with optional formula (not in base Cargo KPI type)
 type KpiRow = { nombre: string; meta: string; frecuencia: string; formula: string };
+type AreaOption = { id: string; nombre: string };
 
 // ── Display helpers ────────────────────────────────────────────────────────────
 
@@ -140,13 +141,32 @@ function DelBtn({ onClick }: { onClick: () => void }) {
 
 type SecProps = { cargo: Cargo; onChange: (u: Partial<Cargo>) => void };
 
-function SecIdentificacion({ cargo, onChange }: SecProps) {
+function SecIdentificacion({ cargo, onChange, areas, canManage }: SecProps & { areas: AreaOption[]; canManage: boolean }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "18px 24px" }}>
       {/* Cargo name */}
       <div style={{ gridColumn: "1 / -1", background: "white", border: "1px solid #E8EDF2", borderRadius: "10px", padding: "10px 14px" }}>
         <Label>Nombre del cargo</Label>
         <input style={INPUT_BASE} value={cargo.cargo} onChange={(e) => onChange({ cargo: e.target.value })} />
+      </div>
+      {/* Área — full-width, structural reassignment gated by canManage */}
+      <div style={{ gridColumn: "1 / -1", background: "white", border: "1px solid #E8EDF2", borderRadius: "10px", padding: "10px 14px" }}>
+        <Label>Área</Label>
+        {canManage ? (
+          <select
+            style={{ ...INPUT_BASE, cursor: "pointer" }}
+            value={cargo.area_id ?? ""}
+            onChange={(e) => {
+              const selected = areas.find((a) => a.id === e.target.value);
+              onChange({ area_id: e.target.value || null, area: selected?.nombre ?? "" });
+            }}
+          >
+            <option value="">— Sin área —</option>
+            {areas.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+          </select>
+        ) : (
+          <div style={{ fontSize: "13px", color: "#1E293B", padding: "2px 0" }}>{cargo.area ?? "—"}</div>
+        )}
       </div>
       <Pair label="Código">
         <input style={INPUT_BASE} value={cargo.codigo ?? ""} onChange={(e) => onChange({ codigo: e.target.value || null })} />
@@ -599,6 +619,7 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
   const [showEvalComp,   setShowEvalComp]   = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting]               = useState(false);
+  const [areas, setAreas]                     = useState<AreaOption[]>([]);
 
   const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEditsRef = useRef<Partial<Cargo>>({});
@@ -630,6 +651,21 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
     })();
     return () => { cancelled = true; };
   }, [cargoId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("manual_areas")
+        .select("id,nombre")
+        .eq("cliente_id", clienteId)
+        .order("nombre");
+      if (cancelled) return;
+      setAreas((data ?? []) as AreaOption[]);
+    })();
+    return () => { cancelled = true; };
+  }, [clienteId]);
 
   // ── Save machinery ─────────────────────────────────────────────────────────
 
@@ -1044,7 +1080,7 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
           <p style={{ color: "#94A3B8", fontSize: "14px" }}>No se pudo cargar el cargo.</p>
         ) : (
           <>
-            <SecBlock title="Identificación"        accent={dot}><SecIdentificacion cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Identificación"        accent={dot}><SecIdentificacion cargo={localCargo} onChange={handleChange} areas={areas} canManage={canManage} /></SecBlock>
             <SecBlock title="Objetivo del cargo"    accent={dot}><SecObjetivo       cargo={localCargo} onChange={handleChange} /></SecBlock>
             <SecBlock title="Funciones"             accent={dot}><SecFunciones      cargo={localCargo} onChange={handleChange} accent={dot} /></SecBlock>
             <SecBlock title="Competencias"          accent={dot}><SecCompetencias   cargo={localCargo} onChange={handleChange} accent={dot} /></SecBlock>

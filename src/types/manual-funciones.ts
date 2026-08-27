@@ -161,6 +161,7 @@ export type Cargo = {
   id: string;
   cargo: string;
   area: string;
+  area_id: string | null;
   jefe_inmediato: string | null;
   codigo: string | null;
   version: string | null;
@@ -186,7 +187,7 @@ export type Cargo = {
 export type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "requisitos">;
 
 export const FORM_BLANK: FormDatos = {
-  cargo: "", area: "", jefe_inmediato: "", codigo: "", version: "1.0",
+  cargo: "", area: "", area_id: null, jefe_inmediato: "", codigo: "", version: "1.0",
   estado: "vigente", vacante: false, objetivo: "",
   funciones: [], competencias_blandas: [], competencias_tecnicas: [], kpis: [],
   elaborado_por: "", aprobado_por: "", fecha_elaboracion: "", fecha_revision: "",
