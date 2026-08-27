@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save, Copy } from "lucide-react";
+import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save, Copy, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Cargo, Funcion, Competencia } from "@/types/manual-funciones";
@@ -545,9 +545,9 @@ function SecFirmas({ cargo, onChange }: SecProps) {
       onEdit: (v: string) => onChange({ elaborado_por: v || null }),
     },
     {
-      // Hardcoded as in original HTML — no DB field for "revisado por RRHH"
-      line: "Revisado por · RRHH",
-      value: "Coordinador de RRHH",
+      // No DB column for revisado_por — blank signature line until one is added
+      line: "Revisado por",
+      value: "",
       onEdit: undefined,
     },
     {
@@ -593,6 +593,193 @@ function SecFirmas({ cargo, onChange }: SecProps) {
   );
 }
 
+// ── PDF generation ────────────────────────────────────────────────────────────
+
+function buildCargoHTML(cargo: Cargo, areaName: string, empresaNombre: string, dot: string): string {
+  const esc = (s: string | null | undefined) =>
+    (s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+
+  const fmtDate = (iso: string | null | undefined) => {
+    if (!iso) return "—";
+    const [y, m] = iso.split("-");
+    return m && y ? `${m}/${y}` : iso;
+  };
+
+  const sec = (title: string, body: string) =>
+    `<div class="sec"><div class="sec-head">${title}</div><div class="sec-body">${body}</div></div>`;
+
+  const pair = (label: string, val: string) =>
+    `<div class="pair"><div class="pl">${esc(label)}</div><div class="pv">${esc(val)}</div></div>`;
+
+  // 1. Identificación
+  const identificacion = `<div class="grid2">
+    ${pair("Área", areaName)}
+    ${pair("Código", cargo.codigo ?? "—")}
+    ${pair("Versión", cargo.version ?? "—")}
+    ${pair("Estado", cargo.estado ?? "Vigente")}
+    ${pair("Vacante", cargo.vacante ? "Sí" : "No")}
+    ${pair("Jefe inmediato", cargo.jefe_inmediato ?? "—")}
+    ${pair("Fecha elaboración", fmtDate(cargo.fecha_elaboracion))}
+    ${pair("Fecha revisión", fmtDate(cargo.fecha_revision))}
+  </div>`;
+
+  // 2. Objetivo
+  const objetivo = cargo.objetivo
+    ? `<p class="tb">${esc(cargo.objetivo)}</p>`
+    : `<p class="empty">Sin objetivo definido.</p>`;
+
+  // 3. Funciones
+  const funciones = !(cargo.funciones ?? []).length
+    ? `<p class="empty">Sin funciones definidas.</p>`
+    : (cargo.funciones ?? []).map((f, i) =>
+        `<div class="frow"><span class="num" style="background:${dot}">${i + 1}</span>` +
+        `<span class="fdesc">${esc(f.descripcion)}</span>` +
+        (f.porcentaje_tiempo ? `<span class="pct">${f.porcentaje_tiempo}%</span>` : "") +
+        `</div>`
+      ).join("");
+
+  // 4. Competencias
+  const NIVEL_STYLE: Record<string, string> = {
+    "Básico":     "background:#F1F5F9;color:#475569",
+    "Intermedio": "background:#DBEAFE;color:#1D4ED8",
+    "Avanzado":   "background:#DCFCE7;color:#15803D",
+    "Experto":    "background:#EDE9FE;color:#7C3AED",
+  };
+  const compList = (items: Competencia[]) => !items.length
+    ? `<p class="empty">Sin competencias.</p>`
+    : items.map((c) =>
+        `<div class="crow"><span class="cnombre">${esc(c.nombre)}</span>` +
+        `<span class="nbadge" style="${NIVEL_STYLE[c.nivel] ?? "background:#F1F5F9;color:#475569"}">${esc(c.nivel)}</span></div>`
+      ).join("");
+  const competencias =
+    `<div class="cgroup"><div class="ctitle">Competencias blandas</div>${compList(cargo.competencias_blandas ?? [])}</div>` +
+    `<div class="cgroup"><div class="ctitle">Competencias técnicas</div>${compList(cargo.competencias_tecnicas ?? [])}</div>`;
+
+  // 5. KPIs
+  const kpiRows = (cargo.kpis ?? []) as KpiRow[];
+  const kpis = !kpiRows.length
+    ? `<p class="empty">Sin KPIs definidos.</p>`
+    : `<table class="ktable"><thead><tr><th>Indicador</th><th>Meta</th><th>Frecuencia</th><th>Fórmula</th></tr></thead><tbody>` +
+      kpiRows.map((k) =>
+        `<tr><td>${esc(k.nombre)}</td><td>${esc(k.meta)}</td><td>${esc(k.frecuencia)}</td><td>${esc(k.formula ?? "")}</td></tr>`
+      ).join("") + `</tbody></table>`;
+
+  // 6. Relaciones
+  const tags = (items: string[]) => !items.length ? "—"
+    : items.map((s) => `<span class="tag">${esc(s)}</span>`).join(" ");
+  const relaciones =
+    `<div class="rgroup"><div class="rl">Supervisa a</div><div>${tags(cargo.supervisa_a ?? [])}</div></div>` +
+    `<div class="rgroup"><div class="rl">Relaciones internas</div><div>${tags(cargo.relaciones_internas ?? [])}</div></div>` +
+    `<div class="rgroup"><div class="rl">Relaciones externas</div><div>${tags(cargo.relaciones_externas ?? [])}</div></div>`;
+
+  // 7. Condiciones
+  const COND_LABELS: Record<string, string> = {
+    horario: "Horario", modalidad: "Modalidad de trabajo", viajes: "Viajes", esfuerzo: "Esfuerzo / Demanda",
+  };
+  const cond = (cargo.condiciones ?? {}) as Record<string, string>;
+  const condOrder = ["horario", "modalidad", "viajes", "esfuerzo",
+    ...Object.keys(cond).filter((k) => !["horario","modalidad","viajes","esfuerzo"].includes(k))];
+  const condiciones = !condOrder.filter((k) => cond[k]).length
+    ? `<p class="empty">Sin condiciones definidas.</p>`
+    : `<div class="grid2">${condOrder.filter((k) => cond[k]).map((k) => pair(COND_LABELS[k] ?? k, cond[k])).join("")}</div>`;
+
+  // 8. Plan de carrera
+  const planCarrera = cargo.plan_carrera
+    ? `<p class="tb">${esc(cargo.plan_carrera)}</p>`
+    : `<p class="empty">Sin plan de carrera definido.</p>`;
+
+  // 9. Firmas
+  const firmaBoxes = [
+    { label: "Elaborado por", val: cargo.elaborado_por ?? "" },
+    { label: "Revisado por",  val: ""                       },
+    { label: "Aprobado por",  val: cargo.aprobado_por  ?? "" },
+  ].map(({ label, val }) =>
+    `<div class="fbox"><div class="fline"></div><div class="flabel">${esc(label)}</div>` +
+    (val ? `<div class="fname">${esc(val)}</div>` : "") + `</div>`
+  ).join("");
+  const firmas = `<div class="fgrid">${firmaBoxes}</div>`;
+
+  const fecha = new Date().toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" });
+
+  const css = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E293B;font-size:13px;line-height:1.6}
+.topbar{position:sticky;top:0;background:white;border-bottom:1px solid #E2E8F0;padding:10px 24px;display:flex;align-items:center;justify-content:space-between}
+.topbar button{padding:8px 20px;background:#0C4A6E;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.topbar button:hover{background:#0A3D5C}
+.doc{max-width:820px;margin:0 auto;padding:32px 24px 60px}
+.dh{text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid ${dot}}
+.empresa{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px}
+.ctitle-main{font-size:26px;font-weight:900;color:#0C4A6E;letter-spacing:-.02em;margin-bottom:5px}
+.cmeta{font-size:12px;color:#64748B}
+.sec{margin-bottom:18px;border-radius:10px;overflow:hidden;border:1.5px solid #E8EDF2;break-inside:avoid;page-break-inside:avoid}
+.sec-head{background:${dot};color:white;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:7px 16px}
+.sec-body{padding:16px;background:white}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 14px}
+.pair{background:#F8FAFC;border-radius:7px;padding:8px 11px;border:1px solid #E8EDF2}
+.pl{font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+.pv{font-size:13px;color:#1E293B}
+.tb{font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap}
+.empty{color:#CBD5E1;font-size:13px;font-style:italic}
+.frow{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:5px}
+.num{min-width:21px;height:21px;border-radius:5px;color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.fdesc{flex:1;font-size:13px;color:#334155}
+.pct{font-size:11px;color:#94A3B8;flex-shrink:0;align-self:center}
+.cgroup{margin-bottom:13px}
+.ctitle{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:4px}
+.cnombre{font-size:13px;color:#334155;flex:1}
+.nbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ktable{width:100%;border-collapse:collapse;font-size:12px}
+.ktable th{background:#0C4A6E;color:white;padding:7px 10px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left}
+.ktable td{padding:7px 10px;border-bottom:1px solid #E2E8F0;color:#334155;vertical-align:top}
+.ktable tr:last-child td{border-bottom:none}
+.rgroup{margin-bottom:11px}
+.rl{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#F1F5F9;border:1px solid #E2E8F0;color:#334155;margin:2px 3px 2px 0}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.fbox{text-align:center;padding:14px}
+.fline{height:48px;border-bottom:2px solid #0C4A6E;margin-bottom:7px}
+.flabel{font-size:9px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.fname{font-size:12px;font-weight:700;color:#0C4A6E;margin-top:3px}
+.footer{margin-top:28px;font-size:10px;color:#94A3B8;text-align:center}
+@page{size:A4;margin:14mm}
+@media print{
+  .topbar{display:none!important}
+  body{background:white}
+  .doc{padding:0;max-width:100%}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}`;
+
+  return `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<title>${esc(cargo.cargo)}${empresaNombre ? ` — ${esc(empresaNombre)}` : ""}</title>
+<style>${css}</style></head>
+<body>
+<div class="topbar">
+  <span style="font-size:14px;font-weight:800;color:#0C4A6E">${esc(cargo.cargo)}</span>
+  <button onclick="window.print()">🖨️ Guardar como PDF</button>
+</div>
+<div class="doc">
+  <div class="dh">
+    ${empresaNombre ? `<div class="empresa">${esc(empresaNombre)}</div>` : ""}
+    <div class="ctitle-main">${esc(cargo.cargo)}</div>
+    <div class="cmeta">${esc(areaName)}${cargo.codigo ? ` · Código: ${esc(cargo.codigo)}` : ""}${cargo.version ? ` · v${esc(cargo.version)}` : ""} · ${esc(cargo.estado ?? "Vigente")}</div>
+  </div>
+  ${sec("1. Identificación", identificacion)}
+  ${sec("2. Objetivo del cargo", objetivo)}
+  ${sec("3. Funciones", funciones)}
+  ${sec("4. Competencias", competencias)}
+  ${sec("5. KPIs", kpis)}
+  ${sec("6. Relaciones", relaciones)}
+  ${sec("7. Condiciones laborales", condiciones)}
+  ${sec("8. Plan de carrera", planCarrera)}
+  ${sec("9. Firmas", firmas)}
+  <div class="footer">Generado el ${fecha}${empresaNombre ? ` · ${esc(empresaNombre)}` : ""}</div>
+</div>
+</body></html>`;
+}
+
 // ── CargoFichaOverlay ──────────────────────────────────────────────────────────
 
 type Props = {
@@ -621,6 +808,7 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting]               = useState(false);
   const [areas, setAreas]                     = useState<AreaOption[]>([]);
+  const [empresaNombre, setEmpresaNombre]     = useState("");
   const [showDupDialog, setShowDupDialog] = useState(false);
   const [dupName, setDupName]             = useState("");
   const [dupAreaId, setDupAreaId]         = useState("");
@@ -670,6 +858,20 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
         .order("nombre");
       if (cancelled) return;
       setAreas((data ?? []) as AreaOption[]);
+    })();
+    return () => { cancelled = true; };
+  }, [clienteId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("clientes")
+        .select("nombre_empresa")
+        .eq("id", clienteId)
+        .maybeSingle();
+      if (cancelled) return;
+      setEmpresaNombre((data as { nombre_empresa?: string } | null)?.nombre_empresa ?? "");
     })();
     return () => { cancelled = true; };
   }, [clienteId]);
@@ -825,6 +1027,26 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
       destArea?.nombre ?? localCargo.area,
       destColorIdx >= 0 ? destColorIdx : colorIdx,
     );
+  };
+
+  // ── Print / PDF ───────────────────────────────────────────────────────────
+
+  const handlePrint = async () => {
+    const w = window.open("", "_blank");
+    if (!w) { toast.error("El navegador bloqueó la ventana. Permite popups para este sitio."); return; }
+    w.document.write("<html><body style='font-family:system-ui;padding:40px;color:#64748b'>Preparando PDF…</body></html>");
+    let freshCargo: Cargo;
+    try {
+      freshCargo = await flushAndGetFreshCargo();
+    } catch {
+      w.close();
+      return;
+    }
+    const { dot } = getAreaColor(colorIdx);
+    const html = buildCargoHTML(freshCargo, areaName, empresaNombre, dot);
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   };
 
   // ── Open HTML evaluation pane via iframe bridge ───────────────────────────
@@ -1106,6 +1328,25 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
               <Save style={{ width: "12px", height: "12px" }} />
               {saving ? "Guardando…" : "Guardar"}
             </button>
+            {!loading && localCargo && (
+              <button
+                onClick={() => { void handlePrint(); }}
+                disabled={closing}
+                aria-label="Imprimir / Descargar PDF"
+                title="Imprimir / Descargar PDF"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: "30px", height: "30px", borderRadius: "8px",
+                  background: "#F0FDF4", border: "1px solid #BBF7D0",
+                  cursor: closing ? "default" : "pointer",
+                  color: "#16A34A", opacity: closing ? 0.4 : 1,
+                }}
+                onMouseEnter={(e) => { if (!closing) (e.currentTarget as HTMLButtonElement).style.background = "#DCFCE7"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F0FDF4"; }}
+              >
+                <Printer style={{ width: "15px", height: "15px" }} />
+              </button>
+            )}
             {canManage && !loading && localCargo && (
               <button
                 onClick={openDupDialog}
