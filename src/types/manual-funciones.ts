@@ -159,6 +159,8 @@ export const EVAL_DESEMP_BLANK: EvalDesempForm = {
 
 export type Cargo = {
   id: string;
+  cliente_id: string;
+  consultor_id: string | null;
   cargo: string;
   area: string;
   area_id: string | null;
@@ -182,16 +184,18 @@ export type Cargo = {
   relaciones_internas: string[];
   relaciones_externas: string[];
   requisitos: Record<string, string> | null;
+  resultados_esperados: unknown[];
 };
 
 export type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "requisitos">;
 
 export const FORM_BLANK: FormDatos = {
+  cliente_id: "", consultor_id: null,
   cargo: "", area: "", area_id: null, jefe_inmediato: "", codigo: "", version: "1.0",
   estado: "vigente", vacante: false, objetivo: "",
   funciones: [], competencias_blandas: [], competencias_tecnicas: [], kpis: [],
   elaborado_por: "", aprobado_por: "", fecha_elaboracion: "", fecha_revision: "",
   plan_carrera: "",
   relaciones_internas: [], relaciones_externas: [],
-  condiciones: {},
+  condiciones: {}, resultados_esperados: [],
 };

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save } from "lucide-react";
+import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Cargo, Funcion, Competencia } from "@/types/manual-funciones";
@@ -606,9 +606,10 @@ type Props = {
   userRolEmpresa: string | null;
   onClose: () => void;
   onEvalOpen: () => void;
+  onDuplicate: (cargoId: string, areaId: string, areaName: string, colorIdx: number) => void;
 };
 
-export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canManage, iframeRef, iframeActive, userRolEmpresa, onClose, onEvalOpen }: Props) {
+export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canManage, iframeRef, iframeActive, userRolEmpresa, onClose, onEvalOpen, onDuplicate }: Props) {
   const [localCargo, setLocalCargo] = useState<Cargo | null>(null);
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
@@ -620,9 +621,15 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting]               = useState(false);
   const [areas, setAreas]                     = useState<AreaOption[]>([]);
+  const [showDupDialog, setShowDupDialog] = useState(false);
+  const [dupName, setDupName]             = useState("");
+  const [dupAreaId, setDupAreaId]         = useState("");
+  const [dupSaving, setDupSaving]         = useState(false);
+  const [dupError, setDupError]           = useState<string | null>(null);
 
-  const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveTimerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEditsRef = useRef<Partial<Cargo>>({});
+  const dupNameRef      = useRef<HTMLInputElement>(null);
 
   const { state: sidebarState } = useSidebar();
   const sidebarLeft = sidebarState === "collapsed" ? "3rem" : "16rem";
@@ -762,6 +769,62 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
     }
     // manual_funciones_evaluaciones(_desempeno) ON DELETE CASCADE — no extra work needed
     onClose();
+  };
+
+  // ── Duplicate cargo ───────────────────────────────────────────────────────
+
+  const openDupDialog = () => {
+    if (!localCargo) return;
+    setDupName(`${localCargo.cargo} (copia)`);
+    setDupAreaId(localCargo.area_id ?? "");
+    setDupError(null);
+    setShowDupDialog(true);
+    setTimeout(() => dupNameRef.current?.focus(), 50);
+  };
+
+  const handleDuplicate = async () => {
+    if (!localCargo || dupSaving || !dupName.trim() || !dupAreaId) return;
+    setDupSaving(true);
+    setDupError(null);
+    const destArea = areas.find((a) => a.id === dupAreaId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from("manual_funciones_cargos")
+      .insert({
+        cliente_id:            clienteId,
+        consultor_id:          localCargo.consultor_id,
+        cargo:                 dupName.trim(),
+        area:                  destArea?.nombre ?? localCargo.area,
+        area_id:               dupAreaId,
+        objetivo:              localCargo.objetivo,
+        funciones:             localCargo.funciones,
+        requisitos:            localCargo.requisitos,
+        competencias_blandas:  localCargo.competencias_blandas,
+        competencias_tecnicas: localCargo.competencias_tecnicas,
+        kpis:                  localCargo.kpis,
+        relaciones_internas:   localCargo.relaciones_internas,
+        relaciones_externas:   localCargo.relaciones_externas,
+        condiciones:           localCargo.condiciones,
+        plan_carrera:          localCargo.plan_carrera,
+        supervisa_a:           localCargo.supervisa_a,
+        resultados_esperados:  localCargo.resultados_esperados,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      setDupError(error?.message ?? "Error al duplicar");
+      setDupSaving(false);
+      return;
+    }
+    setDupSaving(false);
+    setShowDupDialog(false);
+    const destColorIdx = areas.findIndex((a) => a.id === dupAreaId);
+    onDuplicate(
+      (data as { id: string }).id,
+      dupAreaId,
+      destArea?.nombre ?? localCargo.area,
+      destColorIdx >= 0 ? destColorIdx : colorIdx,
+    );
   };
 
   // ── Open HTML evaluation pane via iframe bridge ───────────────────────────
@@ -921,6 +984,70 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
         </div>
       )}
 
+      {/* ── Duplicate cargo dialog ── */}
+      {showDupDialog && (
+        <div onClick={() => { if (!dupSaving) setShowDupDialog(false); }} style={{
+          position: "fixed", inset: 0, zIndex: 10000,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "white", borderRadius: "16px", padding: "28px",
+            width: "100%", maxWidth: "420px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "#0C4A6E" }}>Duplicar cargo</div>
+                <div style={{ fontSize: "11px", color: "#94A3B8", marginTop: "2px" }}>Copia estructura y contenido — sin código ni firmas</div>
+              </div>
+              <button onClick={() => { if (!dupSaving) setShowDupDialog(false); }} disabled={dupSaving}
+                style={{ background: "none", border: "none", cursor: dupSaving ? "default" : "pointer", color: "#94A3B8", padding: "4px" }}>
+                <X style={{ width: "18px", height: "18px" }} />
+              </button>
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>Nombre del cargo</div>
+              <input
+                ref={dupNameRef}
+                type="text"
+                value={dupName}
+                onChange={(e) => setDupName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") void handleDuplicate(); if (e.key === "Escape" && !dupSaving) setShowDupDialog(false); }}
+                style={{ width: "100%", padding: "10px 14px", fontSize: "14px", border: "1.5px solid #E2E8F0", borderRadius: "10px", color: "#0C4A6E", outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>Área destino</div>
+              <select
+                value={dupAreaId}
+                onChange={(e) => setDupAreaId(e.target.value)}
+                style={{ width: "100%", padding: "10px 14px", fontSize: "14px", border: "1.5px solid #E2E8F0", borderRadius: "10px", color: "#0C4A6E", outline: "none", boxSizing: "border-box", cursor: "pointer" }}
+              >
+                {areas.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+              </select>
+            </div>
+            {dupError && <div style={{ marginBottom: "12px", fontSize: "12px", color: "#DC2626" }}>{dupError}</div>}
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={() => { if (!dupSaving) setShowDupDialog(false); }} disabled={dupSaving} style={{
+                padding: "9px 18px", fontSize: "13px", fontWeight: 600,
+                color: "#64748B", background: "#F1F5F9", border: "1px solid #E2E8F0", borderRadius: "10px", cursor: dupSaving ? "default" : "pointer",
+              }}>Cancelar</button>
+              <button onClick={() => void handleDuplicate()} disabled={dupSaving || !dupName.trim() || !dupAreaId} style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "9px 18px", fontSize: "13px", fontWeight: 700, color: "white",
+                background: dupSaving || !dupName.trim() || !dupAreaId ? "#94A3B8" : "#0C4A6E",
+                border: "none", borderRadius: "10px",
+                cursor: dupSaving || !dupName.trim() || !dupAreaId ? "default" : "pointer",
+              }}>
+                {dupSaving ? <Loader2 style={{ width: "13px", height: "13px" }} className="animate-spin" /> : <Copy style={{ width: "13px", height: "13px" }} />}
+                {dupSaving ? "Duplicando…" : "Duplicar cargo"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Sticky header ── */}
       <div style={{ background: "white", borderBottom: "1px solid #E2E8F0", flexShrink: 0 }}>
 
@@ -979,6 +1106,25 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
               <Save style={{ width: "12px", height: "12px" }} />
               {saving ? "Guardando…" : "Guardar"}
             </button>
+            {canManage && !loading && localCargo && (
+              <button
+                onClick={openDupDialog}
+                disabled={closing}
+                aria-label="Duplicar cargo"
+                title="Duplicar cargo"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: "30px", height: "30px", borderRadius: "8px",
+                  background: "#F0F9FF", border: "1px solid #BAE6FD",
+                  cursor: closing ? "default" : "pointer",
+                  color: "#0EA5E9", opacity: closing ? 0.4 : 1,
+                }}
+                onMouseEnter={(e) => { if (!closing) (e.currentTarget as HTMLButtonElement).style.background = "#E0F2FE"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F0F9FF"; }}
+              >
+                <Copy style={{ width: "15px", height: "15px" }} />
+              </button>
+            )}
             {canManage && !loading && localCargo && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}

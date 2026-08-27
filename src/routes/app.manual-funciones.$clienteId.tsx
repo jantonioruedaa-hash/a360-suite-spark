@@ -752,6 +752,9 @@ function ManualFuncionesViewer() {
             userRolEmpresa={userRolEmpresa}
             onClose={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area, areaName, colorIdx } })}
             onEvalOpen={() => setIframeActive(true)}
+            onDuplicate={(newCargoId, newAreaId, newAreaName, newColorIdx) =>
+              navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open", area: newAreaId, areaName: newAreaName, colorIdx: newColorIdx, cargo: newCargoId } })
+            }
           />
         )}
       </>
