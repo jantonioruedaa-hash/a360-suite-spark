@@ -1032,9 +1032,17 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
   // ── Print / PDF ───────────────────────────────────────────────────────────
 
   const handlePrint = async () => {
-    const w = window.open("", "_blank");
+    // window.open debe ser síncrono — el bloqueador de popups se activa si va después de un await
+    const loadingBlob = new Blob(
+      [`<html><body style="font-family:system-ui;padding:40px;color:#64748b">Preparando PDF…</body></html>`],
+      { type: "text/html" },
+    );
+    const loadingUrl = URL.createObjectURL(loadingBlob);
+    const w = window.open(loadingUrl, "_blank");
+    setTimeout(() => URL.revokeObjectURL(loadingUrl), 10_000);
+
     if (!w) { toast.error("El navegador bloqueó la ventana. Permite popups para este sitio."); return; }
-    w.document.write("<html><body style='font-family:system-ui;padding:40px;color:#64748b'>Preparando PDF…</body></html>");
+
     let freshCargo: Cargo;
     try {
       freshCargo = await flushAndGetFreshCargo();
@@ -1044,9 +1052,10 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
     }
     const { dot } = getAreaColor(colorIdx);
     const html = buildCargoHTML(freshCargo, areaName, empresaNombre, dot);
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    w.location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   // ── Open HTML evaluation pane via iframe bridge ───────────────────────────
