@@ -20,7 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 import { StatusBadge } from "@/components/shared";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
-  Clock, FileText, MessageCircle, Download, Upload, ArrowLeft, Save, X,
+  Clock, FileText, MessageCircle, Download, Upload, ArrowLeft, Save,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -320,7 +320,16 @@ function LeeWorkspace() {
   );
 }
 
-// ── ChapterDetailInline ───────────────────────────────────────────────────────
+// ── ChapterDetailInline ────────────────────────────────────────────
+
+// Tipo para las funciones del iframe (mismo origen — seguro por same-origin policy)
+type IframeCW = Window & {
+  go?: (id: string, title: string) => void;
+  printCurrentSession?: () => void;
+  exportSessionHtmlJson?: () => void;
+  exportFullDocument?: () => void;
+  exportFullJSON?: () => void;
+};
 
 function ChapterDetailInline({
   chapter,
@@ -333,44 +342,67 @@ function ChapterDetailInline({
 }) {
   const [saving, setSaving] = useState(false);
   const [ultimoGuardado, setUltimoGuardado] = useState<Date | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [availCmds, setAvailCmds] = useState({ pdf: false, htmlSesion: false, fullDoc: false });
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const programaIdRef = useRef<string>(programa.id);
   useEffect(() => { programaIdRef.current = programa.id; }, [programa.id]);
 
+  const cap = getCapitulo(chapter);
   const desbloqueados = programa.capitulos_desbloqueados ?? [];
   const bloqueado = !desbloqueados.includes(chapter) || isNaN(chapter) || chapter < 1 || chapter > 10;
   const iframeUrl = `/lee-workbooks/lee-cap-${String(chapter).padStart(2, "0")}.html`;
 
-  // Esc key
+  const sessionTabs = cap ? [
+    { id: "cv", label: "Portada" },
+    { id: "in", label: "Intro" },
+    ...cap.sesiones.map((s) => ({ id: `s${s.numero}`, label: `Sesión ${s.numero}` })),
+    ...(chapter >= 9 ? [{ id: "ca", label: "Casos" }] : []),
+    { id: "ci", label: "Cierre" },
+  ] : [];
+
+  useEffect(() => {
+    if (!iframeLoaded || !iframeRef.current?.contentWindow) return;
+    const cw = iframeRef.current.contentWindow as unknown as Record<string, unknown>;
+    setAvailCmds({
+      pdf:        typeof cw.printCurrentSession   === "function",
+      htmlSesion: typeof cw.exportSessionHtmlJson === "function",
+      fullDoc:    typeof cw.exportFullDocument    === "function"
+               || typeof cw.exportFullJSON        === "function",
+    });
+  }, [iframeLoaded]);
+
+  const getCW = useCallback(() => iframeRef.current?.contentWindow as IframeCW | null, []);
+  const navTo = useCallback((sessionId: string) => { getCW()?.go?.(sessionId, ""); }, [getCW]);
+  const cmdPDF        = useCallback(() => { getCW()?.printCurrentSession?.(); }, [getCW]);
+  const cmdHtmlSesion = useCallback(() => { getCW()?.exportSessionHtmlJson?.(); }, [getCW]);
+  const cmdFullDoc    = useCallback(() => {
+    const cw = getCW();
+    if (typeof cw?.exportFullDocument === "function") cw.exportFullDocument();
+    else if (typeof cw?.exportFullJSON === "function") cw.exportFullJSON();
+  }, [getCW]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // postMessage bridge (3 validaciones de seguridad intactas)
   useEffect(() => {
     const handler = async (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       const msg = e.data as { type?: string; chapter?: number; payload?: Record<string, unknown> };
       if (!msg?.type) return;
       if (msg.chapter !== undefined && msg.chapter !== chapter) return;
-
       const pid = programaIdRef.current;
 
       if (msg.type === "LEE_DATA_REQUEST") {
         if (!pid) return;
-        try {
-          const wb = await cargarWorkbookHtml(pid, chapter);
-          e.source?.postMessage(
-            { type: "LEE_DATA_RESPONSE", chapter, payload: wb?.respuestas ?? {} },
-            { targetOrigin: window.location.origin },
-          );
-        } catch {
-          e.source?.postMessage(
-            { type: "LEE_DATA_RESPONSE", chapter, payload: {} },
-            { targetOrigin: window.location.origin },
-          );
-        }
+        const wb = await cargarWorkbookHtml(pid, chapter).catch(() => null);
+        e.source?.postMessage(
+          { type: "LEE_DATA_RESPONSE", chapter, payload: wb?.respuestas ?? {} },
+          { targetOrigin: window.location.origin },
+        );
       }
 
       if (msg.type === "LEE_DATA_SAVE") {
@@ -386,57 +418,93 @@ function ChapterDetailInline({
         }
       }
 
-      if (msg.type === "LEE_EXIT") {
-        onClose();
-      }
+      if (msg.type === "LEE_EXIT") onClose();
     };
-
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, [chapter, onClose]);
 
   return (
-    <div className="space-y-4">
-      {/* Header bar */}
-      <div className="flex items-center justify-between bg-navy rounded-lg px-4 py-2.5">
-        <span className="text-gold font-bold text-sm">
-          LEE · Capítulo {String(chapter).padStart(2, "0")}
-        </span>
-        <div className="flex items-center gap-3">
+    <div
+      className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8 flex flex-col overflow-hidden bg-[#0D1929]"
+      style={{ height: "calc(100vh - 4rem)" }}
+    >
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-1 text-white/60 hover:text-white text-xs transition-colors shrink-0"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Capítulos
+          </button>
+          <span className="text-white/20 select-none">|</span>
+          <span className="font-mono text-[11px] font-bold text-gold shrink-0">
+            CAP {String(chapter).padStart(2, "0")}
+          </span>
+          {cap && (
+            <span className="text-white/70 text-sm truncate hidden sm:block">{cap.titulo}</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
           {(saving || ultimoGuardado) && (
-            <span className="flex items-center gap-1.5 text-white/60 text-xs">
+            <span className="flex items-center gap-1 text-[11px] text-white/50 mr-1">
               {saving
-                ? <><Save className="w-3 h-3" /> Guardando…</>
-                : <><Check className="w-3 h-3 text-green-400" /> Guardado {ultimoGuardado!.toLocaleTimeString()}</>
+                ? <><Save className="w-3 h-3 animate-pulse" /> Guardando…</>
+                : <><Check className="w-3 h-3 text-emerald-400" /> {ultimoGuardado!.toLocaleTimeString()}</>
               }
             </span>
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onClose}
-            className="text-white border-white/30 bg-white/10 hover:bg-white/20 text-xs"
-          >
-            <X className="w-3 h-3 mr-1" /> Volver a capítulos
-          </Button>
+          {availCmds.htmlSesion && (
+            <button onClick={cmdHtmlSesion} title="Descargar sesión como HTML editable"
+              className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors">
+              ⬇ HTML
+            </button>
+          )}
+          {availCmds.fullDoc && (
+            <button onClick={cmdFullDoc} title="Descargar capítulo completo"
+              className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors">
+              ⬇ Doc
+            </button>
+          )}
+          {availCmds.pdf && (
+            <button onClick={cmdPDF} title="Guardar como PDF (selecciona 'Guardar como PDF' en el diálogo de impresión)"
+              className="text-[11px] text-gold/80 hover:text-gold px-2 py-1 rounded hover:bg-white/10 transition-colors">
+              📄 PDF
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Contenido */}
+      {!bloqueado && sessionTabs.length > 0 && (
+        <div className="flex items-center gap-0.5 px-3 py-1 border-b border-white/10 overflow-x-auto shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {sessionTabs.map((t) => (
+            <button key={t.id} onClick={() => navTo(t.id)}
+              className="text-[11px] text-white/50 hover:text-white px-2.5 py-1.5 rounded hover:bg-white/10 transition-colors shrink-0 whitespace-nowrap">
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {bloqueado ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-          <Lock className="w-8 h-8 text-muted-foreground" />
-          <div className="font-display text-xl text-navy">Capítulo no disponible</div>
-          <p className="text-sm text-muted-foreground">Este capítulo aún no está desbloqueado para este cliente.</p>
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center px-6">
+          <Lock className="w-8 h-8 text-white/30" />
+          <div className="font-display text-xl text-white">Capítulo no disponible</div>
+          <p className="text-sm text-white/50">Este capítulo aún no está desbloqueado para este cliente.</p>
+          <Button variant="outline" onClick={onClose} className="border-white/30 text-white hover:bg-white/10">
             <ArrowLeft className="w-4 h-4 mr-1" /> Volver a capítulos
           </Button>
         </div>
       ) : (
         <iframe
+          ref={iframeRef}
           src={iframeUrl}
           title={`LEE Capítulo ${chapter}`}
-          style={{ height: "calc(100vh - 180px)", width: "100%", border: "none" }}
+          onLoad={() => setIframeLoaded(true)}
+          className="flex-1 min-h-0 w-full"
+          style={{ border: "none" }}
           allow="fullscreen"
         />
       )}
