@@ -426,10 +426,16 @@ function ChapterDetailInline({
 
   return (
     <div
-      className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8 flex flex-col overflow-hidden bg-[#0D1929]"
-      style={{ height: "calc(100vh - 4rem)" }}
+      className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8 flex flex-col overflow-hidden relative"
+      style={{
+        height: "calc(100vh - 4rem)",
+        background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 50%, #312E81 100%)",
+      }}
     >
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 shrink-0">
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: "radial-gradient(ellipse 60% 80% at 80% 30%, rgba(14,165,233,0.15), transparent 60%), radial-gradient(ellipse 40% 60% at 10% 80%, rgba(99,102,241,0.12), transparent 60%)",
+      }} />
+      <div className="relative z-10 flex items-center justify-between px-4 py-2.5 border-b border-gold/30 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
@@ -478,7 +484,7 @@ function ChapterDetailInline({
       </div>
 
       {!bloqueado && sessionTabs.length > 0 && (
-        <div className="flex items-center gap-0.5 px-3 py-1 border-b border-white/10 overflow-x-auto shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 flex items-center gap-0.5 px-3 py-1 border-b border-white/10 overflow-x-auto shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {sessionTabs.map((t) => (
             <button key={t.id} onClick={() => navTo(t.id)}
               className="text-[11px] text-white/50 hover:text-white px-2.5 py-1.5 rounded hover:bg-white/10 transition-colors shrink-0 whitespace-nowrap">
@@ -489,7 +495,7 @@ function ChapterDetailInline({
       )}
 
       {bloqueado ? (
-        <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center px-6">
+        <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-3 text-center px-6">
           <Lock className="w-8 h-8 text-white/30" />
           <div className="font-display text-xl text-white">Capítulo no disponible</div>
           <p className="text-sm text-white/50">Este capítulo aún no está desbloqueado para este cliente.</p>
@@ -503,7 +509,7 @@ function ChapterDetailInline({
           src={iframeUrl}
           title={`LEE Capítulo ${chapter}`}
           onLoad={() => setIframeLoaded(true)}
-          className="flex-1 min-h-0 w-full"
+          className="relative z-10 flex-1 min-h-0 w-full"
           style={{ border: "none" }}
           allow="fullscreen"
         />
