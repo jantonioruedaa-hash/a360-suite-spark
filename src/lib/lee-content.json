@@ -252,7 +252,24 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Capítulo 1 de 10  ·  8 horas · 4 sesiones de 90–120 min",
+        "titleLine1": "Fundamentos del",
+        "titleLine2Em": "Liderazgo Evolutivo",
+        "subtitulo": "El punto de partida de tu transformación como líder. Establece la línea base honesta, identifica la crisis invisible que frena tu empresa, comprende el modelo que guía los 10 capítulos de LEE e incorpora la Dimensión Interior del Líder: responsabilidad, autoconcepto, foco, disciplina y madurez emocional.",
+        "pills": [
+          "📊 Diagnósticos interactivos",
+          "✏️ Editor enriquecido",
+          "📚 Casos Harvard",
+          "🎯 Línea base oficial",
+          "🧠 Dimensión Interior del Líder",
+          "⚡ Responsabilidad · Foco · Disciplina",
+          "💾 Auto-guardado",
+          "🔗 Compartible con coach",
+          "↔️ Modo ancho/angosto"
+        ]
+      }
     },
     {
       "numero": 2,
@@ -500,7 +517,22 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Capítulo 2 de 10  ·  8 horas · 4 sesiones de 90–120 min",
+        "titleLine1": "El Rol del Líder en los",
+        "titleLine2Em": "Negocios Modernos",
+        "subtitulo": "Comprende y ejercita los cuatro roles fundamentales del líder moderno: Visionario, Estratega, Arquitecto Organizacional y Desarrollador de Líderes. Construye la hoja de ruta para una organización escalable.",
+        "pills": [
+          "📊 Diagnósticos interactivos",
+          "✏️ Editor enriquecido",
+          "📚 Casos Harvard",
+          "🎯 Línea base oficial",
+          "💾 Auto-guardado",
+          "🔗 Compartible con coach",
+          "↔️ Modo ancho/angosto"
+        ]
+      }
     },
     {
       "numero": 3,
@@ -807,7 +839,22 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Capítulo 3 de 10 · 8 horas · 4 sesiones de 90–120 min",
+        "titleLine1": "Diagnóstico Empresarial",
+        "titleLine2Em": "El Sistema SIDE",
+        "subtitulo": "No puedes transformar lo que no puedes medir. Cinco instrumentos — SIDE, IVEE, IDF, COF e IME — para construir una radiografía completa de tu empresa, con impacto económico, pérdida anual y valoración empresarial estimada en dólares.",
+        "pills": [
+          "📊 5 instrumentos de diagnóstico",
+          "🧮 Calculadoras automáticas",
+          "💵 Impacto financiero en USD",
+          "✏️ Editor enriquecido",
+          "💾 Auto-guardado",
+          "🔗 Compartible con coach",
+          "↔️ Modo ancho/angosto"
+        ]
+      }
     },
     {
       "numero": 4,
@@ -1036,7 +1083,22 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Capítulo 4 de 10  ·  8 horas · 4 sesiones de 90–120 min",
+        "titleLine1": "Habilidades Estructurales",
+        "titleLine2Em": "del Liderazgo",
+        "subtitulo": "Las habilidades que separan a los líderes que piensan bien de los que ejecutan bien. Comunicación ejecutiva, toma de decisiones, resolución de conflictos y desarrollo de personas — el kit de herramientas que conviertes en práctica esta misma semana.",
+        "pills": [
+          "🗣️ Comunicación ejecutiva",
+          "⚡ Decisiones bajo presión",
+          "🤝 Resolución de conflictos",
+          "🌱 Modelo DAR",
+          "📚 Casos Harvard",
+          "✏️ Editor enriquecido",
+          "💾 Auto-guardado"
+        ]
+      }
     },
     {
       "numero": 5,
@@ -1301,7 +1363,22 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "LEE Aurora Executive · Capítulo 5 de 10 · 8 horas · 5 sesiones",
+        "titleLine1": "Construcción de Equipos",
+        "titleLine2Em": "Autónomos",
+        "subtitulo": "La autonomía no aparece por motivación ni por control: se diseña desde el liderazgo. Este capítulo convierte grupos de personas en equipos reales capaces de ejecutar, aprender, decidir y responder con claridad, confianza, responsabilidad compartida y alto desempeño.",
+        "pills": [
+          "🔗 Dependencia visible",
+          "🏗️ Arquitectura del equipo",
+          "👥 Desarrollo de líderes",
+          "↗ Delegación profesional",
+          "⚙️ Autonomía estructurada",
+          "📚 Casos Harvard",
+          "💾 Auto-guardado"
+        ]
+      }
     },
     {
       "numero": 6,
@@ -1544,7 +1621,22 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "LEE Aurora Executive · Capítulo 6 de 10 · 9–10 horas · 5 sesiones",
+        "titleLine1": "Liderazgo",
+        "titleLine2Em": "Estratégico",
+        "subtitulo": "Cómo el líder deja de administrar únicamente el presente, define un rumbo creíble, toma decisiones bajo incertidumbre y construye las capacidades que permitirán a la organización crecer, adaptarse y sostener su valor en el tiempo.",
+        "pills": [
+          "🔭 Visión estratégica",
+          "🌐 Inteligencia del entorno",
+          "🎯 Decisiones de alto impacto",
+          "🏗️ Capacidades organizacionales",
+          "📚 4 casos ejecutivos",
+          "📊 Scorecard estratégico",
+          "💾 Auto-guardado"
+        ]
+      }
     },
     {
       "numero": 7,
@@ -1777,7 +1869,23 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Capítulo 7 · People Leadership Operating System · Versión ejecutiva integral",
+        "titleLine1": "Liderazgo Centrado",
+        "titleLine2Em": "en las Personas",
+        "subtitulo": "Las organizaciones no crecen más allá del nivel de desarrollo de su gente. Este capítulo transforma al líder controlador en desarrollador de capacidad, compromiso, nuevos líderes y cultura organizacional fuerte.",
+        "pills": [
+          "🧠 Desarrollo de personas",
+          "🤝 Compromiso real",
+          "🌱 Líderes internos",
+          "🧭 Cultura operativa",
+          "🏨 Ritz-Carlton",
+          "💻 NVIDIA",
+          "🛒 Costco",
+          "🌎 Mercado Libre"
+        ]
+      }
     },
     {
       "numero": 8,
@@ -1996,7 +2104,21 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Sistema Operativo Empresarial · Capítulo 8",
+        "titleLine1": "Los grandes retos del liderazgo",
+        "titleLine2Em": "y cómo superarlos",
+        "subtitulo": "Un sistema ejecutivo para liderar incertidumbre, decisiones difíciles, conflicto, presión, cambio y evolución personal sin perder claridad, estabilidad ni capacidad organizacional.",
+        "pills": [
+          "Incertidumbre",
+          "Decisión",
+          "Conflicto",
+          "Resiliencia",
+          "Cambio",
+          "Evolución"
+        ]
+      }
     },
     {
       "numero": 9,
@@ -2268,7 +2390,21 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "Sistema Operativo Empresarial · Sistema 9",
+        "titleLine1": "Sistema Personal de",
+        "titleLine2Em": "Evolución del Liderazgo",
+        "subtitulo": "Diagnosticar, diseñar, ejecutar y medir la transición desde un liderazgo operativo y dependiente hacia un liderazgo estratégico, consciente y evolutivo.",
+        "pills": [
+          "Diagnóstico",
+          "Brechas",
+          "Hábitos",
+          "Modelo personal",
+          "Dashboard",
+          "Roadmap 12 meses"
+        ]
+      }
     },
     {
       "numero": 10,
@@ -2544,7 +2680,21 @@
           ]
         }
       ],
-      "cierre": ""
+      "cierre": "",
+      "cover": {
+        "badge": "SISTEMA 10 · CAPSTONE DEL PROGRAMA LEE",
+        "titleLine1": "Integración Final y",
+        "titleLine2Em": "Liderazgo Evolutivo Permanente",
+        "titleInline": true,
+        "subtitulo": "Integra los diez sistemas del programa, convierte el aprendizaje en una arquitectura personal y organizacional, y establece una hoja de ruta ejecutiva para los próximos 36 meses.",
+        "pills": [
+          "Modelo Integral",
+          "Dashboard CEO",
+          "Ruta 12·24·36",
+          "Leadership Legacy",
+          "Blueprint Final"
+        ]
+      }
     }
   ]
 }

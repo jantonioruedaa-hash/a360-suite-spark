@@ -20,9 +20,11 @@ import { useAuth } from "@/lib/auth-context";
 import { StatusBadge } from "@/components/shared";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
-  Clock, FileText, MessageCircle, Download, Upload, ArrowLeft, Save,
+  Clock, FileText, MessageCircle, Download, Upload, ArrowLeft, Save, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ChapterCoverInline } from "@/components/lee/ChapterCoverInline";
+import { SessionHeaderInline } from "@/components/lee/SessionHeaderInline";
 
 
 export const Route = createFileRoute("/app/clientes/$clienteId/lee")({
@@ -176,6 +178,7 @@ function LeeWorkspace() {
         <ChapterDetailInline
           chapter={selectedChapter}
           programa={programa}
+          clienteId={clienteId}
           onClose={() => selectChapter(null)}
         />
       ) : (
@@ -334,10 +337,12 @@ type IframeCW = Window & {
 function ChapterDetailInline({
   chapter,
   programa,
+  clienteId,
   onClose,
 }: {
   chapter: number;
   programa: Programa;
+  clienteId: string;
   onClose: () => void;
 }) {
   const [saving, setSaving] = useState(false);
@@ -345,8 +350,21 @@ function ChapterDetailInline({
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [availCmds, setAvailCmds] = useState({ pdf: false, htmlSesion: false, fullDoc: false });
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
   const programaIdRef = useRef<string>(programa.id);
   useEffect(() => { programaIdRef.current = programa.id; }, [programa.id]);
+
+  const [activeTab, setActiveTab] = useState<string>("cv");
+  const [immersive, setImmersive] = useState(false);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setActiveTab("cv");
+    setImmersive(false);
+  }, [chapter]);
+  useEffect(() => {
+    if (contentAreaRef.current) contentAreaRef.current.scrollTop = 0;
+  }, [chapter, activeTab]);
 
   const cap = getCapitulo(chapter);
   const desbloqueados = programa.capitulos_desbloqueados ?? [];
@@ -374,13 +392,24 @@ function ChapterDetailInline({
 
   const getCW = useCallback(() => iframeRef.current?.contentWindow as IframeCW | null, []);
   const navTo = useCallback((sessionId: string) => { getCW()?.go?.(sessionId, ""); }, [getCW]);
-  const cmdPDF        = useCallback(() => { getCW()?.printCurrentSession?.(); }, [getCW]);
+  const cmdPDF = useCallback(() => { getCW()?.printCurrentSession?.(); }, [getCW]);
   const cmdHtmlSesion = useCallback(() => { getCW()?.exportSessionHtmlJson?.(); }, [getCW]);
   const cmdFullDoc    = useCallback(() => {
     const cw = getCW();
     if (typeof cw?.exportFullDocument === "function") cw.exportFullDocument();
     else if (typeof cw?.exportFullJSON === "function") cw.exportFullJSON();
   }, [getCW]);
+
+  const handleTabClick = useCallback((tabId: string) => {
+    setActiveTab(tabId);
+    setImmersive(false);
+    if (tabId !== "cv") navTo(tabId);
+  }, [navTo]);
+
+  const handleEnterChapter = useCallback(() => {
+    setActiveTab("in");
+    navTo("in");
+  }, [navTo]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -426,6 +455,7 @@ function ChapterDetailInline({
 
   return (
     <div
+      ref={panelRef}
       className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8 flex flex-col overflow-hidden relative"
       style={{
         height: "calc(100vh - 4rem)",
@@ -435,7 +465,7 @@ function ChapterDetailInline({
       <div className="absolute inset-0 pointer-events-none" style={{
         background: "radial-gradient(ellipse 60% 80% at 80% 30%, rgba(14,165,233,0.15), transparent 60%), radial-gradient(ellipse 40% 60% at 10% 80%, rgba(99,102,241,0.12), transparent 60%)",
       }} />
-      <div className="relative z-10 flex items-center justify-between px-4 py-2.5 border-b border-gold/30 shrink-0">
+      {!immersive && <div className="relative z-10 flex items-center justify-between px-4 py-2.5 border-b border-gold/30 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
@@ -462,32 +492,29 @@ function ChapterDetailInline({
               }
             </span>
           )}
-          {availCmds.htmlSesion && (
+          {activeTab !== "cv" && availCmds.htmlSesion && (
             <button onClick={cmdHtmlSesion} title="Descargar sesión como HTML editable"
               className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors">
               ⬇ HTML
             </button>
           )}
-          {availCmds.fullDoc && (
-            <button onClick={cmdFullDoc} title="Descargar capítulo completo"
-              className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors">
-              ⬇ Doc
-            </button>
-          )}
-          {availCmds.pdf && (
-            <button onClick={cmdPDF} title="Guardar como PDF (selecciona 'Guardar como PDF' en el diálogo de impresión)"
-              className="text-[11px] text-gold/80 hover:text-gold px-2 py-1 rounded hover:bg-white/10 transition-colors">
-              📄 PDF
-            </button>
-          )}
+          {/* ⬇ Doc (exportFullDocument) oculto — no funciona correctamente en ningún cap; retomar en sesión futura */}
+          {/* 📄 PDF (printCurrentSession) oculto — falla en blanco en varios caps; PDF disponible dentro del HTML exportado */}
         </div>
-      </div>
+      </div>}
 
-      {!bloqueado && sessionTabs.length > 0 && (
-        <div className="relative z-10 flex items-center gap-0.5 px-3 py-1 border-b border-white/10 overflow-x-auto shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {!bloqueado && !immersive && sessionTabs.length > 0 && (
+        <div className="relative z-10 flex items-center gap-0.5 px-3 py-1 border-b border-white/25 overflow-x-auto shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {sessionTabs.map((t) => (
-            <button key={t.id} onClick={() => navTo(t.id)}
-              className="text-[11px] text-white/50 hover:text-white px-2.5 py-1.5 rounded hover:bg-white/10 transition-colors shrink-0 whitespace-nowrap">
+            <button
+              key={t.id}
+              onClick={() => handleTabClick(t.id)}
+              className={`text-[11px] px-2.5 py-1.5 rounded transition-colors shrink-0 whitespace-nowrap ${
+                activeTab === t.id
+                  ? "text-white bg-white/15 font-semibold"
+                  : "text-white/50 hover:text-white hover:bg-white/10"
+              }`}
+            >
               {t.label}
             </button>
           ))}
@@ -504,15 +531,70 @@ function ChapterDetailInline({
           </Button>
         </div>
       ) : (
-        <iframe
-          ref={iframeRef}
-          src={iframeUrl}
-          title={`LEE Capítulo ${chapter}`}
-          onLoad={() => setIframeLoaded(true)}
-          className="relative z-10 flex-1 min-h-0 w-full"
-          style={{ border: "none" }}
-          allow="fullscreen"
-        />
+        <div ref={contentAreaRef} className="relative z-10 flex-1 min-h-0 overflow-y-auto">
+          {activeTab === "cv" && (
+            <ChapterCoverInline
+              key={chapter}
+              chapter={chapter}
+              clienteId={clienteId}
+              onEnterChapter={handleEnterChapter}
+            />
+          )}
+          {activeTab === "cv" && !immersive && (
+            <button
+              onClick={() => setImmersive(true)}
+              className="absolute top-3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+              style={{
+                color: "#fff",
+                background: "linear-gradient(135deg, #0EA5E9, #3B82F6)",
+                border: "none",
+                boxShadow: "0 2px 12px rgba(14,165,233,0.45)",
+                left: "50%",
+                transform: "translateX(-50%)",
+              }}
+            >
+              <ChevronUp className="w-3.5 h-3.5" /> Ocultar menú
+            </button>
+          )}
+          {activeTab !== "cv" && !immersive && (
+            <SessionHeaderInline
+              chapter={chapter}
+              tabId={activeTab}
+              onEnterImmersive={() => setImmersive(true)}
+            />
+          )}
+          <div className="relative h-full">
+            {immersive && (
+              <button
+                onClick={() => setImmersive(false)}
+                title="Mostrar navegación"
+                className="absolute top-3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  color: "#fff",
+                  background: "linear-gradient(135deg, #0EA5E9, #3B82F6)",
+                  border: "none",
+                  boxShadow: "0 2px 12px rgba(14,165,233,0.45)",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                }}
+              >
+                <ChevronDown className="w-3.5 h-3.5" /> Mostrar menú
+              </button>
+            )}
+            <iframe
+              ref={iframeRef}
+              src={iframeUrl}
+              title={`LEE Capítulo ${chapter}`}
+              onLoad={() => setIframeLoaded(true)}
+              className="absolute inset-0 w-full h-full"
+              style={{
+                border: "none",
+                visibility: activeTab === "cv" ? "hidden" : "visible",
+              }}
+              allow="fullscreen"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

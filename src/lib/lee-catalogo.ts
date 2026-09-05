@@ -32,6 +32,15 @@ export interface FilaResumen {
   herramienta: string;
 }
 
+export interface CapituloCover {
+  badge: string;
+  titleLine1: string;
+  titleLine2Em: string;
+  titleInline?: boolean;
+  subtitulo: string;
+  pills: string[];
+}
+
 export interface CapituloLEE {
   numero: number;
   titulo: string;
@@ -41,6 +50,7 @@ export interface CapituloLEE {
   tablaResumen: FilaResumen[];
   sesiones: SesionPlan[];
   cierre: string;
+  cover: CapituloCover;
 }
 
 interface ContenidoLEE { capitulos: CapituloLEE[]; }
@@ -64,6 +74,10 @@ export function getCapitulo(numero: number) {
 
 export function getSesion(capitulo: number, sesion: number) {
   return getCapitulo(capitulo)?.sesiones.find((s) => s.numero === sesion);
+}
+
+export function getCover(numero: number): CapituloCover | undefined {
+  return getCapitulo(numero)?.cover;
 }
 
 export function sesionKey(capitulo: number, sesion: number) {
