@@ -358,9 +358,12 @@ function ChapterDetailInline({
   const [activeTab, setActiveTab] = useState<string>("cv");
   const [immersive, setImmersive] = useState(false);
   useEffect(() => {
-    window.scrollTo(0, 0);
+    let rafId = requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => window.scrollTo(0, 0));
+    });
     setActiveTab("cv");
     setImmersive(false);
+    return () => cancelAnimationFrame(rafId);
   }, [chapter]);
   useEffect(() => {
     if (contentAreaRef.current) contentAreaRef.current.scrollTop = 0;
