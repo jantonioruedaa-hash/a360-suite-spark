@@ -459,9 +459,8 @@ function ChapterDetailInline({
   return (
     <div
       ref={panelRef}
-      className="-mx-6 -mt-6 lg:-mx-8 lg:-mt-8 flex flex-col overflow-hidden relative"
+      className="fixed inset-0 z-[45] flex flex-col overflow-hidden"
       style={{
-        height: "calc(100vh - 4rem)",
         background: "linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 50%, #312E81 100%)",
       }}
     >
