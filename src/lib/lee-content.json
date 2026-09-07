@@ -1361,6 +1361,17 @@
               "ejercicio": ""
             }
           ]
+        },
+        {
+          "numero": 5,
+          "eyebrow": "Sesión 5 de 5 · Capítulo 5",
+          "titulo": "Casos Harvard: de fundador indispensable a organización capaz",
+          "meta": [
+            "⏱ 120 min",
+            "📍 Nike · Netflix · Toyota",
+            "Capacidad organizacional"
+          ],
+          "modulos": []
         }
       ],
       "cierre": "",
@@ -1619,6 +1630,17 @@
               "ejercicio": ""
             }
           ]
+        },
+        {
+          "numero": 5,
+          "eyebrow": "Sesión 5 de 5 · Capítulo 6 · 6.5",
+          "titulo": "Laboratorio de liderazgo estratégico — cuatro modelos, una arquitectura completa",
+          "meta": [
+            "⏱ 120–150 min",
+            "📍 Bloque 6.5",
+            "Apple · Amazon · Toyota · Louis Vuitton"
+          ],
+          "modulos": []
         }
       ],
       "cierre": "",
@@ -1867,6 +1889,16 @@
               "ejercicio": ""
             }
           ]
+        },
+        {
+          "numero": 5,
+          "eyebrow": "Sesión 5 de 5 · Capítulo 7 · 130 min",
+          "titulo": "Laboratorio de casos: personas como ventaja competitiva",
+          "meta": [
+            "⏱ 130 min",
+            "📍 Casos Harvard · Cap. 7"
+          ],
+          "modulos": []
         }
       ],
       "cierre": "",
@@ -2102,6 +2134,33 @@
               "ejercicio": ""
             }
           ]
+        },
+        {
+          "numero": 5,
+          "eyebrow": "Sesión 5 de 7 · Capítulo 8",
+          "titulo": "Fortaleza psicológica bajo presión extrema",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 6,
+          "eyebrow": "Sesión 6 de 7 · Capítulo 8",
+          "titulo": "Cambio organizacional y resistencia",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 7,
+          "eyebrow": "Sesión 7 de 7 · Capítulo 8",
+          "titulo": "Evolución continua del líder",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
         }
       ],
       "cierre": "",
@@ -2388,6 +2447,42 @@
               "ejercicio": ""
             }
           ]
+        },
+        {
+          "numero": 5,
+          "eyebrow": "Sesión 5 de 8 · Capítulo 9",
+          "titulo": "Desarrollo del modelo personal de liderazgo",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 6,
+          "eyebrow": "Sesión 6 de 8 · Capítulo 9",
+          "titulo": "Sistema de seguimiento y dashboard del liderazgo",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 7,
+          "eyebrow": "Sesión 7 de 8 · Capítulo 9",
+          "titulo": "Sistema de ejecución del plan de liderazgo a 12 meses",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 8,
+          "eyebrow": "Sesión 8 de 8 · Capítulo 9",
+          "titulo": "Integración final del modelo de liderazgo evolutivo",
+          "meta": [
+            "⏱ 2 horas"
+          ],
+          "modulos": []
         }
       ],
       "cierre": "",
@@ -2678,6 +2773,46 @@
               "ejercicio": ""
             }
           ]
+        },
+        {
+          "numero": 5,
+          "eyebrow": "Sesión 5 de 8 · Capítulo 10 · Capstone",
+          "titulo": "Plan maestro de liderazgo evolutivo",
+          "meta": [
+            "⏱ 2 horas",
+            "📍 Módulo 10.5"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 6,
+          "eyebrow": "Sesión 6 de 8 · Capítulo 10 · Capstone",
+          "titulo": "Dashboard CEO del sistema de liderazgo",
+          "meta": [
+            "⏱ 2 horas",
+            "📍 Módulo 10.6"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 7,
+          "eyebrow": "Sesión 7 de 8 · Capítulo 10 · Capstone",
+          "titulo": "Ruta de implementación 12 · 24 · 36 meses",
+          "meta": [
+            "⏱ 2 horas",
+            "📍 Módulo 10.7"
+          ],
+          "modulos": []
+        },
+        {
+          "numero": 8,
+          "eyebrow": "Sesión 8 de 8 · Capítulo 10 · Capstone",
+          "titulo": "Legado e integración del liderazgo evolutivo",
+          "meta": [
+            "⏱ 2 horas",
+            "📍 Módulo 10.8"
+          ],
+          "modulos": []
         }
       ],
       "cierre": "",

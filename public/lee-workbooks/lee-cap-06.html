@@ -2327,6 +2327,7 @@ function go(id,title){
   vis.forEach(v=>{if(v!==id){const t=document.getElementById('tab-'+v);if(t)t.classList.add('done');}});
   const h=document.getElementById('hdr-sess');if(h)h.textContent=title||SESS[id]||id;
   updProg();
+  window.parent?.postMessage({ type: 'LEE_NAV_CHANGE', id: id }, '*');
 }
 
 // ══ WIDTH MODE ══
@@ -3362,7 +3363,7 @@ body .gamma-panel summary,
 body .ref-quote:not(.purple):not(.amber):not(.subtle){
   background:linear-gradient(135deg,var(--hdr-a),var(--hdr-b),color-mix(in srgb,var(--hdr-b) 70%,var(--acc2)))!important;
 }
-body .dvl{color:#fff!important;}
+body .dv .dvl{color:#fff!important;}
 body .consol-eyebrow,
 body .consol-label-row,
 body .consol-label,

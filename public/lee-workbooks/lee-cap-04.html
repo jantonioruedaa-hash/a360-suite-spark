@@ -2713,6 +2713,7 @@ function go(id,title){
   vis.forEach(v=>{if(v!==id){const t=document.getElementById('tab-'+v);if(t)t.classList.add('done');}});
   const h=document.getElementById('hdr-sess');if(h)h.textContent=title||SESS[id]||id;
   updProg();
+  window.parent?.postMessage({ type: 'LEE_NAV_CHANGE', id: id }, '*');
 }
 
 // ══ WIDTH MODE ══

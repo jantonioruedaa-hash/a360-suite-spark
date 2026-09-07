@@ -423,7 +423,7 @@ function ChapterDetailInline({
   useEffect(() => {
     const handler = async (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      const msg = e.data as { type?: string; chapter?: number; payload?: Record<string, unknown> };
+      const msg = e.data as { type?: string; chapter?: number; payload?: Record<string, unknown>; id?: string };
       if (!msg?.type) return;
       if (msg.chapter !== undefined && msg.chapter !== chapter) return;
       const pid = programaIdRef.current;
@@ -451,6 +451,10 @@ function ChapterDetailInline({
       }
 
       if (msg.type === "LEE_EXIT") onClose();
+
+      if (msg.type === "LEE_NAV_CHANGE" && typeof msg.id === "string") {
+        setActiveTab(msg.id);
+      }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
@@ -566,6 +570,11 @@ function ChapterDetailInline({
             />
           )}
           <div className="relative h-full">
+            {immersive && /^s\d+$/.test(activeTab) && (
+              <div className="absolute top-3 right-16 z-20 px-2.5 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white/80 backdrop-blur-sm pointer-events-none select-none">
+                Sesión {activeTab.slice(1)} de {cap?.sesiones.length ?? "?"}
+              </div>
+            )}
             {immersive && (
               <button
                 onClick={() => setImmersive(false)}

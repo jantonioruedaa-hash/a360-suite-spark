@@ -1789,6 +1789,8 @@ function go(id,title){
   vis.forEach(v=>{if(v!==id){const t=document.getElementById('tab-'+v);if(t)t.classList.add('done');}});
   const h=document.getElementById('hdr-sess');if(h)h.textContent=title||SESS[id]||id;
   updProg();
+  window.parent?.postMessage({ type: 'LEE_NAV_CHANGE', id: id }, '*');
+  updatePgnav(id);
 }
 
 // ══ WIDTH MODE ══
@@ -2682,6 +2684,16 @@ window.toggleEditMode=function(){if(oldToggle)oldToggle();setTimeout(()=>{if(doc
     if(target!==id) go(target,PAGE_TITLES[target]);
   };
 
+
+  window.updatePgnav = function(id){
+    const idx=PAGE_ORDER.indexOf(id);
+    const pg=document.getElementById('pg-'+id);
+    if(!pg)return;
+    const prev=pg.querySelector('.pgnav-btns .btn-g');
+    const next=pg.querySelector('.pgnav-btns .btn-p');
+    if(prev){const pi=idx>0?PAGE_ORDER[idx-1]:null;prev.textContent=pi?'← '+(PAGE_TITLES[pi]||pi):'';}
+    if(next){const ni=idx<PAGE_ORDER.length-1?PAGE_ORDER[idx+1]:null;next.textContent=ni?(PAGE_TITLES[ni]||ni)+' →':'';}
+  };
   window.copyCurrentLink=async function(){
     try{await navigator.clipboard.writeText(location.href);toast('✓ Enlace copiado');}
     catch(e){prompt('Copia este enlace:',location.href);}
