@@ -107,7 +107,7 @@ input:focus,textarea:focus,select:focus,div[contenteditable]:focus{outline:none;
 
 /* ══ TOOLBAR FLOTANTE DE EDICIÓN (modo Editar) ══ */
 #edit-toolbar{
-  display:none;position:fixed;top:136px;left:0;right:0;z-index:999;
+  display:none;position:fixed;top:54px;left:0;right:0;z-index:999;
   justify-content:center;align-items:center;gap:2px;flex-wrap:wrap;
   padding:.4rem .6rem;background:var(--sur);
   border-bottom:1.5px solid var(--bdr);
@@ -3057,7 +3057,7 @@ const LEE_BRIDGE = (function(){
 
   function exitToPlatform(){
     if(inIframe){
-      window.parent.postMessage({ type:'LEE_EXIT', chapter:2 }, '*');
+      window.parent.postMessage({ type:'LEE_EXIT', chapter:2, sesion_id:cur, snapshot:{d:D,s:SV,ts:new Date().toISOString()} }, '*');
     } else {
       if(confirm('¿Salir del workbook? Tus datos quedaron guardados.')) window.close();
     }
@@ -3170,8 +3170,8 @@ function buildRTE(id){
     oninput="rteCh(this)" onpaste="rtePaste(event,this)"></div></div>`;
 }
 
-function ec(cmd){document.execCommand(cmd,false,null);}
-function ef(cmd,val){document.execCommand(cmd,false,val);}
+function ec(cmd){document.execCommand(cmd,false,null);if(typeof _saveAllEdited==="function")_saveAllEdited();}
+function ef(cmd,val){if(cmd==='foreColor'||cmd==='hiliteColor')document.execCommand('styleWithCSS',false,true);document.execCommand(cmd,false,val);if(typeof _saveAllEdited==="function")_saveAllEdited();}
 function rteCh(el){D[el.dataset.key]=el.innerHTML;schedSave();}
 function rtePaste(e,el){e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text/plain');document.execCommand('insertText',false,t);}
 function restoreRTEs(){document.querySelectorAll('.rte-area[data-key]').forEach(el=>{const k=el.dataset.key;if(D[k])el.innerHTML=D[k];});}
@@ -3229,6 +3229,7 @@ document.addEventListener('change',e=>{const el=e.target;if(!el.dataset.key)retu
 const SESS={cv:'Portada',in:'Introducción — Antes de comenzar',s1:'Sesión 1 — La crisis invisible del liderazgo',s2:'Sesión 2 — Autoridad · Gestión · Liderazgo · Modelo evolutivo',s3:'Sesión 3 — Influencia · El Arquitecto',s4:'Sesión 4 — Evaluación · Casos Harvard',ci:'Cierre del Capítulo 1'};
 const vis=new Set(['cv']);let cur='cv';
 function go(id,title){
+  const fromId=cur;
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
   const pg=document.getElementById('pg-'+id);if(pg){pg.classList.add('on');window.scrollTo(0,0);setTimeout(()=>pg.querySelectorAll('.reveal:not(.in)').forEach(el=>el.classList.add('in')),80);}
@@ -3238,6 +3239,7 @@ function go(id,title){
   const h=document.getElementById('hdr-sess');if(h)h.textContent=title||SESS[id]||id;
   updProg();
   window.parent?.postMessage({ type: 'LEE_NAV_CHANGE', id: id }, '*');
+  window.parent?.postMessage({ type:'LEE_SESSION_SNAPSHOT', chapter:2, sesion_id:fromId, payload:{d:D,s:SV,ts:new Date().toISOString()} }, '*');
 }
 
 // ══ WIDTH MODE ══
@@ -3974,12 +3976,17 @@ function closeGammaDrawer(ev){
   if(ev&&ev.target&&ev.target.id!=='gamma-drawer-bg')return;
   const bg=document.getElementById('gamma-drawer-bg'); if(bg)bg.classList.remove('open');
 }
+let _orbScrolling=false;
 function nextGammaBlock(){
+  if(_orbScrolling)return;
   const pg=document.querySelector('.pg.on')||document;
   const blocks=[...pg.querySelectorAll('.hero,.gamma-strip,.gamma-flow,.gamma-infographic,.ref-card,.card,.ex,.qc,.consol-box,.cbanner')].filter(el=>el.offsetParent!==null);
   if(!blocks.length)return;
   const y=window.scrollY+150;
   const next=blocks.find(el=>el.getBoundingClientRect().top+window.scrollY>y) || blocks[0];
+  _orbScrolling=true;
+  const _t=setTimeout(()=>{_orbScrolling=false;},700);
+  window.addEventListener('scrollend',()=>{clearTimeout(_t);_orbScrolling=false;},{once:true});
   next.scrollIntoView({behavior:'smooth',block:'start'});
 }
 (function initGammaAlive(){
@@ -4080,7 +4087,10 @@ function scrollToGammaLinkCard(){
   };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(updateAllGammaLinkCards,400));
 })();
+document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'&&(e.altKey||e.metaKey)){e.preventDefault();if(typeof prevGammaBlock==='function')prevGammaBlock();}});
+function prevGammaBlock(){if(_orbScrolling)return;const pg=document.querySelector('.pg.on')||document;const blocks=[...pg.querySelectorAll('.hero,.gamma-strip,.gamma-flow,.gamma-infographic,.ref-card,.card,.ex,.qc,.consol-box,.cbanner')].filter(el=>el.offsetParent!==null);if(!blocks.length)return;const y=window.scrollY-50;const matches=blocks.filter(el=>el.getBoundingClientRect().top+window.scrollY<y);const prev=matches[matches.length-1]||blocks[blocks.length-1];_orbScrolling=true;const _t=setTimeout(()=>{_orbScrolling=false;},700);window.addEventListener('scrollend',()=>{clearTimeout(_t);_orbScrolling=false;},{once:true});prev.scrollIntoView({behavior:'smooth',block:'start'});}
 
 </script>
+<div class="gamma-progress"><div class="bubble"><strong>Navegación rápida:</strong> avanza o retrocede entre los bloques de contenido de la página actual.</div><button class="orb" onclick="prevGammaBlock()" title="Bloque anterior">↑</button><button class="orb" onclick="nextGammaBlock()" title="Siguiente bloque">↓</button></div>
 </body>
 </html>

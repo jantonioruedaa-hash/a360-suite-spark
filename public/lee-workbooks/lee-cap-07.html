@@ -109,7 +109,7 @@ input:focus,textarea:focus,select:focus,div[contenteditable]:focus{outline:none;
 
 /* ══ TOOLBAR FLOTANTE DE EDICIÓN (modo Editar) ══ */
 #edit-toolbar{
-  display:none;position:fixed;top:136px;left:0;right:0;z-index:999;
+  display:none;position:fixed;top:54px;left:0;right:0;z-index:999;
   justify-content:center;align-items:center;gap:2px;flex-wrap:wrap;
   padding:.4rem .6rem;background:var(--sur);
   border-bottom:1.5px solid var(--bdr);
@@ -1592,7 +1592,7 @@ const LEE_BRIDGE = (function(){
 
   function exitToPlatform(){
     if(inIframe){
-      window.parent.postMessage({ type:'LEE_EXIT', chapter:7 }, '*');
+      window.parent.postMessage({ type:'LEE_EXIT', chapter:7, sesion_id:cur, snapshot:{d:D,s:SV,ts:new Date().toISOString()} }, '*');
     } else {
       if(confirm('¿Salir del workbook? Tus datos quedaron guardados.')) window.close();
     }
@@ -1740,8 +1740,8 @@ function buildRTE(id){
     oninput="rteCh(this)" onpaste="rtePaste(event,this)"></div></div>`;
 }
 
-function ec(cmd){document.execCommand(cmd,false,null);}
-function ef(cmd,val){document.execCommand(cmd,false,val);}
+function ec(cmd){document.execCommand(cmd,false,null);if(typeof _saveAllEdited==="function")_saveAllEdited();}
+function ef(cmd,val){if(cmd==='foreColor'||cmd==='hiliteColor')document.execCommand('styleWithCSS',false,true);document.execCommand(cmd,false,val);if(typeof _saveAllEdited==="function")_saveAllEdited();}
 function rteCh(el){D[el.dataset.key]=el.innerHTML;schedSave();}
 function rtePaste(e,el){e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text/plain');document.execCommand('insertText',false,t);}
 function restoreRTEs(){document.querySelectorAll('.rte-area[data-key]').forEach(el=>{const k=el.dataset.key;if(D[k])el.innerHTML=D[k];});}
@@ -1815,6 +1815,7 @@ document.addEventListener('change',e=>{const el=e.target;if(!el.dataset.key)retu
 const SESS={cv:'Portada',in:'Introducción — Ventaja competitiva humana',s1:'Sesión 1 — Desarrollo de personas',s2:'Sesión 2 — Compromiso organizacional',s3:'Sesión 3 — Desarrollo de líderes',s4:'Sesión 4 — Cultura organizacional',s5:'Sesión 5 — Laboratorio de casos',ci:'Cierre — Blueprint de liderazgo humano'};
 const vis=new Set(['cv']);let cur='cv';
 function go(id,title){
+  const fromId=cur;
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
   const pg=document.getElementById('pg-'+id);if(pg){pg.classList.add('on');window.scrollTo(0,0);setTimeout(()=>pg.querySelectorAll('.reveal:not(.in)').forEach(el=>el.classList.add('in')),80);}
@@ -1824,6 +1825,7 @@ function go(id,title){
   const h=document.getElementById('hdr-sess');if(h)h.textContent=title||SESS[id]||id;
   updProg();
   window.parent?.postMessage({ type: 'LEE_NAV_CHANGE', id: id }, '*');
+  window.parent?.postMessage({ type:'LEE_SESSION_SNAPSHOT', chapter:7, sesion_id:fromId, payload:{d:D,s:SV,ts:new Date().toISOString()} }, '*');
 }
 
 // ══ WIDTH MODE ══
@@ -2659,5 +2661,21 @@ initReveal();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else setTimeout(init,0);
 })();
 </script>
+<style>
+/* ── Orbs de navegación rápida ─────────────────────────────── */
+.gamma-progress{position:fixed;right:20px;bottom:20px;z-index:1600;display:flex;flex-direction:column;gap:.55rem;align-items:flex-end;}
+.gamma-progress .orb{width:58px;height:58px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--acc,#0ea5e9),var(--acc2,#6366f1));color:#fff;font-size:22px;box-shadow:0 0 0 1px rgba(14,165,233,.18),0 22px 70px rgba(99,102,241,.16);cursor:pointer;transition:.2s transform;}
+.gamma-progress .orb:hover{transform:scale(1.06);}
+.gamma-progress .bubble{background:var(--sur,#fff);border:1.5px solid var(--bdr,#e2e8f0);box-shadow:0 24px 70px rgba(12,74,110,.16);border-radius:18px;padding:.75rem .9rem;max-width:245px;font-size:13px;color:var(--txt2,#475569);display:none;}
+.gamma-progress:hover .bubble{display:block;}
+@media(max-width:620px){.gamma-progress{display:none;}}
+@media print{.gamma-progress{display:none!important;}}
+</style>
+<script>
+let _orbScrolling=false;function nextGammaBlock(){if(_orbScrolling)return;const pg=document.querySelector('.pg.on')||document;const blocks=[...pg.querySelectorAll('.hero,.gamma-strip,.gamma-flow,.gamma-infographic,.ref-card,.card,.ex,.qc,.consol-box,.cbanner')].filter(el=>el.offsetParent!==null);if(!blocks.length)return;const y=window.scrollY+150;const next=blocks.find(el=>el.getBoundingClientRect().top+window.scrollY>y)||blocks[0];_orbScrolling=true;const _t=setTimeout(()=>{_orbScrolling=false;},700);window.addEventListener('scrollend',()=>{clearTimeout(_t);_orbScrolling=false;},{once:true});next.scrollIntoView({behavior:'smooth',block:'start'});}
+function prevGammaBlock(){if(_orbScrolling)return;const pg=document.querySelector('.pg.on')||document;const blocks=[...pg.querySelectorAll('.hero,.gamma-strip,.gamma-flow,.gamma-infographic,.ref-card,.card,.ex,.qc,.consol-box,.cbanner')].filter(el=>el.offsetParent!==null);if(!blocks.length)return;const y=window.scrollY-50;const matches=blocks.filter(el=>el.getBoundingClientRect().top+window.scrollY<y);const prev=matches[matches.length-1]||blocks[blocks.length-1];_orbScrolling=true;const _t=setTimeout(()=>{_orbScrolling=false;},700);window.addEventListener('scrollend',()=>{clearTimeout(_t);_orbScrolling=false;},{once:true});prev.scrollIntoView({behavior:'smooth',block:'start'});}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowDown'&&(e.altKey||e.metaKey)){e.preventDefault();nextGammaBlock();}if(e.key==='ArrowUp'&&(e.altKey||e.metaKey)){e.preventDefault();prevGammaBlock();}});
+</script>
+<div class="gamma-progress"><div class="bubble"><strong>Navegación rápida:</strong> avanza o retrocede entre los bloques de contenido de la página actual.</div><button class="orb" onclick="prevGammaBlock()" title="Bloque anterior">↑</button><button class="orb" onclick="nextGammaBlock()" title="Siguiente bloque">↓</button></div>
 </body>
 </html>

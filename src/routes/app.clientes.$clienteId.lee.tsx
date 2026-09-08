@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   LEE_CAPITULOS, LEE_OVERVIEW, TOTAL_SESIONES, getCapitulo, getSesion, sesionKey,
@@ -16,11 +17,13 @@ import { getWorkbookSchema } from "@/lib/lee-workbook-schemas";
 import { WorkbookInstrumentado } from "@/components/lee/WorkbookInstrumentado";
 import { exportWorkbookJSON, exportWorkbookHTML, importWorkbookJSON } from "@/lib/lee-workbook-io";
 import { cargarWorkbookHtml, guardarWorkbookHtml } from "@/lib/lee-workbook-html";
+import { guardarVersionLee, listarVersionesLee, eliminarVersionLee, cargarSnapshotLee, sesionesConVersionLee, type VersionRow } from "@/lib/lee-historial";
 import { useAuth } from "@/lib/auth-context";
 import { StatusBadge } from "@/components/shared";
 import {
   Lock, Unlock, Check, BookOpen, Award, Sparkles, Play, Brain, Target,
   Clock, FileText, MessageCircle, Download, Upload, ArrowLeft, Save, ChevronDown, ChevronUp,
+  History, Trash2, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ChapterCoverInline } from "@/components/lee/ChapterCoverInline";
@@ -323,6 +326,24 @@ function LeeWorkspace() {
   );
 }
 
+// ── Historial helpers ─────────────────────────────────────────────────────────
+
+const ORIGEN_LABEL: Record<VersionRow["origen"], string> = {
+  auto_nav:  "Auto · navegación",
+  auto_exit: "Auto · salida",
+  manual:    "Manual",
+};
+
+function sesionLabelStr(sesionId: string | null): string {
+  if (!sesionId) return "General";
+  if (sesionId === "cv") return "Portada";
+  if (sesionId === "in") return "Intro";
+  if (sesionId === "ci") return "Cierre";
+  if (sesionId === "ca") return "Casos";
+  if (/^s\d+$/.test(sesionId)) return `Sesión ${sesionId.slice(1)}`;
+  return sesionId;
+}
+
 // ── ChapterDetailInline ────────────────────────────────────────────
 
 // Tipo para las funciones del iframe (mismo origen — seguro por same-origin policy)
@@ -355,6 +376,21 @@ function ChapterDetailInline({
   const programaIdRef = useRef<string>(programa.id);
   useEffect(() => { programaIdRef.current = programa.id; }, [programa.id]);
 
+  const lastSnapshotMs = useRef<number>(0);
+  const lastPayloadRef = useRef<Record<string, unknown> | null>(null);
+  const [savingVersion, setSavingVersion] = useState(false);
+  const [showVersionDialog, setShowVersionDialog] = useState(false);
+  const [versionLabel, setVersionLabel] = useState("");
+  const lastVersionId = useRef<string | null>(null);
+  const [iframeKey, setIframeKey] = useState(0);
+  const [showHistorial, setShowHistorial] = useState(false);
+  const [versiones, setVersiones] = useState<VersionRow[]>([]);
+  const [loadingVersiones, setLoadingVersiones] = useState(false);
+  const [filtroSesion, setFiltroSesion] = useState<string | null>(null);
+  const [confirmRestore, setConfirmRestore] = useState<VersionRow | null>(null);
+  const [restoringVersion, setRestoringVersion] = useState(false);
+  const [sesionesConVersion, setSesionesConVersion] = useState<Set<string>>(new Set());
+
   const [activeTab, setActiveTab] = useState<string>("cv");
   const [immersive, setImmersive] = useState(false);
   useEffect(() => {
@@ -368,6 +404,7 @@ function ChapterDetailInline({
   useEffect(() => {
     if (contentAreaRef.current) contentAreaRef.current.scrollTop = 0;
   }, [chapter, activeTab]);
+  useEffect(() => { setIframeLoaded(false); }, [iframeKey]);
 
   const cap = getCapitulo(chapter);
   const desbloqueados = programa.capitulos_desbloqueados ?? [];
@@ -381,6 +418,20 @@ function ChapterDetailInline({
     ...(chapter >= 9 ? [{ id: "ca", label: "Casos" }] : []),
     { id: "ci", label: "Cierre" },
   ] : [];
+
+  const tabIdsNoPortada = sessionTabs.filter((t) => t.id !== "cv").map((t) => t.id);
+  const sesionesGuardadasCount = tabIdsNoPortada.filter((id) => sesionesConVersion.has(id)).length;
+  const totalSesionesCount = tabIdsNoPortada.length;
+
+  useEffect(() => {
+    if (bloqueado) return;
+    const pid = programaIdRef.current;
+    if (!pid) return;
+    setSesionesConVersion(new Set());
+    sesionesConVersionLee(pid, chapter)
+      .then(setSesionesConVersion)
+      .catch(() => {});
+  }, [chapter, bloqueado]);
 
   useEffect(() => {
     if (!iframeLoaded || !iframeRef.current?.contentWindow) return;
@@ -409,6 +460,98 @@ function ChapterDetailInline({
     if (tabId !== "cv") navTo(tabId);
   }, [navTo]);
 
+  const handleGuardarVersion = useCallback(async () => {
+    const pid = programaIdRef.current;
+    if (!pid) return;
+    setSavingVersion(true);
+    try {
+      let payload = lastPayloadRef.current;
+      if (!payload) {
+        const wb = await cargarWorkbookHtml(pid, chapter).catch(() => null);
+        payload = (wb?.respuestas as Record<string, unknown>) ?? {};
+      }
+      const vid = await guardarVersionLee(
+        pid, chapter,
+        activeTab !== "cv" ? activeTab : null,
+        payload,
+        "manual",
+        versionLabel.trim() || undefined,
+      );
+      lastVersionId.current = vid;
+      toast.success("Versión guardada");
+      setShowVersionDialog(false);
+      setVersionLabel("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al guardar versión");
+    } finally {
+      setSavingVersion(false);
+    }
+  }, [chapter, activeTab, versionLabel]);
+
+  const cargarVersiones = useCallback(async () => {
+    const pid = programaIdRef.current;
+    if (!pid) return;
+    setLoadingVersiones(true);
+    try {
+      const rows = await listarVersionesLee(pid, chapter);
+      setVersiones(rows);
+    } catch {
+      // silent
+    } finally {
+      setLoadingVersiones(false);
+    }
+  }, [chapter]);
+
+  const handleOpenHistorial = useCallback(() => {
+    setFiltroSesion(null);
+    setShowHistorial(true);
+    void cargarVersiones();
+  }, [cargarVersiones]);
+
+  const handleEliminarVersion = useCallback(async (id: string) => {
+    try {
+      await eliminarVersionLee(id);
+      setVersiones((prev) => prev.filter((v) => v.id !== id));
+      toast.success("Versión eliminada");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar");
+    }
+  }, []);
+
+  const handleConfirmRestaurar = useCallback(async () => {
+    if (!confirmRestore) return;
+    const pid = programaIdRef.current;
+    if (!pid) return;
+    setRestoringVersion(true);
+    try {
+      const ts = new Date().toLocaleString("es-MX");
+      let currentPayload = lastPayloadRef.current;
+      if (!currentPayload) {
+        const wb = await cargarWorkbookHtml(pid, chapter).catch(() => null);
+        currentPayload = (wb?.respuestas as Record<string, unknown>) ?? {};
+      }
+      await guardarVersionLee(
+        pid, chapter,
+        activeTab !== "cv" ? activeTab : null,
+        currentPayload, "manual",
+        `Respaldo antes de restaurar · ${ts}`,
+      );
+      const snapshot = await cargarSnapshotLee(confirmRestore.id);
+      await guardarWorkbookHtml(pid, chapter, snapshot);
+      lastPayloadRef.current = snapshot;
+      lastSnapshotMs.current = Date.now();
+      lastVersionId.current = confirmRestore.id;
+      setIframeKey((k) => k + 1);
+      toast.success("Versión restaurada");
+      setConfirmRestore(null);
+      setShowHistorial(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al restaurar");
+    } finally {
+      setRestoringVersion(false);
+    }
+  }, [confirmRestore, chapter, activeTab]);
+
   const handleEnterChapter = useCallback(() => {
     setActiveTab("in");
     navTo("in");
@@ -423,7 +566,14 @@ function ChapterDetailInline({
   useEffect(() => {
     const handler = async (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      const msg = e.data as { type?: string; chapter?: number; payload?: Record<string, unknown>; id?: string };
+      const msg = e.data as {
+        type?: string;
+        chapter?: number;
+        payload?: Record<string, unknown>;
+        id?: string;
+        sesion_id?: string;
+        snapshot?: Record<string, unknown>;
+      };
       if (!msg?.type) return;
       if (msg.chapter !== undefined && msg.chapter !== chapter) return;
       const pid = programaIdRef.current;
@@ -439,6 +589,9 @@ function ChapterDetailInline({
 
       if (msg.type === "LEE_DATA_SAVE") {
         if (!pid || !msg.payload) return;
+        lastPayloadRef.current = msg.payload;
+        // Dedup: LEE_SESSION_SNAPSHOT ya hizo el UPSERT hace <2 s — evitar doble escritura
+        if (Date.now() - lastSnapshotMs.current < 2000) return;
         setSaving(true);
         try {
           await guardarWorkbookHtml(pid, chapter, msg.payload);
@@ -450,10 +603,39 @@ function ChapterDetailInline({
         }
       }
 
-      if (msg.type === "LEE_EXIT") onClose();
+      if (msg.type === "LEE_EXIT") {
+        if (pid && msg.snapshot) {
+          try {
+            await guardarWorkbookHtml(pid, chapter, msg.snapshot);
+            await guardarVersionLee(pid, chapter, msg.sesion_id ?? null, msg.snapshot, "auto_exit");
+            lastPayloadRef.current = msg.snapshot;
+            lastSnapshotMs.current = Date.now();
+          } catch {
+            // No bloquear el cierre aunque falle el snapshot
+          }
+        }
+        onClose();
+      }
 
       if (msg.type === "LEE_NAV_CHANGE" && typeof msg.id === "string") {
         setActiveTab(msg.id);
+      }
+
+      if (msg.type === "LEE_SESSION_SNAPSHOT" && msg.payload) {
+        if (!pid) return;
+        lastPayloadRef.current = msg.payload;
+        lastSnapshotMs.current = Date.now();
+        setSaving(true);
+        try {
+          await guardarWorkbookHtml(pid, chapter, msg.payload);
+          setUltimoGuardado(new Date());
+          const vid = await guardarVersionLee(pid, chapter, msg.sesion_id ?? null, msg.payload, "auto_nav");
+          lastVersionId.current = vid;
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Error al guardar");
+        } finally {
+          setSaving(false);
+        }
       }
     };
     window.addEventListener("message", handler);
@@ -504,6 +686,32 @@ function ChapterDetailInline({
               ⬇ HTML
             </button>
           )}
+          {activeTab !== "cv" && (
+            <button
+              onClick={() => setShowVersionDialog(true)}
+              title="Guardar versión actual del workbook"
+              className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors flex items-center gap-1"
+            >
+              <History className="w-3 h-3" />
+              Versión
+            </button>
+          )}
+          <button
+            onClick={handleOpenHistorial}
+            title="Ver historial de versiones"
+            className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors flex items-center gap-1"
+          >
+            <Clock className="w-3 h-3" />
+            Historial
+          </button>
+          <button
+            onClick={() => (iframeRef.current?.contentWindow as any)?.toggleEditMode?.()}
+            title="Activar modo edición — permite cambiar texto, color y formato directamente en el capítulo"
+            className="text-[11px] text-white/60 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors flex items-center gap-1"
+          >
+            <Pencil className="w-3 h-3" />
+            Editar
+          </button>
           {/* ⬇ Doc (exportFullDocument) oculto — no funciona correctamente en ningún cap; retomar en sesión futura */}
           {/* 📄 PDF (printCurrentSession) oculto — falla en blanco en varios caps; PDF disponible dentro del HTML exportado */}
         </div>
@@ -515,12 +723,15 @@ function ChapterDetailInline({
             <button
               key={t.id}
               onClick={() => handleTabClick(t.id)}
-              className={`text-[11px] px-2.5 py-1.5 rounded transition-colors shrink-0 whitespace-nowrap ${
+              className={`text-[11px] px-2.5 py-1.5 rounded transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 ${
                 activeTab === t.id
                   ? "text-white bg-white/15 font-semibold"
                   : "text-white/50 hover:text-white hover:bg-white/10"
               }`}
             >
+              {sesionesConVersion.has(t.id) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              )}
               {t.label}
             </button>
           ))}
@@ -544,6 +755,8 @@ function ChapterDetailInline({
               chapter={chapter}
               clienteId={clienteId}
               onEnterChapter={handleEnterChapter}
+              sesionesGuardadas={sesionesGuardadasCount}
+              totalSesiones={totalSesionesCount}
             />
           )}
           {activeTab === "cv" && !immersive && (
@@ -593,6 +806,7 @@ function ChapterDetailInline({
               </button>
             )}
             <iframe
+              key={iframeKey}
               ref={iframeRef}
               src={iframeUrl}
               title={`LEE Capítulo ${chapter}`}
@@ -607,6 +821,198 @@ function ChapterDetailInline({
           </div>
         </div>
       )}
+      <Dialog open={showVersionDialog} onOpenChange={setShowVersionDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Guardar versión</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Se guardará el estado actual de este capítulo. La etiqueta es opcional.
+            </p>
+            <input
+              autoFocus
+              className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+              placeholder="Ej: antes de la sesión grupal"
+              value={versionLabel}
+              onChange={(e) => setVersionLabel(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleGuardarVersion(); }}
+              maxLength={80}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowVersionDialog(false); setVersionLabel(""); }}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void handleGuardarVersion()} disabled={savingVersion}>
+              {savingVersion ? "Guardando…" : "Guardar versión"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Historial de versiones ──────────────────────────────── */}
+      <Sheet open={showHistorial} onOpenChange={setShowHistorial}>
+        <SheetContent side="right" className="w-[380px] sm:w-[420px] flex flex-col p-0 gap-0">
+          <SheetHeader className="px-4 py-3 border-b shrink-0">
+            <SheetTitle className="text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Historial · Cap {String(chapter).padStart(2, "0")}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="px-4 py-2.5 border-b shrink-0 text-[11px] text-muted-foreground leading-relaxed">
+            Se guardan automáticamente las últimas 5 versiones por sesión. Las versiones manuales (incluidos los respaldos antes de restaurar) no se eliminan solas — bórralas cuando ya no las necesites.
+          </div>
+
+          {(() => {
+            const sesionesUnicas = Array.from(
+              new Set(versiones.map((v) => v.sesion_id).filter(Boolean)),
+            ) as string[];
+            const filtradas = filtroSesion === null
+              ? versiones
+              : versiones.filter((v) => v.sesion_id === filtroSesion);
+            const currentVerId = lastVersionId.current;
+
+            return (
+              <>
+                {sesionesUnicas.length > 1 && (
+                  <div className="px-3 py-2 border-b shrink-0 flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <button
+                      onClick={() => setFiltroSesion(null)}
+                      className={`text-[11px] px-2.5 py-1 rounded shrink-0 whitespace-nowrap transition-colors ${
+                        filtroSesion === null
+                          ? "bg-foreground text-background font-semibold"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      Todas
+                    </button>
+                    {sesionesUnicas.map((sid) => (
+                      <button
+                        key={sid}
+                        onClick={() => setFiltroSesion(sid)}
+                        className={`text-[11px] px-2.5 py-1 rounded shrink-0 whitespace-nowrap transition-colors ${
+                          filtroSesion === sid
+                            ? "bg-foreground text-background font-semibold"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {sesionLabelStr(sid)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+                  {loadingVersiones && (
+                    <p className="text-xs text-muted-foreground text-center py-6">Cargando…</p>
+                  )}
+                  {!loadingVersiones && filtradas.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      Sin versiones guardadas
+                    </p>
+                  )}
+                  {filtradas.map((v) => {
+                    const isCurrentState = v.id === currentVerId;
+                    const ts = new Date(v.created_at).toLocaleString("es-MX", {
+                      day: "2-digit", month: "short",
+                      hour: "2-digit", minute: "2-digit",
+                    });
+                    return (
+                      <div
+                        key={v.id}
+                        className={`rounded-lg border p-3 text-sm space-y-1.5 ${
+                          isCurrentState
+                            ? "border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/20"
+                            : "border-border bg-card"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-medium text-xs">{ts}</span>
+                              {isCurrentState && (
+                                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded-full">
+                                  Estado actual
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                v.origen === "manual"
+                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                                  : "bg-muted text-muted-foreground"
+                              }`}>
+                                {ORIGEN_LABEL[v.origen]}
+                              </span>
+                              {v.sesion_id && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {sesionLabelStr(v.sesion_id)}
+                                </span>
+                              )}
+                            </div>
+                            {v.etiqueta && (
+                              <p className="text-xs text-foreground/70 mt-1 italic">"{v.etiqueta}"</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {v.origen === "manual" && (
+                              <button
+                                onClick={() => void handleEliminarVersion(v.id)}
+                                title="Eliminar versión"
+                                className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                            <span
+                              title="Reemplaza el contenido actual de la sesión con esta versión (se crea un respaldo automático antes de restaurar)"
+                              className="text-[11px] text-muted-foreground cursor-help select-none"
+                            >
+                              ⓘ
+                            </span>
+                            <button
+                              onClick={() => setConfirmRestore(v)}
+                              disabled={isCurrentState}
+                              title="Reemplaza el contenido actual de la sesión con esta versión (se crea un respaldo automático antes de restaurar)"
+                              className="text-[10px] px-2 py-1 rounded border border-border hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                              Restaurar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Confirmar restauración ──────────────────────────────── */}
+      <Dialog open={!!confirmRestore} onOpenChange={(o) => { if (!o) setConfirmRestore(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>¿Restaurar esta versión?</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-2 text-sm text-muted-foreground">
+            <p>
+              El estado actual se guardará automáticamente como respaldo manual antes de restaurar.
+            </p>
+            <p>El workbook se recargará con el contenido de la versión seleccionada.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmRestore(null)} disabled={restoringVersion}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void handleConfirmRestaurar()} disabled={restoringVersion}>
+              {restoringVersion ? "Restaurando…" : "Restaurar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

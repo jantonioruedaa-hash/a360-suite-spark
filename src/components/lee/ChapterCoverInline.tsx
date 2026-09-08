@@ -174,9 +174,11 @@ interface Props {
   chapter: number;
   clienteId: string;
   onEnterChapter: () => void;
+  sesionesGuardadas?: number;
+  totalSesiones?: number;
 }
 
-export function ChapterCoverInline({ chapter, clienteId, onEnterChapter }: Props) {
+export function ChapterCoverInline({ chapter, clienteId, onEnterChapter, sesionesGuardadas, totalSesiones }: Props) {
   const cover = getCover(chapter);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -285,6 +287,18 @@ export function ChapterCoverInline({ chapter, clienteId, onEnterChapter }: Props
           >
             Comenzar el capítulo →
           </button>
+
+          {totalSesiones !== undefined && totalSesiones > 0 && (
+            <div style={{ marginTop: "0.85rem", fontSize: "12.5px", color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <span>📊</span>
+              <span>
+                <strong style={{ color: sesionesGuardadas! > 0 ? "#6EE7B7" : "rgba(255,255,255,0.55)" }}>
+                  {sesionesGuardadas} de {totalSesiones}
+                </strong>{" "}
+                sesiones con trabajo guardado
+              </span>
+            </div>
+          )}
         </div>
 
         {/* ── Columna derecha: panel participante unificado (10 caps) ── */}
