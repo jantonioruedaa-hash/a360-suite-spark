@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Check, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Plus, Printer, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type {
   Cargo, CompEval, EvalCompForm, FirmasEval, PlanDevRow, ReqRow,
@@ -619,16 +619,298 @@ function FirmasPanel({
   );
 }
 
+// ── PDF export ─────────────────────────────────────────────────────────────
+
+function buildCompRadarSVG(labels: string[], values: number[]): string {
+  const N = labels.length;
+  if (N < 3) return `<p style="text-align:center;color:#94A3B8;font-size:12px;padding:16px 0">Se requieren al menos 3 competencias para mostrar el gráfico.</p>`;
+  const SCORE_TO_NIVEL: Record<number, string> = { 25: "Básico", 50: "Intermedio", 75: "Avanzado", 100: "Experto" };
+  const W = 600, H = 500, cx = 300, cy = 250, R = 150;
+  const a0 = -Math.PI / 2;
+  const step = (2 * Math.PI) / N;
+  const px = (pct: number, i: number) => cx + (pct / 100) * R * Math.cos(a0 + i * step);
+  const py = (pct: number, i: number) => cy + (pct / 100) * R * Math.sin(a0 + i * step);
+  const gridPolygons = [20, 40, 60, 80, 100].map((g) => {
+    const pts = Array.from({ length: N }, (_, k) => `${px(g, k).toFixed(1)},${py(g, k).toFixed(1)}`).join(" ");
+    return `<polygon points="${pts}" fill="none" stroke="${g === 100 ? "#ccc" : "#eee"}" stroke-width="${g === 100 ? 1.5 : 1}"/>`;
+  }).join("");
+  const axes = Array.from({ length: N }, (_, ai) =>
+    `<line x1="${cx}" y1="${cy}" x2="${px(100, ai).toFixed(1)}" y2="${py(100, ai).toFixed(1)}" stroke="#ddd" stroke-width="1"/>`
+  ).join("");
+  const lvls = [20, 40, 60, 80, 100].map((g) =>
+    `<text x="${(cx + (g / 100) * R * Math.cos(a0) - 20).toFixed(1)}" y="${(cy + (g / 100) * R * Math.sin(a0) - 4).toFixed(1)}" font-size="8" fill="#bbb">${g}%</text>`
+  ).join("");
+  const actPts = values.map((v, i) => `${px(v, i).toFixed(1)},${py(v, i).toFixed(1)}`).join(" ");
+  const labelNodes = labels.map((name, li) => {
+    const angle = a0 + li * step;
+    const lx = (cx + (R + 42) * Math.cos(angle)).toFixed(1);
+    const ly = (cy + (R + 42) * Math.sin(angle)).toFixed(1);
+    const anchor = Math.abs(Math.cos(angle)) < 0.15 ? "middle" : Math.cos(angle) > 0 ? "start" : "end";
+    const displayName = name.length > 16 ? `${name.slice(0, 16)}…` : name;
+    const levelName = SCORE_TO_NIVEL[values[li]] ?? "—";
+    return `<g>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-size="11" fill="#333" font-family="system-ui" font-weight="700">${displayName}</text>
+      <text x="${lx}" y="${(parseFloat(ly) + 15).toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" font-size="12" fill="#0C4A6E" font-family="system-ui" font-weight="900">${levelName}</text>
+    </g>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:280px">
+    ${gridPolygons}${axes}${lvls}
+    <polygon points="${actPts}" fill="rgba(29,78,137,0.18)" stroke="#0C4A6E" stroke-width="2.5"/>
+    <circle cx="${cx}" cy="${cy}" r="3" fill="#ccc"/>
+    ${labelNodes}
+  </svg>`;
+}
+
+function buildEvalCompHTML(
+  cargo: Cargo,
+  form: EvalCompForm,
+  indice: number,
+  empresaNombre: string,
+): string {
+  const esc = (s: string | null | undefined) =>
+    (s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+  const fmtD = (iso: string | null | undefined) => {
+    if (!iso) return "—";
+    try { return new Date(iso).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" }); }
+    catch { return iso; }
+  };
+  const sem = SEMAFORO_COMP(indice);
+  const sec = (title: string, body: string) =>
+    `<div class="sec"><div class="sec-head">${title}</div><div class="sec-body">${body}</div></div>`;
+  const pair = (label: string, val: string) =>
+    `<div class="pair"><div class="pl">${label}</div><div class="pv">${esc(val) || "—"}</div></div>`;
+
+  // 1. Datos de la evaluación
+  const datos = `<div class="grid2">
+    ${pair("Colaborador evaluado", form.nombre_evaluado)}
+    ${pair("Evaluador", form.evaluador)}
+    ${pair("Fecha de evaluación", fmtD(form.fecha_evaluacion))}
+    ${pair("Próxima revisión", fmtD(form.proxima_revision))}
+    ${pair("Cargo", cargo.cargo)}
+    ${pair("Área", cargo.area)}
+  </div>`;
+
+  // 2. Requisitos del cargo
+  const cumBadge = (cum: string) => {
+    const s = cum === "Sí"      ? "background:#D1FAE5;color:#065F46"
+      : cum === "No"            ? "background:#FEE2E2;color:#991B1B"
+      : cum === "Parcial"       ? "background:#FEF3C7;color:#92400E"
+      :                           "background:#F1F5F9;color:#94A3B8";
+    return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;${s}">${esc(cum) || "—"}</span>`;
+  };
+  const requisitos = !form.requisitos_evaluados.length
+    ? `<p class="empty">Este cargo no tiene requisitos definidos.</p>`
+    : `<table class="ktable">
+        <thead><tr><th>Dimensión</th><th>Requisito del cargo</th><th>Situación actual</th><th style="text-align:center">Cumple</th></tr></thead>
+        <tbody>${form.requisitos_evaluados.map((r) =>
+          `<tr>
+            <td style="font-weight:700;color:#0C4A6E">${esc(r.dim) || "—"}</td>
+            <td>${esc(r.req) || "—"}</td>
+            <td>${esc(r.act) || "—"}</td>
+            <td style="text-align:center">${cumBadge(r.cum)}</td>
+          </tr>`
+        ).join("")}</tbody>
+      </table>`;
+
+  // 3. Análisis de competencias (GAP)
+  const NLVL = NIVEL_NUM as Record<string, number>;
+  const gapBadge = (c: CompEval) => {
+    const diff = NLVL[c.nivel_requerido] !== undefined && NLVL[c.nivel_actual] !== undefined
+      ? NLVL[c.nivel_requerido] - NLVL[c.nivel_actual] : undefined;
+    const gs = diff === undefined ? { bg: "#F1F5F9", fg: "#94A3B8", lbl: "—" }
+      : diff <= 0  ? { bg: "#D1FAE5", fg: "#065F46", lbl: "Sin brecha" }
+      : diff === 1 ? { bg: "#FEF3C7", fg: "#92400E", lbl: "Brecha 1 niv." }
+      :              { bg: "#FEE2E2", fg: "#991B1B", lbl: "Brecha ≥2" };
+    return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${gs.bg};color:${gs.fg};border:1px solid ${gs.fg}40">${gs.lbl}</span>`;
+  };
+  const competencias = !form.competencias_evaluadas.length
+    ? `<p class="empty">Este cargo no tiene competencias definidas.</p>`
+    : `<table class="ktable">
+        <thead><tr><th>Competencia</th><th>Tipo</th><th>Nivel requerido</th><th>Nivel actual</th><th style="text-align:center">Brecha</th><th>Observación</th></tr></thead>
+        <tbody>${form.competencias_evaluadas.map((c) => {
+          const tipoBadge = c.tipo === "blanda"
+            ? `<span style="background:#D1FAE5;color:#065F46;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px">Blanda</span>`
+            : `<span style="background:#EDE9FE;color:#5B21B6;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px">Técnica</span>`;
+          return `<tr>
+            <td style="font-weight:600;color:#0C4A6E">${esc(c.nombre)}</td>
+            <td>${tipoBadge}</td>
+            <td style="color:#64748B">${esc(c.nivel_requerido) || "—"}</td>
+            <td style="font-weight:700">${esc(c.nivel_actual) || "—"}</td>
+            <td style="text-align:center">${gapBadge(c)}</td>
+            <td>${esc(c.observacion) || "—"}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>`;
+
+  // 4. Resultados (índice, desglose, radar) — solo si indice > 0
+  const hasScore = indice > 0;
+  const NSCR = NIVEL_SCORE as Record<string, number>;
+  const radarLabels = form.competencias_evaluadas.map((c) => c.nombre);
+  const radarValues = form.competencias_evaluadas.map((c) => NSCR[c.nivel_actual] ?? 0);
+  const calcAvg = (tipo: "blanda" | "tecnica") => {
+    const subset = form.competencias_evaluadas.filter((c) => c.tipo === tipo);
+    const rated  = subset.filter((c) => NSCR[c.nivel_actual] !== undefined && NSCR[c.nivel_requerido] !== undefined);
+    return {
+      count: subset.length,
+      avg:   rated.length
+        ? Math.round(rated.reduce((s, c) => s + Math.min((NSCR[c.nivel_actual] / NSCR[c.nivel_requerido]) * 100, 100), 0) / rated.length)
+        : 0,
+    };
+  };
+  const blandas  = calcAvg("blanda");
+  const tecnicas = calcAvg("tecnica");
+  const resultadosBlock = hasScore
+    ? `<div style="display:flex;align-items:center;gap:16px;background:${sem.bg};border:1px solid ${sem.color}40;border-radius:10px;padding:14px 20px;margin-bottom:14px">
+        <div style="font-size:40px;font-weight:900;color:${sem.color}">${Math.round(indice)}%</div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em">Índice Global de Competencias</div>
+          <div style="font-size:18px;font-weight:800;color:${sem.color}">${sem.label}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 14px">
+          <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Blandas · ${blandas.count} competencias</div>
+          <div style="font-size:20px;font-weight:900;color:#0C4A6E">${blandas.count ? `${blandas.avg}%` : "—"}</div>
+        </div>
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 14px">
+          <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Técnicas · ${tecnicas.count} competencias</div>
+          <div style="font-size:20px;font-weight:900;color:#0C4A6E">${tecnicas.count ? `${tecnicas.avg}%` : "—"}</div>
+        </div>
+      </div>
+      <div style="border:1.5px solid #E2E8F0;border-radius:10px;padding:14px 18px;background:white">
+        <div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Perfil de Competencias</div>
+        ${buildCompRadarSVG(radarLabels, radarValues)}
+      </div>`
+    : "";
+
+  // 5. Observación general
+  const obsBlock = form.observacion_general
+    ? `<div style="font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap;background:#F8FAFC;border-radius:8px;padding:12px 14px;border:1px solid #E2E8F0">${esc(form.observacion_general)}</div>`
+    : `<p class="empty">Sin observaciones registradas.</p>`;
+
+  // 6. Plan de Desarrollo Individual (PDI)
+  const prioBadge = (p: string) => {
+    const s = p === "Alta" ? "background:#FEE2E2;color:#991B1B"
+      : p === "Baja"       ? "background:#D1FAE5;color:#065F46"
+      :                      "background:#FEF3C7;color:#92400E";
+    return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;${s}">${esc(p)}</span>`;
+  };
+  const pdiBlock = !form.plan_desarrollo.length
+    ? `<p class="empty">Sin plan de desarrollo registrado.</p>`
+    : `<table class="ktable">
+        <thead><tr>
+          <th>Prior.</th><th>Brecha</th><th>Modalidad</th><th>Acción</th>
+          <th>Proveedor</th><th>Responsable</th><th>Inicio</th><th>Vence</th>
+          <th style="text-align:center">Av.%</th><th>Evidencia</th>
+        </tr></thead>
+        <tbody>${form.plan_desarrollo.map((p) =>
+          `<tr>
+            <td>${prioBadge(p.prioridad)}</td>
+            <td style="font-weight:600">${esc(p.brecha) || "—"}</td>
+            <td>${esc(p.modalidad) || "—"}</td>
+            <td>${esc(p.detalle) || "—"}</td>
+            <td>${esc(p.proveedor) || "—"}</td>
+            <td>${esc(p.responsable) || "—"}</td>
+            <td>${fmtD(p.fecha_inicio)}</td>
+            <td>${fmtD(p.fecha_vencimiento)}</td>
+            <td style="text-align:center;font-weight:700;color:#0C4A6E">${p.avance_pct ?? 0}%</td>
+            <td>${esc(p.evidencia) || "—"}</td>
+          </tr>`
+        ).join("")}</tbody>
+      </table>`;
+
+  // 7. Firmas
+  const firmasBlock = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+    ${([
+      { label: "Firmante 1 — Colaborador",      n: form.firmas.n0, c: form.firmas.c0, f: form.firmas.f0 },
+      { label: "Firmante 2 — Evaluador / Jefe", n: form.firmas.n1, c: form.firmas.c1, f: form.firmas.f1 },
+      { label: "Firmante 3 — RRHH",             n: form.firmas.n2, c: form.firmas.c2, f: form.firmas.f2 },
+    ]).map(({ label, n, c, f }) =>
+      `<div style="text-align:center;padding:14px;border:1.5px solid #E2E8F0;border-radius:10px;background:#FAFBFF">
+        <div style="font-size:9px;font-weight:800;color:#0C4A6E;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">${label}</div>
+        <div style="height:44px;border-bottom:2px solid #0C4A6E;margin-bottom:7px"></div>
+        <div style="font-size:9px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Firma</div>
+        ${n ? `<div style="font-size:12px;font-weight:700;color:#0C4A6E;margin-top:4px">${esc(n)}</div>` : ""}
+        ${c ? `<div style="font-size:11px;color:#64748B;margin-top:2px">${esc(c)}</div>` : ""}
+        ${f ? `<div style="font-size:11px;color:#94A3B8;margin-top:2px">${fmtD(f)}</div>` : ""}
+      </div>`
+    ).join("")}
+  </div>`;
+
+  const n = hasScore;
+  const fecha = new Date().toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric" });
+  const css = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E293B;font-size:13px;line-height:1.6}
+.topbar{position:sticky;top:0;background:white;border-bottom:1px solid #E2E8F0;padding:10px 24px;display:flex;align-items:center;justify-content:space-between}
+.topbar button{padding:8px 20px;background:#0C4A6E;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.topbar button:hover{background:#0A3D5C}
+.doc{max-width:900px;margin:0 auto;padding:32px 24px 60px}
+.dh{text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #0C4A6E}
+.empresa{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px}
+.ctitle-main{font-size:26px;font-weight:900;color:#0C4A6E;letter-spacing:-.02em;margin-bottom:5px}
+.cmeta{font-size:12px;color:#64748B}
+.sec{margin-bottom:18px;border-radius:10px;border:1.5px solid #E8EDF2}
+.sec-head{background:#0C4A6E;color:white;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:7px 16px;break-after:avoid;page-break-after:avoid}
+.sec-body{padding:16px;background:white;border-radius:0 0 10px 10px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 14px}
+.pair{background:#F8FAFC;border-radius:7px;padding:8px 11px;border:1px solid #E8EDF2}
+.pl{font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+.pv{font-size:13px;color:#1E293B}
+.empty{color:#CBD5E1;font-size:13px;font-style:italic}
+.ktable{width:100%;border-collapse:collapse;font-size:11px}
+.ktable th{background:#0C4A6E;color:white;padding:6px 8px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left}
+.ktable td{padding:6px 8px;border-bottom:1px solid #E2E8F0;color:#334155;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
+.ktable tr:last-child td{border-bottom:none}
+.footer{margin-top:28px;font-size:10px;color:#94A3B8;text-align:center}
+@page{size:A4 landscape;margin:12mm}
+@media print{
+  .topbar{display:none!important}
+  body{background:white}
+  .doc{padding:0 0 8px;max-width:100%}
+  .footer{margin-top:10px}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}`;
+
+  return `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<title>Evaluación de Competencias — ${esc(form.nombre_evaluado)} — ${esc(cargo.cargo)}</title>
+<style>${css}</style></head>
+<body>
+<div class="topbar">
+  <span style="font-size:14px;font-weight:800;color:#0C4A6E">Evaluación de Competencias — ${esc(cargo.cargo)}</span>
+  <button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+</div>
+<div class="doc">
+  <div class="dh">
+    ${empresaNombre ? `<div class="empresa">${esc(empresaNombre)}</div>` : ""}
+    <div class="ctitle-main">${esc(cargo.cargo)}</div>
+    <div class="cmeta">Evaluación de Competencias y PDI${form.nombre_evaluado ? ` · ${esc(form.nombre_evaluado)}` : ""}${form.fecha_evaluacion ? ` · ${fmtD(form.fecha_evaluacion)}` : ""}</div>
+    ${hasScore ? `<div style="margin-top:10px;display:inline-block;background:${sem.bg};border:1px solid ${sem.color}40;border-radius:8px;padding:4px 18px;font-size:14px;font-weight:800;color:${sem.color}">${Math.round(indice)}% · ${sem.label}</div>` : ""}
+  </div>
+  ${sec("1. Datos de la evaluación", datos)}
+  ${sec("2. Requisitos del cargo", requisitos)}
+  ${sec("3. Análisis de competencias", competencias)}
+  ${n ? sec("4. Resultados", resultadosBlock) : ""}
+  ${sec(`${n ? "5" : "4"}. Observación general`, obsBlock)}
+  ${sec(`${n ? "6" : "5"}. Plan de Desarrollo Individual — PDI`, pdiBlock)}
+  ${sec(`${n ? "7" : "6"}. Firmas`, firmasBlock)}
+  <div class="footer">Generado el ${fecha}${empresaNombre ? ` · ${esc(empresaNombre)}` : ""}</div>
+</div>
+</body></html>`;
+}
+
 // ── Main component ─────────────────────────────────────────────────────────
 
 type EvalRec = Record<string, unknown> & { id: string };
 
 export function EvalCompPanel({
-  cargo, userRolEmpresa, onClose,
+  cargo, userRolEmpresa, onClose, empresaNombre = "",
 }: {
   cargo: Cargo;
   userRolEmpresa: string | null;
   onClose: () => void;
+  empresaNombre?: string;
 }) {
   const [evals, setEvals]               = useState<EvalRec[]>([]);
   const [loadingEvals, setLoadingEvals] = useState(true);
@@ -729,6 +1011,19 @@ export function EvalCompPanel({
   const sem    = SEMAFORO_COMP(indice);
   const f      = form;
 
+  function handlePrint() {
+    const html = buildEvalCompHTML(cargo, f, indice, empresaNombre);
+    const blob = new Blob([html], { type: "text/html" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `eval-competencias-${f.nombre_evaluado.replace(/\s+/g, "-")}-${cargo.cargo.replace(/\s+/g, "-")}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   const radarLabels = f.competencias_evaluadas.map((c) => c.nombre);
   const radarValues = f.competencias_evaluadas.map((c) => nivScore(c.nivel_actual) ?? 0);
 
@@ -792,6 +1087,24 @@ export function EvalCompPanel({
             {Math.round(indice)}% · {sem.label}
           </div>
         )}
+
+        <button
+          onClick={handlePrint}
+          disabled={!f.nombre_evaluado.trim()}
+          title={!f.nombre_evaluado.trim() ? "Completa el nombre del colaborador para exportar" : "Descargar como HTML/PDF"}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: "6px",
+            padding: "8px 16px", borderRadius: "8px", border: "none",
+            background: f.nombre_evaluado.trim() ? "#DCFCE7" : "#F1F5F9",
+            color:      f.nombre_evaluado.trim() ? "#16A34A" : "#CBD5E1",
+            fontSize: "13px", fontWeight: 700,
+            cursor: f.nombre_evaluado.trim() ? "pointer" : "not-allowed",
+            flexShrink: 0,
+          }}
+        >
+          <Printer style={{ width: "13px", height: "13px" }} />
+          Imprimir
+        </button>
 
         <button
           onClick={guardar}

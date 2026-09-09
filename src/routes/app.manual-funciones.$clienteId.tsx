@@ -376,10 +376,11 @@ function EvalDesempCargoLoader({ cargoId, userRolEmpresa, onClose, empresaNombre
 
 // ── EvalCompCargoLoader ───────────────────────────────────────────────────────
 
-function EvalCompCargoLoader({ cargoId, userRolEmpresa, onClose }: {
+function EvalCompCargoLoader({ cargoId, userRolEmpresa, onClose, empresaNombre = "" }: {
   cargoId: string;
   userRolEmpresa: string | null;
   onClose: () => void;
+  empresaNombre?: string;
 }) {
   const { state } = useSidebar();
   const sidebarLeft = state === "collapsed" ? "3rem" : "16rem";
@@ -412,7 +413,7 @@ function EvalCompCargoLoader({ cargoId, userRolEmpresa, onClose }: {
           ? <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
               <Loader2 style={{ width: "28px", height: "28px", color: "#94A3B8" }} className="animate-spin" />
             </div>
-          : <EvalCompPanel cargo={cargo} userRolEmpresa={userRolEmpresa} onClose={onClose} />
+          : <EvalCompPanel cargo={cargo} userRolEmpresa={userRolEmpresa} onClose={onClose} empresaNombre={empresaNombre} />
       }
     </div>
   );
@@ -822,6 +823,7 @@ function ManualFuncionesViewer() {
         cargoId={evalCompCargoId}
         userRolEmpresa={null}
         onClose={() => setEvalCompCargoId(null)}
+        empresaNombre={clienteNombre.current}
       />
     )}
     </>
