@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Check, Plus, Printer } from "lucide-react";
+import { ArrowLeft, Check, Plus, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 import type {
   Cargo, CompScore, EvalDesempForm, KpiScore, ObjetivoRow, PlanMejoraRow,
 } from "@/types/manual-funciones";
@@ -551,6 +552,11 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
     cond_scores: initCondScores(),
   });
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; nombre: string; fecha: string } | null>(null);
+  const [deleting, setDeleting]         = useState(false);
+
+  const { role } = useAuth();
+  const canDelete = role === "admin" || role === "consultor" || userRolEmpresa === "dueño";
 
   const setF = <K extends keyof EvalDesempForm>(k: K, v: EvalDesempForm[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -581,6 +587,26 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
   function cargarEval(row: EvalRec) {
     setEditingId(row.id);
     setForm(parseRow(row));
+  }
+
+  async function eliminarEval(id: string) {
+    setDeleting(true);
+    const { data: deleted, error } = await (supabase as any)
+      .from("manual_funciones_evaluaciones_desempeno")
+      .delete()
+      .eq("id", id)
+      .select("id");
+    if (error) { toast.error("Error al eliminar la evaluación"); setDeleting(false); return; }
+    if (!deleted || deleted.length === 0) {
+      toast.error("No tienes permiso para eliminar esta evaluación");
+      setDeleting(false);
+      return;
+    }
+    setEvals((prev) => prev.filter((x) => x.id !== id));
+    if (editingId === id) nuevaEval();
+    setDeleteTarget(null);
+    setDeleting(false);
+    toast.success("Evaluación eliminada");
   }
 
   async function guardar() {
@@ -744,7 +770,7 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
             <p style={{ fontSize: "13px", color: "#94A3B8", margin: 0 }}>Sin evaluaciones previas para este cargo.</p>
           ) : (
             <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr 1fr 90px 80px", background: "#0C4A6E", padding: "8px 12px", gap: "10px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr 1fr 90px 120px", background: "#0C4A6E", padding: "8px 12px", gap: "10px" }}>
                 {["Fecha", "Colaborador", "Periodo", "Score", ""].map((h) => (
                   <span key={h} style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{h}</span>
                 ))}
@@ -756,7 +782,7 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
                   <div
                     key={e.id}
                     style={{
-                      display: "grid", gridTemplateColumns: "130px 1fr 1fr 90px 80px",
+                      display: "grid", gridTemplateColumns: "130px 1fr 1fr 90px 120px",
                       gap: "10px", padding: "9px 12px", alignItems: "center",
                       background: isActive ? "#EFF6FF" : i % 2 === 0 ? "white" : "#F8FAFF",
                       borderTop: "1px solid #E2E8F0",
@@ -768,18 +794,29 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
                     <span style={{ fontSize: "12px", fontWeight: 800, color: esem.color }}>
                       {e.score_total != null ? `${Math.round(Number(e.score_total))}%` : "—"}
                     </span>
-                    <button
-                      onClick={() => cargarEval(e)}
-                      style={{
-                        fontSize: "12px", fontWeight: 700,
-                        color: isActive ? "#1D4ED8" : "#0EA5E9",
-                        background: isActive ? "#DBEAFE" : "#F0F9FF",
-                        border: `1px solid ${isActive ? "#93C5FD" : "#BAE6FD"}`,
-                        borderRadius: "6px", padding: "4px 10px", cursor: "pointer",
-                      }}
-                    >
-                      {isActive ? "Activa" : "Cargar"}
-                    </button>
+                    {isActive ? (
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#1D4ED8", background: "#DBEAFE", border: "1px solid #93C5FD", borderRadius: "6px", padding: "4px 10px" }}>
+                        Activa
+                      </span>
+                    ) : (
+                      <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                        <button
+                          onClick={() => cargarEval(e)}
+                          style={{ fontSize: "12px", fontWeight: 700, color: "#0EA5E9", background: "#F0F9FF", border: "1px solid #BAE6FD", borderRadius: "6px", padding: "4px 10px", cursor: "pointer" }}
+                        >
+                          Cargar
+                        </button>
+                        {canDelete && (
+                          <button
+                            onClick={() => setDeleteTarget({ id: e.id, nombre: (e.nombre_evaluado as string) || "—", fecha: fmtDate(e.fecha_evaluacion as string) })}
+                            title="Eliminar evaluación"
+                            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px 6px", borderRadius: "6px", border: "1px solid #FCA5A5", background: "#FEF2F2", color: "#DC2626", cursor: "pointer" }}
+                          >
+                            <Trash2 style={{ width: "13px", height: "13px" }} />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1001,6 +1038,26 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
         </FormSection>
 
       </div>
+
+      {deleteTarget && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: "14px", padding: "28px 32px", maxWidth: "420px", width: "100%", margin: "0 16px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, color: "#1E293B", marginBottom: "10px" }}>¿Eliminar evaluación?</div>
+            <div style={{ fontSize: "14px", color: "#64748B", marginBottom: "24px", lineHeight: 1.6 }}>
+              <strong>{deleteTarget.nombre}</strong> — {deleteTarget.fecha}<br />
+              Esta acción no se puede deshacer.
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={() => setDeleteTarget(null)} disabled={deleting} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid #E2E8F0", background: "white", color: "#64748B", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+                Cancelar
+              </button>
+              <button onClick={() => eliminarEval(deleteTarget.id)} disabled={deleting} style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", fontSize: "13px", fontWeight: 700, cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.7 : 1 }}>
+                {deleting ? "Eliminando…" : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
