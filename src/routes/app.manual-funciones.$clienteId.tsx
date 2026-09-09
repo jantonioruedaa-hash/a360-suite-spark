@@ -692,12 +692,8 @@ function ManualFuncionesViewer() {
     return <ClienteManualHero clienteId={clienteId} onAbrir={() => navigate({ to: "/app/manual-funciones/$clienteId", params: { clienteId }, search: { v: "open" } })} />;
   }
 
-  // ── Client: Landing → AreaCargosView → CargoFichaOverlay ────────────────────
-  // TEMP: localStorage flag allows non-client users to preview the React experience
-  // Remove `previewReact` and the `|| previewReact` below when rolling out to everyone.
-  const previewReact = typeof window !== "undefined" && localStorage.getItem("mf_react") === "1";
-  if (esCliente || previewReact) {
-    return (
+  // ── Landing → AreaCargosView → CargoFichaOverlay (all users) ───────────────
+  return (
       <>
         {/* Eval iframe — always mounted but invisible; z-50 only during eval sessions */}
         <iframe
@@ -761,7 +757,6 @@ function ManualFuncionesViewer() {
         )}
       </>
     );
-  }
 
   // ── Non-client: inline HTML editor (sidebar siempre visible) ──────────────
   return (
@@ -812,7 +807,7 @@ function ManualFuncionesViewer() {
     </div>
     {evalDesempCargoId && (
       <EvalDesempCargoLoader
-        cargoId={evalDesempCargoId}
+        cargoId={evalDesempCargoId!}
         userRolEmpresa={null}
         onClose={() => setEvalDesempCargoId(null)}
         empresaNombre={clienteNombre.current}
@@ -820,7 +815,7 @@ function ManualFuncionesViewer() {
     )}
     {evalCompCargoId && (
       <EvalCompCargoLoader
-        cargoId={evalCompCargoId}
+        cargoId={evalCompCargoId!}
         userRolEmpresa={null}
         onClose={() => setEvalCompCargoId(null)}
         empresaNombre={clienteNombre.current}
