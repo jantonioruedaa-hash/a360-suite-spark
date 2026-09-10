@@ -4,7 +4,7 @@ import { ArrowLeft, Check, Plus, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import type {
-  Cargo, CompScore, EvalDesempForm, KpiScore, ObjetivoRow, PlanMejoraRow,
+  Cargo, CompScore, EvalDesempForm, FirmasEval, KpiScore, ObjetivoRow, PlanMejoraRow,
 } from "@/types/manual-funciones";
 import { CONDUCTUALES_FIJAS, EVAL_DESEMP_BLANK } from "@/types/manual-funciones";
 import {
@@ -79,6 +79,12 @@ function fmtDate(iso: string | null | undefined) {
 
 function parseRow(row: Record<string, unknown>): EvalDesempForm {
   const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+  const frs = row.firmas as FirmasEval | null;
+  const legacyFirmas: FirmasEval = {
+    n0: "", c0: "", f0: "",
+    n1: "", c1: "", f1: "",
+    n2: (row.firma_rrhh as string) ?? "", c2: "", f2: (row.fecha_firma as string) ?? "",
+  };
   return {
     nombre_evaluado:       (row.nombre_evaluado as string)       ?? "",
     evaluador:             (row.evaluador as string)             ?? "",
@@ -94,6 +100,7 @@ function parseRow(row: Record<string, unknown>): EvalDesempForm {
     plan_mejora:           arr<PlanMejoraRow>(row.plan_mejora),
     firma_rrhh:            (row.firma_rrhh as string)            ?? "",
     fecha_firma:           (row.fecha_firma as string)           ?? "",
+    firmas:                frs ?? legacyFirmas,
   };
 }
 
@@ -246,6 +253,40 @@ function FixedScoreRow({ nombre, calificacion, observacion, tipo, onCalChange, o
         style={{ ...INPUT, fontSize: "13px" }}
         placeholder="Observación…"
       />
+    </div>
+  );
+}
+
+// ── FirmasPanel ────────────────────────────────────────────────────────────────
+
+function FirmasPanel({
+  firmas, onChange,
+}: {
+  firmas: FirmasEval;
+  onChange: (f: FirmasEval) => void;
+}) {
+  const set = (k: keyof FirmasEval, v: string) => onChange({ ...firmas, [k]: v });
+  const firmantes: Array<{ label: string; n: keyof FirmasEval; c: keyof FirmasEval; f: keyof FirmasEval }> = [
+    { label: "Firmante 1 — Colaborador",      n: "n0", c: "c0", f: "f0" },
+    { label: "Firmante 2 — Evaluador / Jefe", n: "n1", c: "c1", f: "f1" },
+    { label: "Firmante 3 — RRHH",             n: "n2", c: "c2", f: "f2" },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+      {firmantes.map(({ label, n, c, f }) => (
+        <div key={String(n)} style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "14px", border: "1.5px solid #E2E8F0", borderRadius: "10px", background: "#FAFBFF" }}>
+          <div style={{ fontSize: "11px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</div>
+          <Field label="Nombre completo">
+            <input value={firmas[n]} onChange={(e) => set(n, e.target.value)} style={INPUT} placeholder="Nombre…" />
+          </Field>
+          <Field label="Cargo / Función">
+            <input value={firmas[c]} onChange={(e) => set(c, e.target.value)} style={INPUT} placeholder="Cargo…" />
+          </Field>
+          <Field label="Fecha">
+            <input type="date" value={firmas[f]} onChange={(e) => set(f, e.target.value)} style={INPUT} />
+          </Field>
+        </div>
+      ))}
     </div>
   );
 }
@@ -453,16 +494,22 @@ function buildEvalDesempHTML(
         ).join("")}</tbody>
       </table>`;
 
-  // 9. Firma RRHH
-  const firmaBlock = `<div style="display:grid;grid-template-columns:1fr 200px;gap:20px;align-items:end">
-    <div style="text-align:center">
-      <div style="height:48px;border-bottom:2px solid #0C4A6E;margin-bottom:7px"></div>
-      <div style="font-size:9px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Firma RRHH</div>
-      ${form.firma_rrhh ? `<div style="font-size:12px;font-weight:700;color:#0C4A6E;margin-top:3px">${esc(form.firma_rrhh)}</div>` : ""}
-    </div>
-    ${form.fecha_firma
-      ? `<div class="pair"><div class="pl">Fecha de firma</div><div class="pv">${fmtD(form.fecha_firma)}</div></div>`
-      : ""}
+  // 9. Firmas
+  const firmaBlock = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+    ${([
+      { label: "Firmante 1 — Colaborador",      n: form.firmas.n0, c: form.firmas.c0, f: form.firmas.f0 },
+      { label: "Firmante 2 — Evaluador / Jefe", n: form.firmas.n1, c: form.firmas.c1, f: form.firmas.f1 },
+      { label: "Firmante 3 — RRHH",             n: form.firmas.n2, c: form.firmas.c2, f: form.firmas.f2 },
+    ]).map(({ label, n, c, f }) =>
+      `<div style="text-align:center;padding:14px;border:1.5px solid #E2E8F0;border-radius:10px;background:#FAFBFF">
+        <div style="font-size:9px;font-weight:800;color:#0C4A6E;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">${label}</div>
+        <div style="height:44px;border-bottom:2px solid #0C4A6E;margin-bottom:7px"></div>
+        <div style="font-size:9px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Firma</div>
+        ${n ? `<div style="font-size:12px;font-weight:700;color:#0C4A6E;margin-top:4px">${esc(n)}</div>` : ""}
+        ${c ? `<div style="font-size:11px;color:#64748B;margin-top:2px">${esc(c)}</div>` : ""}
+        ${f ? `<div style="font-size:11px;color:#94A3B8;margin-top:2px">${fmtD(f)}</div>` : ""}
+      </div>`
+    ).join("")}
   </div>`;
 
   const n = hasScore; // afecta numeración de secciones 6-9
@@ -525,7 +572,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
   ${n ? sec("6. Resultados", resultadosBlock) : ""}
   ${sec(`${n ? "7" : "6"}. Observaciones`, obsBlock)}
   ${sec(`${n ? "8" : "7"}. Plan de mejora`, planBlock)}
-  ${sec(`${n ? "9" : "8"}. Firma RRHH`, firmaBlock)}
+  ${sec(`${n ? "9" : "8"}. Firmas`, firmaBlock)}
   <div class="footer">Generado el ${fecha}${empresaNombre ? ` · ${esc(empresaNombre)}` : ""}</div>
 </div>
 </body></html>`;
@@ -634,8 +681,7 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
       observacion_evaluador: form.observacion_evaluador || null,
       observacion_rrhh:      form.observacion_rrhh      || null,
       plan_mejora:           form.plan_mejora,
-      firma_rrhh:            form.firma_rrhh            || null,
-      fecha_firma:           form.fecha_firma           || null,
+      firmas:                form.firmas,
       score_total:           Math.round(scores.total * 100) / 100,
       semaforo:              sem.label,
     };
@@ -1025,16 +1071,9 @@ export function EvalDesempPanel({ cargo, userRolEmpresa, onClose, empresaNombre 
           />
         </FormSection>
 
-        {/* Firma RRHH */}
-        <FormSection title="Firma RRHH" defaultOpen={false}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: "12px" }}>
-            <Field label="Nombre / Firma RRHH">
-              <input value={f.firma_rrhh} onChange={(e) => setF("firma_rrhh", e.target.value)} style={INPUT} placeholder="Nombre completo" />
-            </Field>
-            <Field label="Fecha de firma">
-              <input type="date" value={f.fecha_firma} onChange={(e) => setF("fecha_firma", e.target.value)} style={INPUT} />
-            </Field>
-          </div>
+        {/* Firmas */}
+        <FormSection title="Firmas" defaultOpen={false}>
+          <FirmasPanel firmas={f.firmas} onChange={(frs) => setF("firmas", frs)} />
         </FormSection>
 
       </div>
