@@ -81,9 +81,13 @@ const SECTION_ICONS: Record<string, string> = {
   "KPIs":                  "📊",
   "Relaciones":            "🤝",
   "Condiciones laborales": "🏢",
-  "Plan de carrera":       "🚀",
-  "Firmas":                "✍️",
+  "Plan de carrera":         "🚀",
+  "Aceptación de Funciones": "📋",
+  "Firmas":                  "✍️",
 };
+
+const ACEPTACION_DEFAULT =
+  "El/la colaborador(a) que suscribe declara haber recibido, leído y comprendido el presente Manual de Funciones correspondiente a su cargo, y acepta las responsabilidades, funciones y condiciones descritas en este documento como parte inherente de su relación laboral con la empresa. Asimismo, reconoce que podrá ser requerido(a) para ejecutar actividades adicionales acordes a su perfil y cargo que el buen funcionamiento, operación y crecimiento de la organización demanden, siempre dentro de un marco de razonabilidad y compatibilidad con sus competencias profesionales.";
 
 function SecBlock({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
   const icon = SECTION_ICONS[title];
@@ -537,6 +541,39 @@ function SecPlanCarrera({ cargo, onChange }: SecProps) {
   );
 }
 
+function SecAceptacion({ cargo, onChange }: SecProps) {
+  const texto = cargo.aceptacion_texto ?? ACEPTACION_DEFAULT;
+  const boxes = [
+    { line: "Nombre completo", value: cargo.aceptacion_nombre ?? "", onEdit: (v: string) => onChange({ aceptacion_nombre: v || null }) },
+    { line: "Cargo",           value: cargo.aceptacion_cargo  ?? "", onEdit: (v: string) => onChange({ aceptacion_cargo:  v || null }) },
+    { line: "Fecha",           value: cargo.aceptacion_fecha  ?? "", onEdit: (v: string) => onChange({ aceptacion_fecha:  v || null }) },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <textarea
+        style={{ ...TEXTAREA_BASE, minHeight: "100px", fontSize: "13px", color: "#334155", lineHeight: 1.7 }}
+        value={texto}
+        onChange={(e) => onChange({ aceptacion_texto: e.target.value || null })}
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+        {boxes.map((b) => (
+          <div key={b.line} style={{ textAlign: "center", padding: "20px 16px", background: "white", borderRadius: "10px", border: "1px solid #E2E8F0" }}>
+            <div style={{ height: "60px" }} />
+            <div style={{ borderTop: "2px solid #0C4A6E", paddingTop: "10px", fontSize: "10px", color: "#94A3B8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {b.line}
+            </div>
+            <input
+              style={{ ...INPUT_BASE, fontSize: "13px", fontWeight: 700, color: "#0C4A6E", textAlign: "center", marginTop: "5px" }}
+              value={b.value}
+              onChange={(e) => b.onEdit(e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SecFirmas({ cargo, onChange }: SecProps) {
   const boxes = [
     {
@@ -687,7 +724,19 @@ function buildCargoHTML(cargo: Cargo, areaName: string, empresaNombre: string, d
     ? `<p class="tb">${esc(cargo.plan_carrera)}</p>`
     : `<p class="empty">Sin plan de carrera definido.</p>`;
 
-  // 9. Firmas
+  // 9. Aceptación de Funciones
+  const aceptTexto = cargo.aceptacion_texto ?? ACEPTACION_DEFAULT;
+  const aceptBoxes = [
+    { label: "Nombre completo", val: cargo.aceptacion_nombre ?? "" },
+    { label: "Cargo",           val: cargo.aceptacion_cargo  ?? "" },
+    { label: "Fecha",           val: cargo.aceptacion_fecha  ?? "" },
+  ].map(({ label, val }) =>
+    `<div class="fbox"><div class="fline"></div><div class="flabel">${esc(label)}</div>` +
+    (val ? `<div class="fname">${esc(val)}</div>` : "") + `</div>`
+  ).join("");
+  const aceptacion = `<p class="tb" style="margin-bottom:16px">${esc(aceptTexto)}</p><div class="fgrid">${aceptBoxes}</div>`;
+
+  // 10. Firmas
   const firmaBoxes = [
     { label: "Elaborado por", val: cargo.elaborado_por ?? "" },
     { label: "Revisado por",  val: cargo.revisado_por ?? "" },
@@ -774,7 +823,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
   ${sec("6. Relaciones", relaciones)}
   ${sec("7. Condiciones laborales", condiciones)}
   ${sec("8. Plan de carrera", planCarrera)}
-  ${sec("9. Firmas", firmas)}
+  ${sec("9. Aceptación de Funciones", aceptacion)}
+  ${sec("10. Firmas", firmas)}
   <div class="footer">Generado el ${fecha}${empresaNombre ? ` · ${esc(empresaNombre)}` : ""}</div>
 </div>
 </body></html>`;
@@ -1477,8 +1527,9 @@ export function CargoFichaOverlay({ clienteId, cargoId, areaName, colorIdx, canM
             <SecBlock title="KPIs"                  accent={dot}><SecKpis           cargo={localCargo} onChange={handleChange} accent={dot} /></SecBlock>
             <SecBlock title="Relaciones"            accent={dot}><SecRelaciones     cargo={localCargo} onChange={handleChange} /></SecBlock>
             <SecBlock title="Condiciones laborales" accent={dot}><SecCondiciones    cargo={localCargo} onChange={handleChange} /></SecBlock>
-            <SecBlock title="Plan de carrera"       accent={dot}><SecPlanCarrera    cargo={localCargo} onChange={handleChange} /></SecBlock>
-            <SecBlock title="Firmas"                accent={dot}><SecFirmas         cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Plan de carrera"         accent={dot}><SecPlanCarrera    cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Aceptación de Funciones" accent={dot}><SecAceptacion   cargo={localCargo} onChange={handleChange} /></SecBlock>
+            <SecBlock title="Firmas"                  accent={dot}><SecFirmas        cargo={localCargo} onChange={handleChange} /></SecBlock>
           </>
         )}
       </div>

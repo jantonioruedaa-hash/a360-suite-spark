@@ -140,6 +140,7 @@ export type EvalDesempForm = {
   plan_mejora: PlanMejoraRow[];
   firma_rrhh: string;
   fecha_firma: string;
+  firmas: FirmasEval;
 };
 
 export const EVAL_DESEMP_BLANK: EvalDesempForm = {
@@ -153,6 +154,7 @@ export const EVAL_DESEMP_BLANK: EvalDesempForm = {
   observacion_evaluado: "", observacion_evaluador: "", observacion_rrhh: "",
   plan_mejora: [],
   firma_rrhh: "", fecha_firma: "",
+  firmas: { n0: "", c0: "", f0: "", n1: "", c1: "", f1: "", n2: "", c2: "", f2: "" },
 };
 
 // ── Cargo ─────────────────────────────────────────────────────────────────────
@@ -186,6 +188,10 @@ export type Cargo = {
   relaciones_externas: string[];
   requisitos: Record<string, string> | null;
   resultados_esperados: unknown[];
+  aceptacion_texto:  string | null;
+  aceptacion_nombre: string | null;
+  aceptacion_cargo:  string | null;
+  aceptacion_fecha:  string | null;
 };
 
 export type FormDatos = Omit<Cargo, "id" | "supervisa_a" | "requisitos">;
@@ -199,4 +205,5 @@ export const FORM_BLANK: FormDatos = {
   plan_carrera: "",
   relaciones_internas: [], relaciones_externas: [],
   condiciones: {}, resultados_esperados: [],
+  aceptacion_texto: null, aceptacion_nombre: null, aceptacion_cargo: null, aceptacion_fecha: null,
 };
