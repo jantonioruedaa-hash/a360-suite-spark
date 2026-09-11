@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save, Copy, Printer } from "lucide-react";
+import { ArrowLeft, X, Loader2, Plus, Trash2, Check, Save, Copy, Printer, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Cargo, Funcion, Competencia } from "@/types/manual-funciones";
@@ -10,9 +10,11 @@ import { EvalDesempPanel } from "./EvalDesempPanel";
 import { EvalCompPanel } from "./EvalCompPanel";
 
 
-// KPI type extended with optional formula (not in base Cargo KPI type)
 type KpiRow = { nombre: string; meta: string; frecuencia: string; formula: string };
 type AreaOption = { id: string; nombre: string };
+
+// --aurora-navy token (#0C4A6E) — used in React via CSS var, in PDF generator via this constant
+const AURORA_NAVY = "#0C4A6E";
 
 // ── Display helpers ────────────────────────────────────────────────────────────
 
@@ -40,9 +42,10 @@ const CONDICIONES_LABELS: Record<string, string> = {
   modalidad: "Modalidad de trabajo",
   viajes:    "Viajes",
   esfuerzo:  "Esfuerzo / Demanda",
+  riesgos:   "Riesgos laborales",
 };
 
-const CONDICIONES_ORDER = ["horario", "modalidad", "viajes", "esfuerzo"] as const;
+const CONDICIONES_ORDER = ["horario", "modalidad", "viajes", "esfuerzo", "riesgos"] as const;
 
 // ── Shared edit-input styles ───────────────────────────────────────────────────
 
@@ -90,13 +93,13 @@ const ACEPTACION_DEFAULT =
   "El/la colaborador(a) que suscribe declara haber recibido, leído y comprendido el presente Manual de Funciones correspondiente a su cargo, y acepta las responsabilidades, funciones y condiciones descritas en este documento como parte inherente de su relación laboral con la empresa. Asimismo, reconoce que podrá ser requerido(a) para ejecutar actividades adicionales acordes a su perfil y cargo que el buen funcionamiento, operación y crecimiento de la organización demanden, siempre dentro de un marco de razonabilidad y compatibilidad con sus competencias profesionales.";
 
 function SecBlock({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  void accent;
   const icon = SECTION_ICONS[title];
   return (
     <section style={{ marginBottom: "20px", borderRadius: "12px", overflow: "hidden", border: "1.5px solid #E8EDF2" }}>
-      <div style={{ height: "3px", background: accent }} />
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px 20px", background: "#F8FAFC", borderBottom: "1px solid #EEF2F7" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--aurora-navy)" }}>
         {icon && <span style={{ fontSize: "14px", lineHeight: 1 }}>{icon}</span>}
-        <h3 style={{ fontSize: "11px", fontWeight: 800, color: "#0C4A6E", textTransform: "uppercase", letterSpacing: "0.14em", margin: 0 }}>
+        <h3 style={{ fontSize: "11px", fontWeight: 800, color: "white", textTransform: "uppercase", letterSpacing: "0.14em", margin: 0 }}>
           {title}
         </h3>
       </div>
@@ -260,6 +263,9 @@ const onAutoInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
 function SecFunciones({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const funciones = cargo.funciones ?? [];
   const containerRef = useRef<HTMLDivElement>(null);
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
+  const dragSrcRef = useRef<number | null>(null);
+  const dragDstRef = useRef<number | null>(null);
 
   useEffect(() => {
     containerRef.current?.querySelectorAll("textarea").forEach((el) => {
@@ -272,53 +278,111 @@ function SecFunciones({ cargo, onChange, accent }: SecProps & { accent: string }
     onChange({ funciones: funciones.map((f, idx) => idx === i ? { ...f, ...patch } : f) });
   };
 
+  const totalPct = funciones.reduce((s, f) => s + (f.porcentaje_tiempo || 0), 0);
+
+  const handleDragStart = (e: React.DragEvent, i: number) => {
+    e.dataTransfer.setData("text/plain", String(i));
+    dragSrcRef.current = i;
+  };
+  const handleDragOver  = (e: React.DragEvent, i: number) => { e.preventDefault(); dragDstRef.current = i; };
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const src = dragSrcRef.current;
+    const dst = dragDstRef.current;
+    dragSrcRef.current = null; dragDstRef.current = null;
+    if (src === null || dst === null || src === dst) return;
+    const reordered = [...funciones];
+    const [moved] = reordered.splice(src, 1);
+    reordered.splice(dst, 0, moved);
+    onChange({ funciones: reordered });
+  };
+
   return (
-    <div ref={containerRef} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {funciones.length === 0 && <SectionEmpty label="Sin funciones — agrega la primera." />}
-      {funciones.map((f, i) => (
-        <div key={i} style={{
-          display: "flex", alignItems: "flex-start", gap: "8px",
-          padding: "8px 12px", background: "#F8FAFC",
-          borderRadius: "8px", border: "1px solid #E2E8F0",
-        }}>
-          <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: "white", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "2px" }}>{i + 1}</div>
-          <textarea
-            rows={2}
-            style={{ ...INPUT_BASE, flex: 1, resize: "none", overflow: "hidden" }}
-            value={f.descripcion}
-            placeholder="Descripción de la función…"
-            onChange={(e) => update(i, { descripcion: e.target.value })}
-            onInput={onAutoInput}
-          />
-          <input
-            type="number"
-            min={0} max={100}
-            style={{ ...INPUT_BASE, width: "50px", textAlign: "right" }}
-            value={f.porcentaje_tiempo || ""}
-            placeholder="%"
-            onChange={(e) => update(i, { porcentaje_tiempo: Number(e.target.value) })}
-          />
-          <span style={{ fontSize: "11px", color: "#94A3B8", flexShrink: 0 }}>%</span>
-          <DelBtn onClick={() => onChange({ funciones: funciones.filter((_, idx) => idx !== i) })} />
+    <div ref={containerRef}>
+      {pendingDelete !== null && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: "12px", padding: "24px 28px", maxWidth: "400px", width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, color: "#1E293B", marginBottom: "10px" }}>¿Eliminar función?</div>
+            <p style={{ fontSize: "13px", color: "#64748B", marginBottom: "20px" }}>Esta acción no se puede deshacer.</p>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => setPendingDelete(null)} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid #E2E8F0", background: "white", color: "#64748B", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>Cancelar</button>
+              <button
+                onClick={() => { onChange({ funciones: funciones.filter((_, idx) => idx !== pendingDelete) }); setPendingDelete(null); }}
+                style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}
+              >Eliminar</button>
+            </div>
+          </div>
         </div>
-      ))}
+      )}
+      {funciones.length === 0 && <SectionEmpty label="Sin funciones — agrega la primera." />}
+      {funciones.length > 0 && totalPct !== 100 && (
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "8px", background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: "6px", padding: "4px 10px", fontSize: "12px", color: "#92400E" }}>
+          ⚠ Suma %T.: {totalPct}% — debería ser 100%
+        </div>
+      )}
+      {funciones.length > 0 && (
+        <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "8px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "20px 28px 1fr 90px 32px", background: "var(--aurora-navy)", padding: "8px 12px", gap: "10px" }}>
+            {(["", "#", "Función", "%T.", ""] as const).map((h, idx) => (
+              <span key={idx} style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{h}</span>
+            ))}
+          </div>
+          {funciones.map((f, i) => (
+            <div
+              key={i}
+              onDragOver={(e) => handleDragOver(e, i)}
+              onDrop={handleDrop}
+              style={{
+                display: "grid", gridTemplateColumns: "20px 28px 1fr 90px 32px",
+                gap: "10px", padding: "8px 12px", alignItems: "center",
+                background: i % 2 === 0 ? "white" : "#F8FAFF",
+                borderTop: "1px solid #E2E8F0",
+              }}
+            >
+              <div
+                draggable
+                onDragStart={(e) => handleDragStart(e, i)}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#CBD5E1", cursor: "grab" }}
+              >
+                <GripVertical style={{ width: "13px", height: "13px" }} />
+              </div>
+              <span style={{ fontSize: "11px", fontWeight: 800, color: accent, textAlign: "center" }}>{i + 1}</span>
+              <textarea
+                rows={1}
+                style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }}
+                value={f.descripcion}
+                placeholder="Descripción de la función…"
+                onChange={(e) => update(i, { descripcion: e.target.value })}
+                onInput={onAutoInput}
+              />
+              <input
+                type="number" min={0} max={100}
+                style={{ ...INPUT_BASE, textAlign: "right" }}
+                value={f.porcentaje_tiempo || ""}
+                placeholder="0"
+                onChange={(e) => update(i, { porcentaje_tiempo: Number(e.target.value) })}
+              />
+              <DelBtn onClick={() => setPendingDelete(i)} />
+            </div>
+          ))}
+        </div>
+      )}
       <AddBtn label="Agregar función" onClick={() => onChange({ funciones: [...funciones, { descripcion: "", porcentaje_tiempo: 0 }] })} />
     </div>
   );
 }
 
-function SecCompetencias({ cargo, onChange, accent }: SecProps & { accent: string }) {
-  const blandas  = cargo.competencias_blandas ?? [];
-  const tecnicas = cargo.competencias_tecnicas ?? [];
-
-  const CompList = ({
-    items, title, field, icon,
-  }: {
-    items: Competencia[];
-    title: string;
-    field: "competencias_blandas" | "competencias_tecnicas";
-    icon: string;
-  }) => (
+function CompList({
+  items, title, field, icon, accent, onChange,
+}: {
+  items: Competencia[];
+  title: string;
+  field: "competencias_blandas" | "competencias_tecnicas";
+  icon: string;
+  accent: string;
+  onChange: (u: Partial<Cargo>) => void;
+}) {
+  return (
     <div>
       <SectionTitle>{title}</SectionTitle>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -361,11 +425,16 @@ function SecCompetencias({ cargo, onChange, accent }: SecProps & { accent: strin
       </div>
     </div>
   );
+}
+
+function SecCompetencias({ cargo, onChange, accent }: SecProps & { accent: string }) {
+  const blandas  = cargo.competencias_blandas ?? [];
+  const tecnicas = cargo.competencias_tecnicas ?? [];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <CompList items={blandas}  title="Competencias blandas"   field="competencias_blandas" icon="🤝" />
-      <CompList items={tecnicas} title="Competencias técnicas"  field="competencias_tecnicas" icon="⚙️" />
+      <CompList items={blandas}  title="Competencias blandas"   field="competencias_blandas" icon="🤝" accent={accent} onChange={onChange} />
+      <CompList items={tecnicas} title="Competencias técnicas"  field="competencias_tecnicas" icon="⚙️" accent={accent} onChange={onChange} />
     </div>
   );
 }
@@ -373,6 +442,7 @@ function SecCompetencias({ cargo, onChange, accent }: SecProps & { accent: strin
 function SecKpis({ cargo, onChange, accent }: SecProps & { accent: string }) {
   const kpis = (cargo.kpis ?? []) as KpiRow[];
   const containerRef = useRef<HTMLDivElement>(null);
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
 
   useEffect(() => {
     containerRef.current?.querySelectorAll("textarea").forEach((el) => {
@@ -386,31 +456,64 @@ function SecKpis({ cargo, onChange, accent }: SecProps & { accent: string }) {
   };
 
   return (
-    <div ref={containerRef} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {kpis.length === 0 && <SectionEmpty label="Sin KPIs — agrega el primero." />}
-      {kpis.map((k, i) => (
-        <div key={i} style={{
-          display: "grid", gridTemplateColumns: "28px 2fr 1fr 1fr 1fr auto",
-          alignItems: "flex-start", gap: "8px",
-          padding: "8px 12px", background: "#F8FAFC",
-          borderRadius: "8px", border: "1px solid #E2E8F0",
-        }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-            background: `${accent}18`, color: accent,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "15px", marginTop: "2px" }}>📊</div>
-          <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }} value={k.nombre} placeholder="Indicador…" onChange={(e) => update(i, { nombre: e.target.value })} onInput={onAutoInput} />
-          <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }} value={k.meta}   placeholder="Meta…"      onChange={(e) => update(i, { meta: e.target.value })}   onInput={onAutoInput} />
-          <input style={INPUT_BASE} value={k.frecuencia} placeholder="Frecuencia…" onChange={(e) => update(i, { frecuencia: e.target.value })} />
-          <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden" }} value={k.formula ?? ""} placeholder="Fórmula…" onChange={(e) => update(i, { formula: e.target.value })} onInput={onAutoInput} />
-          <DelBtn onClick={() => onChange({ kpis: kpis.filter((_, idx) => idx !== i) as typeof cargo.kpis })} />
+    <div ref={containerRef}>
+      {pendingDelete !== null && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: "12px", padding: "24px 28px", maxWidth: "400px", width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: "17px", fontWeight: 800, color: "#1E293B", marginBottom: "10px" }}>¿Eliminar KPI?</div>
+            <p style={{ fontSize: "13px", color: "#64748B", marginBottom: "20px" }}>Esta acción no se puede deshacer.</p>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => setPendingDelete(null)} style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid #E2E8F0", background: "white", color: "#64748B", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>Cancelar</button>
+              <button
+                onClick={() => { onChange({ kpis: kpis.filter((_, idx) => idx !== pendingDelete) as typeof cargo.kpis }); setPendingDelete(null); }}
+                style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "#DC2626", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}
+              >Eliminar</button>
+            </div>
+          </div>
         </div>
-      ))}
-      {kpis.length === 0 || (
-        <div style={{ display: "grid", gridTemplateColumns: "28px 2fr 1fr 1fr 1fr auto", gap: "8px", paddingLeft: "12px" }}>
-          {["", "Indicador", "Meta", "Frecuencia", "Fórmula", ""].map((h) => (
-            <span key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#CBD5E1", textTransform: "uppercase" }}>{h}</span>
-          ))}
+      )}
+      {kpis.length === 0 && <SectionEmpty label="Sin KPIs — agrega el primero." />}
+      {kpis.length > 0 && (
+        <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "8px" }}>
+          <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+            <colgroup>
+              <col style={{ width: "32px" }} />
+              <col style={{ width: "28%" }} />
+              <col style={{ width: "26%" }} />
+              <col style={{ width: "20%" }} />
+              <col />
+              <col style={{ width: "36px" }} />
+            </colgroup>
+            <thead>
+              <tr style={{ background: "var(--aurora-navy)" }}>
+                {(["#", "Indicador", "Fórmula", "Meta", "Frecuencia", ""] as const).map((h, idx) => (
+                  <th key={idx} style={{ padding: "8px 10px", fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "left" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {kpis.map((k, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? "white" : "#F8FAFF", borderTop: "1px solid #E2E8F0" }}>
+                  <td style={{ padding: "8px 10px", textAlign: "center", fontSize: "11px", fontWeight: 800, color: accent }}>{i + 1}</td>
+                  <td style={{ padding: "6px 10px", verticalAlign: "top" }}>
+                    <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden", width: "100%" }} value={k.nombre} placeholder="Indicador…" onChange={(e) => update(i, { nombre: e.target.value })} onInput={onAutoInput} />
+                  </td>
+                  <td style={{ padding: "6px 10px", verticalAlign: "top", background: i % 2 === 0 ? "#F0FFF4" : "#E8FEF0" }}>
+                    <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden", width: "100%", fontFamily: "ui-monospace, 'Cascadia Code', monospace", fontSize: "12px", background: "transparent" }} value={k.formula ?? ""} placeholder="a / b × 100…" onChange={(e) => update(i, { formula: e.target.value })} onInput={onAutoInput} />
+                  </td>
+                  <td style={{ padding: "6px 10px", verticalAlign: "top" }}>
+                    <textarea rows={1} style={{ ...INPUT_BASE, resize: "none", overflow: "hidden", width: "100%" }} value={k.meta} placeholder="Meta…" onChange={(e) => update(i, { meta: e.target.value })} onInput={onAutoInput} />
+                  </td>
+                  <td style={{ padding: "6px 10px", verticalAlign: "top" }}>
+                    <input style={{ ...INPUT_BASE, width: "100%" }} value={k.frecuencia} placeholder="Frecuencia…" onChange={(e) => update(i, { frecuencia: e.target.value })} />
+                  </td>
+                  <td style={{ padding: "6px 10px", textAlign: "center", verticalAlign: "middle" }}>
+                    <DelBtn onClick={() => setPendingDelete(i)} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
       <AddBtn label="Agregar KPI" onClick={() => onChange({ kpis: [...kpis, { nombre: "", meta: "", frecuencia: "", formula: "" }] as typeof cargo.kpis })} />
@@ -436,30 +539,27 @@ function TagListEditor({
 
   return (
     <div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "6px" }}>
-        {items.map((item, i) => (
-          <span key={i} style={{
-            display: "inline-flex", alignItems: "center", gap: "4px",
-            fontSize: "12px", padding: "3px 10px 3px 10px",
-            borderRadius: "20px", background: "#F1F5F9", border: "1px solid #E2E8F0", color: "#334155",
-          }}>
-            {item}
-            <button
-              onClick={() => onChangeItems(items.filter((_, idx) => idx !== i))}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#CBD5E1", lineHeight: 1, padding: 0 }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#EF4444"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#CBD5E1"; }}
-            >×</button>
-          </span>
-        ))}
-      </div>
+      {items.length > 0 && (
+        <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #E2E8F0", marginBottom: "8px" }}>
+          {items.map((item, i) => (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              padding: "7px 12px",
+              background: i % 2 === 0 ? "white" : "#F8FAFF",
+              borderTop: i === 0 ? "none" : "1px solid #E2E8F0",
+            }}>
+              <span style={{ flex: 1, fontSize: "13px", color: "#334155" }}>{item}</span>
+              <DelBtn onClick={() => onChangeItems(items.filter((_, idx) => idx !== i))} />
+            </div>
+          ))}
+        </div>
+      )}
       <div style={{ display: "flex", gap: "6px" }}>
         <input
           style={{ ...INPUT_BASE, flex: 1 }}
           value={draft}
           placeholder={placeholder}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => { if (draft.trim()) add(); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
         <button
@@ -667,12 +767,12 @@ function buildCargoHTML(cargo: Cargo, areaName: string, empresaNombre: string, d
   // 3. Funciones
   const funciones = !(cargo.funciones ?? []).length
     ? `<p class="empty">Sin funciones definidas.</p>`
-    : (cargo.funciones ?? []).map((f, i) =>
-        `<div class="frow"><span class="num" style="background:${dot}">${i + 1}</span>` +
-        `<span class="fdesc">${esc(f.descripcion)}</span>` +
-        (f.porcentaje_tiempo ? `<span class="pct">${f.porcentaje_tiempo}%</span>` : "") +
-        `</div>`
-      ).join("");
+    : `<table class="ftable"><thead><tr><th style="width:36px">Nº</th><th>Función</th><th style="width:56px">%T.</th></tr></thead><tbody>` +
+      (cargo.funciones ?? []).map((f, i) =>
+        `<tr><td style="text-align:center;font-weight:800;color:${dot}">${i + 1}</td>` +
+        `<td>${esc(f.descripcion)}</td>` +
+        `<td style="text-align:right;color:#64748B">${f.porcentaje_tiempo ? `${f.porcentaje_tiempo}%` : "—"}</td></tr>`
+      ).join("") + `</tbody></table>`;
 
   // 4. Competencias
   const NIVEL_STYLE: Record<string, string> = {
@@ -695,9 +795,15 @@ function buildCargoHTML(cargo: Cargo, areaName: string, empresaNombre: string, d
   const kpiRows = (cargo.kpis ?? []) as KpiRow[];
   const kpis = !kpiRows.length
     ? `<p class="empty">Sin KPIs definidos.</p>`
-    : `<table class="ktable"><thead><tr><th>Indicador</th><th>Meta</th><th>Frecuencia</th><th>Fórmula</th></tr></thead><tbody>` +
-      kpiRows.map((k) =>
-        `<tr><td>${esc(k.nombre)}</td><td>${esc(k.meta)}</td><td>${esc(k.frecuencia)}</td><td>${esc(k.formula ?? "")}</td></tr>`
+    : `<table class="ktable"><thead><tr><th style="width:32px">Nº</th><th>Indicador</th><th>Fórmula</th><th>Meta</th><th>Frecuencia</th></tr></thead><tbody>` +
+      kpiRows.map((k, i) =>
+        `<tr>` +
+        `<td style="text-align:center;font-weight:800;color:#64748B">${i + 1}</td>` +
+        `<td>${esc(k.nombre)}</td>` +
+        `<td class="kformula">${esc(k.formula ?? "")}</td>` +
+        `<td>${esc(k.meta)}</td>` +
+        `<td>${esc(k.frecuencia)}</td>` +
+        `</tr>`
       ).join("") + `</tbody></table>`;
 
   // 6. Relaciones
@@ -710,11 +816,12 @@ function buildCargoHTML(cargo: Cargo, areaName: string, empresaNombre: string, d
 
   // 7. Condiciones
   const COND_LABELS: Record<string, string> = {
-    horario: "Horario", modalidad: "Modalidad de trabajo", viajes: "Viajes", esfuerzo: "Esfuerzo / Demanda",
+    horario: "Horario", modalidad: "Modalidad de trabajo", viajes: "Viajes",
+    esfuerzo: "Esfuerzo / Demanda", riesgos: "Riesgos laborales",
   };
   const cond = (cargo.condiciones ?? {}) as Record<string, string>;
-  const condOrder = ["horario", "modalidad", "viajes", "esfuerzo",
-    ...Object.keys(cond).filter((k) => !["horario","modalidad","viajes","esfuerzo"].includes(k))];
+  const condOrder = ["horario", "modalidad", "viajes", "esfuerzo", "riesgos",
+    ...Object.keys(cond).filter((k) => !["horario","modalidad","viajes","esfuerzo","riesgos"].includes(k))];
   const condiciones = !condOrder.filter((k) => cond[k]).length
     ? `<p class="empty">Sin condiciones definidas.</p>`
     : `<div class="grid2">${condOrder.filter((k) => cond[k]).map((k) => pair(COND_LABELS[k] ?? k, cond[k])).join("")}</div>`;
@@ -761,7 +868,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
 .ctitle-main{font-size:26px;font-weight:900;color:#0C4A6E;letter-spacing:-.02em;margin-bottom:5px}
 .cmeta{font-size:12px;color:#64748B}
 .sec{margin-bottom:18px;border-radius:10px;border:1.5px solid #E8EDF2}
-.sec-head{background:${dot};color:white;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:7px 16px;break-after:avoid;page-break-after:avoid}
+.sec-head{background:${AURORA_NAVY};color:white;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;padding:7px 16px;break-after:avoid;page-break-after:avoid}
 .sec-body{padding:16px;background:white}
 .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 14px}
 .pair{background:#F8FAFC;border-radius:7px;padding:8px 11px;border:1px solid #E8EDF2}
@@ -769,19 +876,20 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#1E
 .pv{font-size:13px;color:#1E293B}
 .tb{font-size:13px;color:#334155;line-height:1.75;white-space:pre-wrap}
 .empty{color:#CBD5E1;font-size:13px;font-style:italic}
-.frow{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
-.num{min-width:21px;height:21px;border-radius:5px;color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.fdesc{flex:1;font-size:13px;color:#334155}
-.pct{font-size:11px;color:#94A3B8;flex-shrink:0;align-self:center}
 .cgroup{margin-bottom:13px}
 .ctitle{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
 .crow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:#F8FAFC;border-radius:7px;border:1px solid #E2E8F0;margin-bottom:4px;break-inside:avoid;page-break-inside:avoid}
 .cnombre{font-size:13px;color:#334155;flex:1}
 .nbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ftable{width:100%;border-collapse:collapse;font-size:13px}
+.ftable th{background:${AURORA_NAVY};color:white;padding:7px 10px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left}
+.ftable td{padding:7px 10px;border-bottom:1px solid #E2E8F0;color:#334155;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
+.ftable tr:last-child td{border-bottom:none}
 .ktable{width:100%;border-collapse:collapse;font-size:12px}
-.ktable th{background:#0C4A6E;color:white;padding:7px 10px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left}
+.ktable th{background:${AURORA_NAVY};color:white;padding:7px 10px;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left}
 .ktable td{padding:7px 10px;border-bottom:1px solid #E2E8F0;color:#334155;vertical-align:top;break-inside:avoid;page-break-inside:avoid}
 .ktable tr:last-child td{border-bottom:none}
+.kformula{font-family:ui-monospace,'Cascadia Code',monospace;font-size:11px;background:#F0FFF4;color:#166534}
 .rgroup{margin-bottom:11px}
 .rl{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
 .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#F1F5F9;border:1px solid #E2E8F0;color:#334155;margin:2px 3px 2px 0}
