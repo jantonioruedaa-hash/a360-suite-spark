@@ -116,26 +116,35 @@ export function AppSidebar() {
 
         const { data: cli } = await supabase
           .from("clientes")
-          .select("plan_licencia")
+          .select("plan_licencia, plan_id")
           .eq("id", eu.cliente_id)
           .maybeSingle();
         if (cancelled) return;
-        if (!cli?.plan_licencia) { setAllowedModules(new Set()); return; }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (!cli?.plan_licencia && !(cli as any)?.plan_id) { setAllowedModules(new Set()); return; }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: plan } = await (supabase as any)
-          .from("planes")
-          .select("id")
-          .ilike("nombre", cli.plan_licencia)
-          .maybeSingle();
-        if (cancelled) return;
-        if (!plan?.id) { setAllowedModules(new Set()); return; }
+        let planId: string | null = (cli as any).plan_id ?? null;
+
+        if (!planId) {
+          // Fallback: plan_licencia sin mapeo directo a plan_id
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: planRow } = await (supabase as any)
+            .from("planes")
+            .select("id")
+            .ilike("nombre", cli!.plan_licencia)
+            .maybeSingle();
+          if (cancelled) return;
+          planId = planRow?.id ?? null;
+        }
+
+        if (!planId) { setAllowedModules(new Set()); return; }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: mods } = await (supabase as any)
           .from("plan_modulos")
           .select("modulo_slug")
-          .eq("plan_id", plan.id)
+          .eq("plan_id", planId)
           .eq("activo", true);
         if (cancelled) return;
         setAllowedModules(new Set((mods ?? []).map((m: { modulo_slug: string }) => m.modulo_slug)));
