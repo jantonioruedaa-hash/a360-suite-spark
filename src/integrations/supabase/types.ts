@@ -401,10 +401,14 @@ export type Database = {
           ime_estimado: string | null
           justificacion_programa: string | null
           moneda: string
+          nivel_acompanamiento:
+            | Database["public"]["Enums"]["nivel_acompanamiento_enum"]
+            | null
           notas: string | null
           numero_cotizacion: string | null
           objetivos_propuesta: Json
           plan: string | null
+          plan_plataforma_id: string | null
           servicios: Json
           subtotal: number
           titulo: string
@@ -430,10 +434,14 @@ export type Database = {
           ime_estimado?: string | null
           justificacion_programa?: string | null
           moneda?: string
+          nivel_acompanamiento?:
+            | Database["public"]["Enums"]["nivel_acompanamiento_enum"]
+            | null
           notas?: string | null
           numero_cotizacion?: string | null
           objetivos_propuesta?: Json
           plan?: string | null
+          plan_plataforma_id?: string | null
           servicios?: Json
           subtotal?: number
           titulo: string
@@ -459,10 +467,14 @@ export type Database = {
           ime_estimado?: string | null
           justificacion_programa?: string | null
           moneda?: string
+          nivel_acompanamiento?:
+            | Database["public"]["Enums"]["nivel_acompanamiento_enum"]
+            | null
           notas?: string | null
           numero_cotizacion?: string | null
           objetivos_propuesta?: Json
           plan?: string | null
+          plan_plataforma_id?: string | null
           servicios?: Json
           subtotal?: number
           titulo?: string
@@ -483,6 +495,13 @@ export type Database = {
             columns: ["contacto_id"]
             isOneToOne: false
             referencedRelation: "cliente_contactos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_cotizaciones_plan_plataforma_id_fkey"
+            columns: ["plan_plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
             referencedColumns: ["id"]
           },
         ]
@@ -1862,6 +1881,11 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "consultor" | "cliente" | "participante"
+      nivel_acompanamiento_enum:
+        | "autogestionado"
+        | "guiado"
+        | "acompanado"
+        | "advisory"
       plan_nivel: "esencial" | "avanzado" | "corporativo"
     }
     CompositeTypes: {
@@ -1991,6 +2015,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "consultor", "cliente", "participante"],
+      nivel_acompanamiento_enum: [
+        "autogestionado",
+        "guiado",
+        "acompanado",
+        "advisory",
+      ],
       plan_nivel: ["esencial", "avanzado", "corporativo"],
     },
   },
