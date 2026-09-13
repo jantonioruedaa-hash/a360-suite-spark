@@ -24,8 +24,13 @@ import {
   Loader2, ShieldCheck, RefreshCw, UserPlus, Send,
   Pencil, KeyRound, Lock, Unlock, Trash2, Users, BarChart3, Briefcase, ChevronDown,
   CreditCard, Plus, Layers, ScanSearch, Compass, HeartHandshake,
-  GraduationCap, TrendingUp, Megaphone, ClipboardList, History, BookOpen,
+  GraduationCap, TrendingUp, Megaphone, ClipboardList, History, BookOpen, Network,
 } from "lucide-react";
+import { MODULOS_PERMISO } from "@/routes/app.configuracion";
+import {
+  adminListPosiciones, adminCreatePosicion, adminUpdatePosicionModulos,
+  adminDeletePosicion, adminAplicarPosicion,
+} from "@/lib/posiciones.functions";
 import type { LucideIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -147,11 +152,12 @@ export const Route = createFileRoute("/app/admin-simple")({
 });
 
 const TABS = [
-  { id: "resumen",  label: "Resumen",  icon: BarChart3   },
-  { id: "usuarios", label: "Usuarios", icon: Users       },
-  { id: "clientes", label: "Clientes", icon: Briefcase   },
-  { id: "planes",   label: "Planes",   icon: CreditCard  },
-  { id: "modulos",  label: "Módulos",  icon: Layers      },
+  { id: "resumen",    label: "Resumen",    icon: BarChart3 },
+  { id: "usuarios",  label: "Usuarios",   icon: Users     },
+  { id: "clientes",  label: "Clientes",   icon: Briefcase },
+  { id: "planes",    label: "Planes",     icon: CreditCard},
+  { id: "modulos",   label: "Módulos",    icon: Layers    },
+  { id: "posiciones",label: "Posiciones", icon: Network   },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -211,11 +217,12 @@ function AdminPage() {
         ))}
       </div>
 
-      {tab === "resumen"  && <TabResumen />}
-      {tab === "usuarios" && <TabUsuarios />}
-      {tab === "clientes" && <TabClientes />}
-      {tab === "planes"   && <TabPlanes />}
-      {tab === "modulos"  && <TabModulos />}
+      {tab === "resumen"    && <TabResumen />}
+      {tab === "usuarios"  && <TabUsuarios />}
+      {tab === "clientes"  && <TabClientes />}
+      {tab === "planes"    && <TabPlanes />}
+      {tab === "modulos"   && <TabModulos />}
+      {tab === "posiciones"&& <TabPosiciones />}
     </div>
   );
 }
@@ -286,13 +293,14 @@ function TabUsuarios() {
   const [resetting, setResetting]   = useState<UsuarioRow | null>(null);
   const [deleting, setDeleting]     = useState<UsuarioRow | null>(null);
 
-  const createFn     = useServerFn(adminCreateUser);
-  const inviteFn     = useServerFn(adminInviteUser);
-  const updateFn     = useServerFn(adminUpdateProfile);
-  const resetFn      = useServerFn(adminResetPassword);
-  const deleteFn     = useServerFn(adminDeleteUser);
-  const listExtrasFn = useServerFn(adminListUsersExtra);
-  const banFn        = useServerFn(adminToggleBan);
+  const createFn        = useServerFn(adminCreateUser);
+  const inviteFn        = useServerFn(adminInviteUser);
+  const updateFn        = useServerFn(adminUpdateProfile);
+  const resetFn         = useServerFn(adminResetPassword);
+  const deleteFn        = useServerFn(adminDeleteUser);
+  const listExtrasFn    = useServerFn(adminListUsersExtra);
+  const banFn           = useServerFn(adminToggleBan);
+  const aplicarPosFn    = useServerFn(adminAplicarPosicion);
 
   const token = useCallback(() => session?.access_token ?? undefined, [session?.access_token]);
 
@@ -520,14 +528,25 @@ function TabUsuarios() {
         open={createOpen}
         mode={createMode}
         clientes={clientes}
+        accessToken={token()}
         onOpenChange={setCreateOpen}
         onSubmit={async (input) => {
+          let userId;
           if (createMode === "invite") {
-            await inviteFn({ data: { ...input, accessToken: token(), redirectTo: `${window.location.origin}/login` } });
+            const res = await inviteFn({ data: { ...input, accessToken: token(), redirectTo: `${window.location.origin}/login` } });
+            userId = res?.id;
             toast.success("Invitación enviada");
           } else {
-            await createFn({ data: { ...input, accessToken: token(), password: input.password ?? "" } });
+            const res = await createFn({ data: { ...input, accessToken: token(), password: input.password ?? "" } });
+            userId = res?.id;
             toast.success("Usuario creado");
+          }
+          if (userId && input.clienteId && input.posicionId) {
+            try {
+              await aplicarPosFn({ data: { accessToken: token(), userId, clienteId: input.clienteId, posicionId: input.posicionId } });
+            } catch (e) {
+              toast.error("Usuario creado, pero falló la asignación de posición: " + (e instanceof Error ? e.message : "Error"));
+            }
           }
           setCreateOpen(false);
           await load();
@@ -593,26 +612,36 @@ function TabUsuarios() {
 
 const EMPTY_FORM = {
   email: "", password: "", name: "", company: "", specialty: "",
-  role: "cliente" as AppRole, clienteId: "",
+  role: "cliente" as AppRole, clienteId: "", posicionId: "",
 };
 
-function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
+function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, onSubmit }: {
   open: boolean;
   mode: "create" | "invite";
   clientes: { id: string; nombre_empresa: string }[];
+  accessToken?: string;
   onOpenChange: (v: boolean) => void;
   onSubmit: (input: {
     email: string; password?: string; name?: string; company?: string;
-    specialty?: string; role: AppRole; clienteId?: string;
+    specialty?: string; role: AppRole; clienteId?: string; posicionId?: string;
   }) => Promise<void>;
 }) {
   const [form, setForm]     = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [posiciones, setPosiciones] = useState([]);
+  const listPosFn = useServerFn(adminListPosiciones);
 
   useEffect(() => {
-    if (open) { setForm(EMPTY_FORM); setTouched(false); }
+    if (open) { setForm(EMPTY_FORM); setTouched(false); setPosiciones([]); }
   }, [open]);
+
+  useEffect(() => {
+    if (!form.clienteId || form.role !== "cliente") { setPosiciones([]); return; }
+    listPosFn({ data: { accessToken, clienteId: form.clienteId } })
+      .then((data) => setPosiciones(data ?? []))
+      .catch(() => setPosiciones([]));
+  }, [form.clienteId, form.role, accessToken]);
 
   const emailErr = touched ? validarEmail(form.email) : null;
   const pwd = evaluarPassword(form.password);
@@ -632,6 +661,7 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
         specialty: form.specialty || undefined,
         role: form.role,
         clienteId: form.clienteId || undefined,
+        posicionId: form.posicionId || undefined,
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error");
@@ -712,7 +742,7 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
               <Label className="text-xs">Rol</Label>
               <Select
                 value={form.role}
-                onValueChange={(v) => setForm({ ...form, role: v as AppRole, clienteId: "" })}
+                onValueChange={(v) => setForm({ ...form, role: v as AppRole, clienteId: "", posicionId: "" })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -722,7 +752,7 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
             </div>
             <div>
               <Label className="text-xs">Empresa asignada</Label>
-              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v })}>
+              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v, posicionId: "" })}>
                 <SelectTrigger><SelectValue placeholder="— Sin vincular —" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— Sin vincular —</SelectItem>
@@ -731,6 +761,19 @@ function CrearOInvitarDialog({ open, mode, clientes, onOpenChange, onSubmit }: {
               </Select>
             </div>
           </div>
+
+          {form.role === "cliente" && form.clienteId && posiciones.length > 0 && (
+            <div>
+              <Label className="text-xs">Posición (opcional)</Label>
+              <Select value={form.posicionId || "__none__"} onValueChange={(v) => setForm({ ...form, posicionId: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="— Sin posición —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Sin posición —</SelectItem>
+                  {posiciones.map((p) => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
@@ -1910,6 +1953,334 @@ function EditarClienteDialog({ cliente, consultores, onClose, onSave }: {
           <Button
             onClick={save}
             disabled={saving || !form.nombre_empresa.trim()}
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
+          >
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Guardar cambios
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Tab: Posiciones ──────────────────────────────────────────────────────────
+
+function TabPosiciones() {
+  const { session } = useAuth();
+  const token = useCallback(() => session?.access_token ?? undefined, [session?.access_token]);
+
+  const [clientes, setClientes]          = useState([]);
+  const [selectedClienteId, setSelected] = useState("");
+  const [posiciones, setPosiciones]      = useState([]);
+  const [loading, setLoading]            = useState(false);
+  const [createOpen, setCreateOpen]      = useState(false);
+  const [editingPos, setEditingPos]      = useState(null);
+  const [deletingPos, setDeletingPos]    = useState(null);
+
+  const listFn   = useServerFn(adminListPosiciones);
+  const createFn = useServerFn(adminCreatePosicion);
+  const updateFn = useServerFn(adminUpdatePosicionModulos);
+  const deleteFn = useServerFn(adminDeletePosicion);
+
+  useEffect(() => {
+    supabase.from("clientes").select("id,nombre_empresa").order("nombre_empresa")
+      .then(({ data }) => setClientes(data ?? []));
+  }, []);
+
+  const loadPosiciones = useCallback(async () => {
+    if (!selectedClienteId) { setPosiciones([]); return; }
+    setLoading(true);
+    try {
+      const data = await listFn({ data: { accessToken: token(), clienteId: selectedClienteId } });
+      setPosiciones(data ?? []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al cargar posiciones");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedClienteId, listFn, token]);
+
+  useEffect(() => { void loadPosiciones(); }, [loadPosiciones]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Label className="text-sm font-medium whitespace-nowrap">Empresa:</Label>
+        <Select
+          value={selectedClienteId || "__none__"}
+          onValueChange={(v) => setSelected(v === "__none__" ? "" : v)}
+        >
+          <SelectTrigger className="w-64"><SelectValue placeholder="Seleccionar empresa…" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— Seleccionar —</SelectItem>
+            {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {selectedClienteId && (
+          <Button
+            size="sm"
+            className="text-white hover:opacity-90 transition-opacity ml-auto"
+            style={{ background: "var(--h-from)" }}
+            onClick={() => setCreateOpen(true)}
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" /> Nueva posición
+          </Button>
+        )}
+      </div>
+
+      {!selectedClienteId ? (
+        <div className="text-center py-16 text-sm text-muted-foreground">
+          Selecciona una empresa para ver y gestionar sus posiciones.
+        </div>
+      ) : loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-5 h-5 animate-spin text-navy" />
+        </div>
+      ) : posiciones.length === 0 ? (
+        <div className="text-center py-12 text-sm text-muted-foreground">
+          No hay posiciones configuradas para esta empresa.{" "}
+          <button className="text-navy underline" onClick={() => setCreateOpen(true)}>
+            Crear la primera
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {posiciones.map((pos) => (
+            <div
+              key={pos.id}
+              className="rounded-lg border border-border p-4 flex items-center justify-between"
+            >
+              <div>
+                <div className="font-medium text-navy">{pos.nombre}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {pos.posicion_modulos_default?.length ?? 0}{" "}
+                  módulo{(pos.posicion_modulos_default?.length ?? 0) !== 1 ? "s" : ""} configurado{(pos.posicion_modulos_default?.length ?? 0) !== 1 ? "s" : ""}
+                </div>
+              </div>
+              <div className="flex gap-1.5">
+                <Button size="sm" variant="outline" onClick={() => setEditingPos(pos)}>
+                  <Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar módulos
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => setDeletingPos(pos)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <CrearPosicionDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={async (nombre) => {
+          await createFn({ data: { accessToken: token(), clienteId: selectedClienteId, nombre, modulosDefault: [] } });
+          toast.success("Posición creada");
+          setCreateOpen(false);
+          await loadPosiciones();
+        }}
+      />
+
+      {editingPos && (
+        <EditModulosDialog
+          posicion={editingPos}
+          onClose={() => setEditingPos(null)}
+          onSave={async (modulosDefault) => {
+            await updateFn({ data: { accessToken: token(), posicionId: editingPos.id, modulosDefault } });
+            toast.success("Módulos actualizados");
+            setEditingPos(null);
+            await loadPosiciones();
+          }}
+        />
+      )}
+
+      <AlertDialog open={!!deletingPos} onOpenChange={(o) => !o && setDeletingPos(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar posición</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Eliminar <strong>{deletingPos?.nombre}</strong>? Los usuarios vinculados
+              quedarán sin posición asignada pero conservarán sus permisos individuales.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deletingPos) return;
+                try {
+                  await deleteFn({ data: { accessToken: token(), posicionId: deletingPos.id } });
+                  toast.success("Posición eliminada");
+                  setDeletingPos(null);
+                  await loadPosiciones();
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Error al eliminar");
+                }
+              }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+// ─── Dialog: Crear Posición ───────────────────────────────────────────────────
+
+function CrearPosicionDialog({ open, onOpenChange, onSubmit }) {
+  const [nombre, setNombre] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (open) setNombre(""); }, [open]);
+
+  const submit = async () => {
+    if (!nombre.trim()) return;
+    setSaving(true);
+    try { await onSubmit(nombre.trim()); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Error"); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">Nueva posición</DialogTitle>
+        </DialogHeader>
+        <div>
+          <Label className="text-xs">Nombre *</Label>
+          <Input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej: Director General, Analista, Gerente…"
+            onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
+          <Button
+            onClick={submit}
+            disabled={saving || !nombre.trim()}
+            className="text-white hover:opacity-90 transition-opacity"
+            style={{ background: "var(--h-from)" }}
+          >
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Crear posición
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Dialog: Editar Módulos de Posición ───────────────────────────────────────
+
+function EditModulosDialog({ posicion, onClose, onSave }) {
+  const [estado, setEstado] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const init = {};
+    MODULOS_PERMISO.forEach((m) => {
+      const existing = (posicion.posicion_modulos_default ?? []).find(
+        (x) => x.modulo === m.modulo && !x.seccion,
+      );
+      init[m.modulo] = existing
+        ? { activo: true, puede_ver: existing.puede_ver, puede_editar: existing.puede_editar, puede_eliminar: existing.puede_eliminar }
+        : { activo: false, puede_ver: true, puede_editar: false, puede_eliminar: false };
+    });
+    setEstado(init);
+  }, [posicion]);
+
+  const toggle = (modulo, key, value) =>
+    setEstado((prev) => ({ ...prev, [modulo]: { ...prev[modulo], [key]: value } }));
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const modulosDefault = Object.entries(estado)
+        .filter(([, s]) => s.activo)
+        .map(([modulo, s]) => ({
+          modulo,
+          seccion: null,
+          puede_ver: s.puede_ver,
+          puede_editar: s.puede_editar,
+          puede_eliminar: s.puede_eliminar,
+        }));
+      await onSave(modulosDefault);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!posicion} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg overflow-hidden">
+        <DialogHeader
+          className="-mx-6 -mt-6 px-6 py-4 mb-2"
+          style={{ background: "linear-gradient(135deg, var(--h-from), var(--h-to))" }}
+        >
+          <DialogTitle className="text-white">Módulos — {posicion?.nombre}</DialogTitle>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.75)" }}>
+            Define qué puede hacer un usuario con esta posición al asignársela.
+          </p>
+        </DialogHeader>
+        <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+          {MODULOS_PERMISO.map((m) => {
+            const s = estado[m.modulo] ?? { activo: false, puede_ver: true, puede_editar: false, puede_eliminar: false };
+            return (
+              <div
+                key={m.modulo}
+                className={`rounded-lg border p-3 transition-colors ${s.activo ? "border-navy/30 bg-navy/5" : "border-border"}`}
+              >
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={s.activo}
+                    onCheckedChange={(v) => toggle(m.modulo, "activo", !!v)}
+                  />
+                  <span className="text-sm font-medium">{m.moduloLabel}</span>
+                </label>
+                {s.activo && (
+                  <div className="ml-6 mt-2 flex gap-5 text-xs text-muted-foreground">
+                    {[
+                      { key: "puede_ver",      label: "Ver"      },
+                      { key: "puede_editar",   label: "Editar"   },
+                      { key: "puede_eliminar", label: "Eliminar" },
+                    ].map(({ key, label }) => (
+                      <label key={key} className="flex items-center gap-1.5 cursor-pointer select-none">
+                        <Checkbox
+                          checked={!!s[key]}
+                          onCheckedChange={(v) => toggle(m.modulo, key, !!v)}
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button
+            onClick={save}
+            disabled={saving}
             className="text-white hover:opacity-90 transition-opacity"
             style={{ background: "var(--h-from)" }}
           >
