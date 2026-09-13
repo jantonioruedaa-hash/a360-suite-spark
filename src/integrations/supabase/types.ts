@@ -849,6 +849,35 @@ export type Database = {
           },
         ]
       }
+      empresa_posiciones: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_posiciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresa_usuarios: {
         Row: {
           area_id: string | null
@@ -856,6 +885,7 @@ export type Database = {
           created_at: string
           id: string
           invitado_por: string | null
+          posicion_id: string | null
           rol_empresa: string
           user_id: string
         }
@@ -865,6 +895,7 @@ export type Database = {
           created_at?: string
           id?: string
           invitado_por?: string | null
+          posicion_id?: string | null
           rol_empresa: string
           user_id: string
         }
@@ -874,6 +905,7 @@ export type Database = {
           created_at?: string
           id?: string
           invitado_por?: string | null
+          posicion_id?: string | null
           rol_empresa?: string
           user_id?: string
         }
@@ -883,6 +915,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "empresa_usuarios_posicion_id_fkey"
+            columns: ["posicion_id"]
+            isOneToOne: false
+            referencedRelation: "empresa_posiciones"
             referencedColumns: ["id"]
           },
           {
@@ -1794,6 +1833,44 @@ export type Database = {
           },
         ]
       }
+      posicion_modulos_default: {
+        Row: {
+          id: string
+          modulo: string
+          posicion_id: string
+          puede_editar: boolean
+          puede_eliminar: boolean
+          puede_ver: boolean
+          seccion: string | null
+        }
+        Insert: {
+          id?: string
+          modulo: string
+          posicion_id: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          seccion?: string | null
+        }
+        Update: {
+          id?: string
+          modulo?: string
+          posicion_id?: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          seccion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posicion_modulos_default_posicion_id_fkey"
+            columns: ["posicion_id"]
+            isOneToOne: false
+            referencedRelation: "empresa_posiciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2129,4 +2206,3 @@ export const Constants = {
     },
   },
 } as const
-
