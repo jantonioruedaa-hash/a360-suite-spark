@@ -276,7 +276,7 @@ type EmpresaUsuarioOpt = {
   rol_empresa: string;
 };
 
-const MODULOS_PERMISO = [
+export const MODULOS_PERMISO = [
   { modulo: "side", moduloLabel: "SIDE", secciones: [
     { value: "L",  label: "Liderazgo"    },
     { value: "E",  label: "Estrategia"   },
