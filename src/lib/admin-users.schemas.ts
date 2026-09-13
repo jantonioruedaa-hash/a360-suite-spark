@@ -68,3 +68,8 @@ export const DeleteUserSchema = z.object({
   accessToken: AccessTokenSchema,
   userId: z.string().uuid(),
 });
+
+export const GetLicenseStatusSchema = z.object({
+  accessToken: AccessTokenSchema,
+  clienteId: z.string().uuid(),
+});

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import {
   CreateUserSchema,
   DeleteUserSchema,
+  GetLicenseStatusSchema,
   InviteUserSchema,
   ListUsersExtraSchema,
   ResetPasswordSchema,
@@ -63,4 +64,12 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
     const { deleteAdminUser, ensureAdminFromToken } = await import("./admin-users.server");
     const adminUserId = await ensureAdminFromToken(data.accessToken);
     return deleteAdminUser(data, adminUserId);
+  });
+
+export const adminGetLicenseStatus = createServerFn({ method: "POST" })
+  .inputValidator((data) => GetLicenseStatusSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { getLicenseStatus, ensureAdminFromToken } = await import("./admin-users.server");
+    await ensureAdminFromToken(data.accessToken);
+    return getLicenseStatus(data.clienteId);
   });

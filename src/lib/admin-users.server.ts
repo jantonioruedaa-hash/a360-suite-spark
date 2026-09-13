@@ -44,6 +44,35 @@ export function throwAdminError(e: unknown): never {
   throw new Error(translateAdminError(m));
 }
 
+export async function getLicenseStatus(clienteId: string): Promise<{ disponibles: number; usadas: number; total: number }> {
+  const { data: ep } = await supabaseAdmin
+    .from("empresa_plan")
+    .select("licencias_adicionales, plan_id")
+    .eq("empresa_id", clienteId)
+    .eq("activo", true)
+    .maybeSingle();
+
+  let numLicencias = 0;
+  if (ep?.plan_id) {
+    const { data: plan } = await supabaseAdmin
+      .from("planes")
+      .select("num_licencias")
+      .eq("id", ep.plan_id)
+      .maybeSingle();
+    numLicencias = plan?.num_licencias ?? 0;
+  }
+
+  const total = numLicencias + (ep?.licencias_adicionales ?? 0);
+
+  const { count } = await supabaseAdmin
+    .from("empresa_usuarios")
+    .select("*", { count: "exact", head: true })
+    .eq("cliente_id", clienteId);
+
+  const usadas = count ?? 0;
+  return { disponibles: total - usadas, usadas, total };
+}
+
 export async function listAdminUsersExtra(adminUserId: string): Promise<AdminUserExtra[]> {
   try {
     await ensureAdmin(adminUserId);
@@ -90,7 +119,17 @@ export async function createAdminUser(data: {
   await supabaseAdmin.from("user_roles").delete().eq("user_id", uid);
   const { error: rErr } = await supabaseAdmin.from("user_roles").insert({ user_id: uid, role: data.role });
   if (rErr) throwAdminError(rErr);
-  if (data.clienteId) await linkUserToCliente(uid, data.role, data.clienteId);
+  if (data.clienteId) {
+    if (data.role === "cliente" || data.role === "participante") {
+      const lic = await getLicenseStatus(data.clienteId);
+      if (lic.disponibles <= 0) {
+        throw new Error(
+          `Esta empresa alcanzó el límite de licencias de su plan (${lic.usadas}/${lic.total}). Contacta al consultor para agregar licencias adicionales o subir de plan.`
+        );
+      }
+    }
+    await linkUserToCliente(uid, data.role, data.clienteId);
+  }
   return { id: uid };
 }
 
@@ -121,7 +160,17 @@ export async function inviteAdminUser(data: {
   await supabaseAdmin.from("user_roles").delete().eq("user_id", uid);
   const { error: rErr } = await supabaseAdmin.from("user_roles").insert({ user_id: uid, role: data.role });
   if (rErr) throwAdminError(rErr);
-  if (data.clienteId) await linkUserToCliente(uid, data.role, data.clienteId, data.rolEmpresa, data.areaId);
+  if (data.clienteId) {
+    if (data.role === "cliente" || data.role === "participante") {
+      const lic = await getLicenseStatus(data.clienteId);
+      if (lic.disponibles <= 0) {
+        throw new Error(
+          `Esta empresa alcanzó el límite de licencias de su plan (${lic.usadas}/${lic.total}). Contacta al consultor para agregar licencias adicionales o subir de plan.`
+        );
+      }
+    }
+    await linkUserToCliente(uid, data.role, data.clienteId, data.rolEmpresa, data.areaId);
+  }
   return { id: uid };
 }
 
