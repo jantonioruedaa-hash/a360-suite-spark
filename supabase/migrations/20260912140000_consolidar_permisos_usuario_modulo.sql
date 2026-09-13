@@ -15,4 +15,4 @@ UPDATE permisos_usuario_modulo
   SET modulo = 'manual_funciones', seccion = 'cargos'
   WHERE modulo = 'manual_funciones_cargos';
 
-DROP TABLE empresa_usuario_modulos;
+DROP TABLE IF EXISTS empresa_usuario_modulos;
