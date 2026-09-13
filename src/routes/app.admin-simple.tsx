@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   adminCreateUser, adminInviteUser, adminUpdateProfile,
   adminResetPassword, adminDeleteUser, adminListUsersExtra, adminToggleBan,
+  adminGetLicenseStatus,
 } from "@/lib/admin-users.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -962,10 +963,14 @@ function ResetPasswordDialog({ user, onClose, onSubmit }: {
 // ─── Tab: Clientes ────────────────────────────────────────────────────────────
 
 function TabClientes() {
+  const { session } = useAuth();
+  const licenseStatusFn = useServerFn(adminGetLicenseStatus);
+
   const [clientes, setClientes]       = useState<ClienteRow[]>([]);
   const [consultores, setConsultores] = useState<ConsultorOpt[]>([]);
   const [profileMap, setProfileMap]   = useState<Map<string, { name: string | null; email: string }>>(new Map());
   const [companyMembersMap, setCompanyMembersMap] = useState<Map<string, { duenos: number; colaboradores: number }>>(new Map());
+  const [licenseMap, setLicenseMap]   = useState<Map<string, { disponibles: number; usadas: number; total: number } | null>>(new Map());
   const [loading, setLoading]         = useState(true);
   const [search, setSearch]           = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | "activo" | "inactivo">("");
@@ -1004,7 +1009,24 @@ function TabClientes() {
     setProfileMap(pMap);
     setCompanyMembersMap(membersMap);
     setLoading(false);
-  }, []);
+
+    // Load license statuses via server function (uses supabaseAdmin, not client)
+    const token = session?.access_token;
+    if (token && (clientesData ?? []).length > 0) {
+      const results = await Promise.allSettled(
+        (clientesData ?? []).map((c) =>
+          licenseStatusFn({ data: { clienteId: c.id, accessToken: token } })
+            .then((s) => [c.id, s] as const)
+        )
+      );
+      const lMap = new Map<string, { disponibles: number; usadas: number; total: number } | null>();
+      results.forEach((r) => {
+        if (r.status === "fulfilled") lMap.set(r.value[0], r.value[1]);
+        // rejected: key absent, badge simply won't render
+      });
+      setLicenseMap(lMap);
+    }
+  }, [session?.access_token, licenseStatusFn]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -1076,6 +1098,12 @@ function TabClientes() {
                 const members   = companyMembersMap.get(c.id);
                 const planLabel = PLANES_LICENCIA.find((p) => p.value === c.plan_licencia)?.label ?? c.plan_licencia;
                 const isOpen     = expanded === c.id;
+                const lic        = licenseMap.get(c.id) ?? null;
+                const licColor   = !lic ? "" : lic.disponibles > 2
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : lic.disponibles > 0
+                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                    : "bg-red-50 text-red-700 border-red-200";
 
                 return (
                   <Fragment key={c.id}>
@@ -1087,6 +1115,11 @@ function TabClientes() {
                     >
                       <td className="px-4 py-3">
                         <div className="font-medium text-navy">{c.nombre_empresa}</div>
+                        {lic && (
+                          <span className={`inline-block mt-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${licColor}`}>
+                            {lic.usadas}/{lic.total} licencias
+                          </span>
+                        )}
                         {c.sector && <div className="text-xs text-muted-foreground">{c.sector}</div>}
                         {(c.ciudad || c.pais) && (
                           <div className="text-xs text-muted-foreground">

@@ -809,6 +809,7 @@ export type Database = {
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
+          licencias_adicionales: number
           plan_id: string
         }
         Insert: {
@@ -818,6 +819,7 @@ export type Database = {
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
+          licencias_adicionales?: number
           plan_id: string
         }
         Update: {
@@ -827,6 +829,7 @@ export type Database = {
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
+          licencias_adicionales?: number
           plan_id?: string
         }
         Relationships: [
@@ -920,6 +923,47 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lee_historial_versiones: {
+        Row: {
+          capitulo_numero: number
+          created_at: string
+          etiqueta: string | null
+          id: string
+          origen: string
+          programa_id: string
+          sesion_id: string | null
+          snapshot: Json
+        }
+        Insert: {
+          capitulo_numero: number
+          created_at?: string
+          etiqueta?: string | null
+          id?: string
+          origen: string
+          programa_id: string
+          sesion_id?: string | null
+          snapshot?: Json
+        }
+        Update: {
+          capitulo_numero?: number
+          created_at?: string
+          etiqueta?: string | null
+          id?: string
+          origen?: string
+          programa_id?: string
+          sesion_id?: string | null
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lee_historial_versiones_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "lee_programas"
             referencedColumns: ["id"]
           },
         ]
@@ -1072,6 +1116,10 @@ export type Database = {
       }
       manual_funciones_cargos: {
         Row: {
+          aceptacion_cargo: string | null
+          aceptacion_fecha: string | null
+          aceptacion_nombre: string | null
+          aceptacion_texto: string | null
           aprobado_por: string | null
           area: string
           area_id: string
@@ -1097,12 +1145,17 @@ export type Database = {
           relaciones_internas: Json | null
           requisitos: Json | null
           resultados_esperados: Json
+          revisado_por: string | null
           supervisa_a: Json | null
           updated_at: string | null
           vacante: boolean | null
           version: string | null
         }
         Insert: {
+          aceptacion_cargo?: string | null
+          aceptacion_fecha?: string | null
+          aceptacion_nombre?: string | null
+          aceptacion_texto?: string | null
           aprobado_por?: string | null
           area: string
           area_id: string
@@ -1128,12 +1181,17 @@ export type Database = {
           relaciones_internas?: Json | null
           requisitos?: Json | null
           resultados_esperados?: Json
+          revisado_por?: string | null
           supervisa_a?: Json | null
           updated_at?: string | null
           vacante?: boolean | null
           version?: string | null
         }
         Update: {
+          aceptacion_cargo?: string | null
+          aceptacion_fecha?: string | null
+          aceptacion_nombre?: string | null
+          aceptacion_texto?: string | null
           aprobado_por?: string | null
           area?: string
           area_id?: string
@@ -1159,6 +1217,7 @@ export type Database = {
           relaciones_internas?: Json | null
           requisitos?: Json | null
           resultados_esperados?: Json
+          revisado_por?: string | null
           supervisa_a?: Json | null
           updated_at?: string | null
           vacante?: boolean | null
@@ -1307,6 +1366,7 @@ export type Database = {
           fecha_evaluacion: string
           fecha_firma: string | null
           firma_rrhh: string | null
+          firmas: Json | null
           id: string
           kpi_scores: Json
           nombre_evaluado: string | null
@@ -1329,6 +1389,7 @@ export type Database = {
           fecha_evaluacion?: string
           fecha_firma?: string | null
           firma_rrhh?: string | null
+          firmas?: Json | null
           id?: string
           kpi_scores?: Json
           nombre_evaluado?: string | null
@@ -1351,6 +1412,7 @@ export type Database = {
           fecha_evaluacion?: string
           fecha_firma?: string | null
           firma_rrhh?: string | null
+          firmas?: Json | null
           id?: string
           kpi_scores?: Json
           nombre_evaluado?: string | null
@@ -1550,6 +1612,57 @@ export type Database = {
           },
         ]
       }
+      permisos_usuario_modulo: {
+        Row: {
+          alcance_area_id: string | null
+          alcance_tipo: string
+          cliente_id: string
+          created_at: string
+          id: string
+          modulo: string
+          puede_editar: boolean
+          puede_ver: boolean
+          user_id: string
+        }
+        Insert: {
+          alcance_area_id?: string | null
+          alcance_tipo: string
+          cliente_id: string
+          created_at?: string
+          id?: string
+          modulo: string
+          puede_editar?: boolean
+          puede_ver?: boolean
+          user_id: string
+        }
+        Update: {
+          alcance_area_id?: string | null
+          alcance_tipo?: string
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          modulo?: string
+          puede_editar?: boolean
+          puede_ver?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permisos_usuario_modulo_alcance_area_id_fkey"
+            columns: ["alcance_area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permisos_usuario_modulo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_modulos: {
         Row: {
           activo: boolean
@@ -1583,6 +1696,7 @@ export type Database = {
           descripcion: string | null
           id: string
           nombre: string
+          num_licencias: number
           precio: number | null
         }
         Insert: {
@@ -1591,6 +1705,7 @@ export type Database = {
           descripcion?: string | null
           id?: string
           nombre: string
+          num_licencias?: number
           precio?: number | null
         }
         Update: {
@@ -1599,6 +1714,7 @@ export type Database = {
           descripcion?: string | null
           id?: string
           nombre?: string
+          num_licencias?: number
           precio?: number | null
         }
         Relationships: []
@@ -1866,6 +1982,14 @@ export type Database = {
           vistas: number
         }[]
       }
+      has_modulo_permission: {
+        Args: { _cargo_id: string; _modulo: string; _necesita_editar?: boolean }
+        Returns: boolean
+      }
+      has_pum_edit: {
+        Args: { _area_id: string; _cliente_id: string; _modulo: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1902,12 +2026,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1931,11 +2055,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1956,11 +2080,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1981,11 +2105,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1998,11 +2122,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
