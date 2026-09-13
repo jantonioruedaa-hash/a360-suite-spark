@@ -849,32 +849,6 @@ export type Database = {
           },
         ]
       }
-      empresa_usuario_modulos: {
-        Row: {
-          cliente_id: string
-          modulo_slug: string
-          user_id: string
-        }
-        Insert: {
-          cliente_id: string
-          modulo_slug: string
-          user_id: string
-        }
-        Update: {
-          cliente_id?: string
-          modulo_slug?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "empresa_usuario_modulos_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       empresa_usuarios: {
         Row: {
           area_id: string | null
@@ -1621,7 +1595,9 @@ export type Database = {
           id: string
           modulo: string
           puede_editar: boolean
+          puede_eliminar: boolean
           puede_ver: boolean
+          seccion: string | null
           user_id: string
         }
         Insert: {
@@ -1632,7 +1608,9 @@ export type Database = {
           id?: string
           modulo: string
           puede_editar?: boolean
+          puede_eliminar?: boolean
           puede_ver?: boolean
+          seccion?: string | null
           user_id: string
         }
         Update: {
@@ -1643,7 +1621,9 @@ export type Database = {
           id?: string
           modulo?: string
           puede_editar?: boolean
+          puede_eliminar?: boolean
           puede_ver?: boolean
+          seccion?: string | null
           user_id?: string
         }
         Relationships: [
@@ -2149,3 +2129,4 @@ export const Constants = {
     },
   },
 } as const
+
