@@ -338,6 +338,11 @@ function PermisosModuloAdmin() {
   const [addOpen, setAddOpen]       = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Vista matriz
+  const [vistaMode, setVistaMode]       = useState<"lista" | "matriz">("lista");
+  const [selectedModulo, setSelectedModulo] = useState("");
+  const [matrizSaving, setMatrizSaving] = useState<string | null>(null);
+
   useEffect(() => {
     supabase.from("clientes").select("id,nombre_empresa").order("nombre_empresa")
       .then(({ data }) => setClientes(data ?? []));
@@ -410,6 +415,88 @@ function PermisosModuloAdmin() {
     return entry?.secciones.find((s) => s.value === seccion)?.label ?? seccion;
   };
 
+  // ── Matriz: toggle de un permiso individual ──────────────────────────────────
+  const handleMatrizToggle = async (
+    userId: string,
+    seccion: string | null,
+    campo: "puede_ver" | "puede_editar" | "puede_eliminar",
+    existing: PermisoRow | undefined,
+  ) => {
+    const savingKey = `${userId}:${seccion ?? ""}:${campo}`;
+    setMatrizSaving(savingKey);
+
+    const cur = existing ?? { puede_ver: false, puede_editar: false, puede_eliminar: false };
+    let pv = cur.puede_ver;
+    let pe = cur.puede_editar;
+    let pd = cur.puede_eliminar;
+
+    if (campo === "puede_ver") {
+      pv = !pv;
+      if (!pv) { pe = false; pd = false; }
+    } else if (campo === "puede_editar") {
+      pe = !pe;
+      if (pe) pv = true;
+      if (!pe) pd = false;
+    } else {
+      pd = !pd;
+      if (pd) { pv = true; pe = true; }
+    }
+
+    try {
+      if (!pv && !pe && !pd && existing) {
+        const { error } = await (supabase as any)
+          .from("permisos_usuario_modulo").delete().eq("id", existing.id);
+        if (error) throw error;
+        setPermisos((prev) => prev.filter((p) => p.id !== existing.id));
+      } else if (existing) {
+        const { error } = await (supabase as any)
+          .from("permisos_usuario_modulo")
+          .update({ puede_ver: pv, puede_editar: pe, puede_eliminar: pd })
+          .eq("id", existing.id);
+        if (error) throw error;
+        setPermisos((prev) =>
+          prev.map((p) => p.id === existing.id ? { ...p, puede_ver: pv, puede_editar: pe, puede_eliminar: pd } : p),
+        );
+      } else {
+        const { data: inserted, error } = await (supabase as any)
+          .from("permisos_usuario_modulo")
+          .insert({
+            user_id: userId,
+            cliente_id: selectedClienteId,
+            modulo: selectedModulo,
+            seccion,
+            alcance_tipo: "todas",
+            alcance_area_id: null,
+            puede_ver: pv,
+            puede_editar: pe,
+            puede_eliminar: pd,
+          })
+          .select().single();
+        if (error) throw error;
+        const eu = euOpts.find((e) => e.user_id === userId);
+        setPermisos((prev) => [...prev, {
+          ...inserted,
+          user_email: eu?.email ?? "—",
+          user_name:  eu?.name  ?? null,
+          alcance_area_nombre: null,
+        }]);
+      }
+    } catch {
+      toast.error("Error al actualizar permiso");
+    } finally {
+      setMatrizSaving(null);
+    }
+  };
+
+  // ── Columnas de la matriz para el módulo seleccionado ──────────────────────
+  const matrizColumnas = (() => {
+    const entry = MODULOS_PERMISO.find((m) => m.modulo === selectedModulo);
+    if (!entry) return [];
+    return entry.secciones.length > 0
+      ? entry.secciones
+      : [{ value: null as string | null, label: "Acceso" }];
+  })();
+
   return (
     <div className="a360-card a360-card-lg p-6 space-y-5">
       <div>
@@ -422,7 +509,7 @@ function PermisosModuloAdmin() {
 
       <div className="max-w-xs">
         <Label className="text-xs">Empresa</Label>
-        <Select value={selectedClienteId} onValueChange={setSelectedClienteId}>
+        <Select value={selectedClienteId} onValueChange={(v) => { setSelectedClienteId(v); setSelectedModulo(""); }}>
           <SelectTrigger><SelectValue placeholder="Selecciona una empresa…" /></SelectTrigger>
           <SelectContent>
             {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre_empresa}</SelectItem>)}
@@ -432,79 +519,206 @@ function PermisosModuloAdmin() {
 
       {selectedClienteId && (
         <>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{permisos.length} permiso(s) asignado(s)</span>
-            <Button size="sm" className="bg-navy hover:bg-navy/90 text-primary-foreground" onClick={() => setAddOpen(true)}>
-              <UserPlus className="w-4 h-4 mr-1" />Agregar permiso
-            </Button>
+          {/* ── Toggle Vista lista / Vista matriz ─────────────────────────── */}
+          <div className="flex rounded-lg border border-border overflow-hidden w-fit">
+            {(["lista", "matriz"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setVistaMode(mode)}
+                className={`px-4 py-1.5 text-sm font-medium capitalize transition-colors ${
+                  vistaMode === mode
+                    ? "bg-navy text-white"
+                    : "text-muted-foreground hover:bg-muted/30"
+                }`}
+              >
+                Vista {mode}
+              </button>
+            ))}
           </div>
 
-          {loading ? (
-            <div className="text-sm text-muted-foreground py-8 text-center">Cargando…</div>
+          {vistaMode === "lista" ? (
+            <>
+              {/* ── Vista lista (original, sin cambios) ───────────────────── */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{permisos.length} permiso(s) asignado(s)</span>
+                <Button size="sm" className="bg-navy hover:bg-navy/90 text-primary-foreground" onClick={() => setAddOpen(true)}>
+                  <UserPlus className="w-4 h-4 mr-1" />Agregar permiso
+                </Button>
+              </div>
+
+              {loading ? (
+                <div className="text-sm text-muted-foreground py-8 text-center">Cargando…</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-xs uppercase text-muted-foreground border-b">
+                      <tr>
+                        <th className="text-left py-2 px-2">Usuario</th>
+                        <th className="text-left py-2 px-2">Módulo</th>
+                        <th className="text-left py-2 px-2">Sección</th>
+                        <th className="text-left py-2 px-2">Alcance</th>
+                        <th className="text-center py-2 px-2 w-24">Puede ver</th>
+                        <th className="text-center py-2 px-2 w-28">Puede editar</th>
+                        <th className="text-center py-2 px-2 w-32">Puede eliminar</th>
+                        <th className="text-right py-2 px-2 w-16"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {permisos.map((p) => (
+                        <tr key={p.id} className="border-b hover:bg-muted/30">
+                          <td className="py-2 px-2">
+                            <div className="font-medium text-navy">{p.user_name ?? "—"}</div>
+                            <div className="text-xs text-muted-foreground">{p.user_email}</div>
+                          </td>
+                          <td className="py-2 px-2 text-muted-foreground">{moduloLabel(p.modulo)}</td>
+                          <td className="py-2 px-2 text-xs text-muted-foreground">{seccionLabel(p.modulo, p.seccion)}</td>
+                          <td className="py-2 px-2">
+                            {p.alcance_tipo === "todas"
+                              ? <Badge variant="outline" className="text-[10px]">Todas las áreas</Badge>
+                              : <span className="text-xs">{p.alcance_area_nombre}</span>}
+                          </td>
+                          <td className="py-2 px-2 text-center">
+                            {p.puede_ver
+                              ? <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700">Sí</Badge>
+                              : <span className="text-xs text-muted-foreground">—</span>}
+                          </td>
+                          <td className="py-2 px-2 text-center">
+                            {p.puede_editar
+                              ? <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">Sí</Badge>
+                              : <span className="text-xs text-muted-foreground">—</span>}
+                          </td>
+                          <td className="py-2 px-2 text-center">
+                            {p.puede_eliminar
+                              ? <Badge variant="outline" className="text-[10px] border-red-300 text-red-700">Sí</Badge>
+                              : <span className="text-xs text-muted-foreground">—</span>}
+                          </td>
+                          <td className="py-2 px-2 text-right">
+                            <Button
+                              size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive"
+                              title="Eliminar permiso" onClick={() => setDeletingId(p.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                      {permisos.length === 0 && (
+                        <tr>
+                          <td colSpan={8} className="py-8 text-center text-muted-foreground text-sm">
+                            Sin permisos asignados para esta empresa.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-xs uppercase text-muted-foreground border-b">
-                  <tr>
-                    <th className="text-left py-2 px-2">Usuario</th>
-                    <th className="text-left py-2 px-2">Módulo</th>
-                    <th className="text-left py-2 px-2">Sección</th>
-                    <th className="text-left py-2 px-2">Alcance</th>
-                    <th className="text-center py-2 px-2 w-24">Puede ver</th>
-                    <th className="text-center py-2 px-2 w-28">Puede editar</th>
-                    <th className="text-center py-2 px-2 w-32">Puede eliminar</th>
-                    <th className="text-right py-2 px-2 w-16"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {permisos.map((p) => (
-                    <tr key={p.id} className="border-b hover:bg-muted/30">
-                      <td className="py-2 px-2">
-                        <div className="font-medium text-navy">{p.user_name ?? "—"}</div>
-                        <div className="text-xs text-muted-foreground">{p.user_email}</div>
-                      </td>
-                      <td className="py-2 px-2 text-muted-foreground">{moduloLabel(p.modulo)}</td>
-                      <td className="py-2 px-2 text-xs text-muted-foreground">{seccionLabel(p.modulo, p.seccion)}</td>
-                      <td className="py-2 px-2">
-                        {p.alcance_tipo === "todas"
-                          ? <Badge variant="outline" className="text-[10px]">Todas las áreas</Badge>
-                          : <span className="text-xs">{p.alcance_area_nombre}</span>}
-                      </td>
-                      <td className="py-2 px-2 text-center">
-                        {p.puede_ver
-                          ? <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700">Sí</Badge>
-                          : <span className="text-xs text-muted-foreground">—</span>}
-                      </td>
-                      <td className="py-2 px-2 text-center">
-                        {p.puede_editar
-                          ? <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">Sí</Badge>
-                          : <span className="text-xs text-muted-foreground">—</span>}
-                      </td>
-                      <td className="py-2 px-2 text-center">
-                        {p.puede_eliminar
-                          ? <Badge variant="outline" className="text-[10px] border-red-300 text-red-700">Sí</Badge>
-                          : <span className="text-xs text-muted-foreground">—</span>}
-                      </td>
-                      <td className="py-2 px-2 text-right">
-                        <Button
-                          size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive"
-                          title="Eliminar permiso" onClick={() => setDeletingId(p.id)}
+            <>
+              {/* ── Vista matriz ──────────────────────────────────────────── */}
+              <div className="max-w-xs">
+                <Label className="text-xs">Módulo</Label>
+                <Select value={selectedModulo} onValueChange={setSelectedModulo}>
+                  <SelectTrigger><SelectValue placeholder="Selecciona un módulo…" /></SelectTrigger>
+                  <SelectContent>
+                    {MODULOS_PERMISO.map((m) => (
+                      <SelectItem key={m.modulo} value={m.modulo}>{m.moduloLabel}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {!selectedModulo ? (
+                <div className="text-sm text-muted-foreground py-8 text-center">
+                  Selecciona un módulo para ver la matriz de permisos.
+                </div>
+              ) : loading ? (
+                <div className="text-sm text-muted-foreground py-8 text-center">Cargando…</div>
+              ) : euOpts.length === 0 ? (
+                <div className="text-sm text-muted-foreground py-8 text-center">
+                  Esta empresa no tiene usuarios vinculados.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="text-sm border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="text-left py-2 px-3 font-medium text-muted-foreground text-xs sticky left-0 bg-background min-w-[160px]">
+                          Usuario
+                        </th>
+                        {matrizColumnas.map((col) => (
+                          <th
+                            key={col.value ?? "__acceso__"}
+                            className="px-2 pb-1 pt-2 font-medium text-muted-foreground min-w-[72px]"
+                          >
+                            <div
+                              className="text-[10px] uppercase tracking-wide"
+                              style={{ writingMode: matrizColumnas.length > 4 ? "vertical-rl" : undefined, transform: matrizColumnas.length > 4 ? "rotate(180deg)" : undefined, maxHeight: matrizColumnas.length > 4 ? "96px" : undefined, overflow: "hidden" }}
+                            >
+                              {col.label}
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {euOpts.map((eu, idx) => (
+                        <tr
+                          key={eu.user_id}
+                          className="border-t border-border"
+                          style={{ background: idx % 2 === 1 ? "var(--muted, #f8f8f8)" : undefined }}
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {permisos.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="py-8 text-center text-muted-foreground text-sm">
-                        Sin permisos asignados para esta empresa.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                          <td className="py-2 px-3 sticky left-0 bg-inherit">
+                            <div className="font-medium text-navy text-xs leading-tight">{eu.name ?? "—"}</div>
+                            <div className="text-[10px] text-muted-foreground">{eu.email}</div>
+                          </td>
+                          {matrizColumnas.map((col) => {
+                            const seccion = col.value ?? null;
+                            const perm = permisos.find(
+                              (p) => p.user_id === eu.user_id && p.modulo === selectedModulo
+                                && (p.seccion ?? null) === seccion && p.alcance_tipo === "todas",
+                            );
+                            return (
+                              <td key={col.value ?? "__acceso__"} className="py-2 px-1 text-center">
+                                <div className="flex flex-col gap-0.5 items-center">
+                                  {(["puede_ver", "puede_editar", "puede_eliminar"] as const).map((campo) => {
+                                    const checked = !!(perm as any)?.[campo];
+                                    const savingThis = matrizSaving === `${eu.user_id}:${seccion ?? ""}:${campo}`;
+                                    return (
+                                      <label
+                                        key={campo}
+                                        className="flex items-center gap-0.5 cursor-pointer select-none"
+                                        title={campo === "puede_ver" ? "Ver" : campo === "puede_editar" ? "Editar" : "Eliminar"}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          onChange={() => handleMatrizToggle(eu.user_id, seccion, campo, perm)}
+                                          disabled={!!matrizSaving}
+                                          className="w-3 h-3 accent-navy cursor-pointer disabled:opacity-50"
+                                        />
+                                        <span className={`text-[9px] ${savingThis ? "text-amber-500" : "text-muted-foreground"}`}>
+                                          {campo === "puede_ver" ? "V" : campo === "puede_editar" ? "E" : "D"}
+                                        </span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    V = Ver · E = Editar · D = Eliminar. Cada columna aplica alcance <em>todas las áreas</em>.
+                    Para permisos por área usa Vista lista.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
