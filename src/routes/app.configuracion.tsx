@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Save, UserCog, UserPlus, Trash2, Upload, Palette, FileText, ShieldCheck } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppSettings, EDITABLE_TEXTS } from "@/lib/app-settings";
+import { LEE_CAPITULOS } from "@/lib/lee-catalogo";
 
 export const Route = createFileRoute("/app/configuracion")({ component: Config });
 
@@ -259,11 +260,13 @@ type PermisoRow = {
   user_email: string;
   user_name: string | null;
   modulo: string;
+  seccion: string | null;
   alcance_tipo: "area" | "todas";
   alcance_area_id: string | null;
   alcance_area_nombre: string | null;
   puede_ver: boolean;
   puede_editar: boolean;
+  puede_eliminar: boolean;
 };
 
 type EmpresaUsuarioOpt = {
@@ -274,9 +277,54 @@ type EmpresaUsuarioOpt = {
 };
 
 const MODULOS_PERMISO = [
-  { value: "manual_funciones_evaluaciones", label: "Evaluaciones (Manual de Funciones)" },
-  { value: "manual_funciones_cargos",       label: "Cargos y Áreas (Manual de Funciones)" },
-] as const;
+  { modulo: "side", moduloLabel: "SIDE", secciones: [
+    { value: "L",  label: "Liderazgo"    },
+    { value: "E",  label: "Estrategia"   },
+    { value: "G",  label: "Gobernanza"   },
+    { value: "O",  label: "Organización" },
+    { value: "GE", label: "Gestión"      },
+    { value: "F",  label: "Finanzas"     },
+    { value: "C",  label: "Comercial"    },
+    { value: "M",  label: "Marketing"    },
+    { value: "OP", label: "Operaciones"  },
+    { value: "CU", label: "Cultura"      },
+    { value: "T",  label: "Talento"      },
+    { value: "ES", label: "Escalabilidad"},
+  ]},
+  { modulo: "plan_estrategico", moduloLabel: "Plan Estratégico", secciones: [
+    { value: "01",            label: "Presentación ejecutiva"      },
+    { value: "02",            label: "PESTEL"                      },
+    { value: "03",            label: "Diagnóstico interno + EFI"   },
+    { value: "04",            label: "FODA + CAME"                 },
+    { value: "05",            label: "Declaración estratégica"     },
+    { value: "06",            label: "Ejes estratégicos"           },
+    { value: "07",            label: "Objetivos + BSC"             },
+    { value: "08",            label: "Estrategias corporativas"    },
+    { value: "09",            label: "Estructura y plan operativo" },
+    { value: "10_esg",        label: "Sostenibilidad y ESG"        },
+    { value: "11_alianzas",   label: "Alianzas estratégicas"       },
+    { value: "12_innovacion", label: "Innovación e I+D+i"          },
+    { value: "13",            label: "Marketing estratégico"       },
+    { value: "14",            label: "Talento y cultura"           },
+    { value: "15",            label: "TI y transformación digital" },
+  ]},
+  { modulo: "lee", moduloLabel: "LEE", secciones:
+    LEE_CAPITULOS.map((c) => ({ value: String(c.numero), label: c.titulo })),
+  },
+  { modulo: "coaching", moduloLabel: "Panel Coaching", secciones: [
+    { value: "metodologia",  label: "Metodología"        },
+    { value: "etapas",       label: "Las 4 etapas"       },
+    { value: "herramientas", label: "Herramientas"       },
+    { value: "radar",        label: "Radar 6 dimensiones"},
+    { value: "plan90",       label: "Plan 90 días"       },
+    { value: "preguntas",    label: "Preguntas poderosas"},
+  ]},
+  { modulo: "manual_funciones", moduloLabel: "Manual de Funciones", secciones: [
+    { value: "cargos",       label: "Cargos y Áreas" },
+    { value: "evaluaciones", label: "Evaluaciones"   },
+  ]},
+  { modulo: "cotizador", moduloLabel: "Cotizador", secciones: [] },
+];
 
 
 // ─── Permisos por módulo ──────────────────────────────────────────────────────
@@ -305,7 +353,7 @@ function PermisosModuloAdmin() {
 
       const { data: permsData } = await (supabase as any)
         .from("permisos_usuario_modulo")
-        .select("id,user_id,modulo,alcance_tipo,alcance_area_id,puede_ver,puede_editar")
+        .select("id,user_id,modulo,seccion,alcance_tipo,alcance_area_id,puede_ver,puede_editar,puede_eliminar")
         .eq("cliente_id", selectedClienteId);
 
       const { data: areasData } = await supabase
@@ -354,7 +402,13 @@ function PermisosModuloAdmin() {
   };
 
   const moduloLabel = (val: string) =>
-    MODULOS_PERMISO.find((m) => m.value === val)?.label ?? val;
+    MODULOS_PERMISO.find((m) => m.modulo === val)?.moduloLabel ?? val;
+
+  const seccionLabel = (modulo: string, seccion: string | null) => {
+    if (!seccion) return "—";
+    const entry = MODULOS_PERMISO.find((m) => m.modulo === modulo);
+    return entry?.secciones.find((s) => s.value === seccion)?.label ?? seccion;
+  };
 
   return (
     <div className="a360-card a360-card-lg p-6 space-y-5">
@@ -394,9 +448,11 @@ function PermisosModuloAdmin() {
                   <tr>
                     <th className="text-left py-2 px-2">Usuario</th>
                     <th className="text-left py-2 px-2">Módulo</th>
+                    <th className="text-left py-2 px-2">Sección</th>
                     <th className="text-left py-2 px-2">Alcance</th>
                     <th className="text-center py-2 px-2 w-24">Puede ver</th>
                     <th className="text-center py-2 px-2 w-28">Puede editar</th>
+                    <th className="text-center py-2 px-2 w-32">Puede eliminar</th>
                     <th className="text-right py-2 px-2 w-16"></th>
                   </tr>
                 </thead>
@@ -408,6 +464,7 @@ function PermisosModuloAdmin() {
                         <div className="text-xs text-muted-foreground">{p.user_email}</div>
                       </td>
                       <td className="py-2 px-2 text-muted-foreground">{moduloLabel(p.modulo)}</td>
+                      <td className="py-2 px-2 text-xs text-muted-foreground">{seccionLabel(p.modulo, p.seccion)}</td>
                       <td className="py-2 px-2">
                         {p.alcance_tipo === "todas"
                           ? <Badge variant="outline" className="text-[10px]">Todas las áreas</Badge>
@@ -423,6 +480,11 @@ function PermisosModuloAdmin() {
                           ? <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">Sí</Badge>
                           : <span className="text-xs text-muted-foreground">—</span>}
                       </td>
+                      <td className="py-2 px-2 text-center">
+                        {p.puede_eliminar
+                          ? <Badge variant="outline" className="text-[10px] border-red-300 text-red-700">Sí</Badge>
+                          : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
                       <td className="py-2 px-2 text-right">
                         <Button
                           size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive"
@@ -435,7 +497,7 @@ function PermisosModuloAdmin() {
                   ))}
                   {permisos.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-muted-foreground text-sm">
+                      <td colSpan={8} className="py-8 text-center text-muted-foreground text-sm">
                         Sin permisos asignados para esta empresa.
                       </td>
                     </tr>
@@ -466,7 +528,7 @@ function PermisosModuloAdmin() {
           setPermisos((prev) => [...prev, {
             ...data,
             user_email: eu?.email ?? "—",
-            user_name: eu?.name ?? null,
+            user_name:  eu?.name ?? null,
             alcance_area_nombre: an,
           }]);
           setAddOpen(false);
@@ -503,39 +565,46 @@ function AgregarPermisoDialog({ open, euOpts, areas, onOpenChange, onSubmit }: {
   areas: AreaOpt[];
   onOpenChange: (v: boolean) => void;
   onSubmit: (row: {
-    user_id: string; modulo: string;
+    user_id: string; modulo: string; seccion: string | null;
     alcance_tipo: "area" | "todas"; alcance_area_id: string | null;
-    puede_ver: boolean; puede_editar: boolean;
+    puede_ver: boolean; puede_editar: boolean; puede_eliminar: boolean;
   }) => Promise<void>;
 }) {
   const [form, setForm] = useState({
-    user_id: "", modulo: "manual_funciones_evaluaciones",
+    user_id: "", modulo: "manual_funciones", seccion: "cargos",
     alcance_tipo: "todas" as "area" | "todas", alcance_area_id: "",
-    puede_ver: true, puede_editar: false,
+    puede_ver: true, puede_editar: false, puede_eliminar: false,
   });
   const [saving, setSaving] = useState(false);
 
+  const moduloEntry = MODULOS_PERMISO.find((m) => m.modulo === form.modulo);
+  const tieneSecciones = (moduloEntry?.secciones.length ?? 0) > 0;
+
   useEffect(() => {
     if (open) setForm({
-      user_id: "", modulo: "manual_funciones_evaluaciones",
+      user_id: "", modulo: "manual_funciones", seccion: "cargos",
       alcance_tipo: "todas", alcance_area_id: "",
-      puede_ver: true, puede_editar: false,
+      puede_ver: true, puede_editar: false, puede_eliminar: false,
     });
   }, [open]);
 
-  const setPuedeVer    = (v: boolean) => setForm((f) => ({ ...f, puede_ver: v,    puede_editar: v ? f.puede_editar : false }));
-  const setPuedeEditar = (v: boolean) => setForm((f) => ({ ...f, puede_editar: v, puede_ver: v ? true : f.puede_ver }));
+  const setPuedeVer      = (v: boolean) => setForm((f) => ({ ...f, puede_ver: v,       puede_editar: v ? f.puede_editar : false,    puede_eliminar: v ? f.puede_eliminar : false }));
+  const setPuedeEditar   = (v: boolean) => setForm((f) => ({ ...f, puede_editar: v,    puede_ver: v ? true : f.puede_ver,            puede_eliminar: v ? f.puede_eliminar : false }));
+  const setPuedeEliminar = (v: boolean) => setForm((f) => ({ ...f, puede_eliminar: v,  puede_editar: v ? true : f.puede_editar,      puede_ver: v ? true : f.puede_ver }));
 
-  const canSubmit = !!form.user_id && (form.alcance_tipo === "todas" || !!form.alcance_area_id);
+  const canSubmit = !!form.user_id
+    && (form.alcance_tipo === "todas" || !!form.alcance_area_id)
+    && (!tieneSecciones || !!form.seccion);
 
   const submit = async () => {
     if (!canSubmit) return;
     setSaving(true);
     await onSubmit({
       user_id: form.user_id, modulo: form.modulo,
+      seccion: tieneSecciones ? (form.seccion || null) : null,
       alcance_tipo: form.alcance_tipo,
       alcance_area_id: form.alcance_tipo === "area" ? form.alcance_area_id || null : null,
-      puede_ver: form.puede_ver, puede_editar: form.puede_editar,
+      puede_ver: form.puede_ver, puede_editar: form.puede_editar, puede_eliminar: form.puede_eliminar,
     });
     setSaving(false);
   };
@@ -561,13 +630,33 @@ function AgregarPermisoDialog({ open, euOpts, areas, onOpenChange, onSubmit }: {
 
           <div>
             <Label className="text-xs">Módulo *</Label>
-            <Select value={form.modulo} onValueChange={(v) => setForm((f) => ({ ...f, modulo: v }))}>
+            <Select
+              value={form.modulo}
+              onValueChange={(v) => {
+                const entry = MODULOS_PERMISO.find((m) => m.modulo === v);
+                setForm((f) => ({ ...f, modulo: v, seccion: entry?.secciones[0]?.value ?? "" }));
+              }}
+            >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {MODULOS_PERMISO.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                {MODULOS_PERMISO.map((m) => <SelectItem key={m.modulo} value={m.modulo}>{m.moduloLabel}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
+
+          {tieneSecciones && (
+            <div>
+              <Label className="text-xs">Sección *</Label>
+              <Select value={form.seccion} onValueChange={(v) => setForm((f) => ({ ...f, seccion: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(moduloEntry?.secciones ?? []).map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label className="text-xs">Alcance *</Label>
@@ -602,8 +691,9 @@ function AgregarPermisoDialog({ open, euOpts, areas, onOpenChange, onSubmit }: {
             <Label className="text-xs">Capacidades</Label>
             <div className="rounded-lg border divide-y">
               {([
-                { key: "puede_ver",    label: "Puede ver",    desc: "Lectura de evaluaciones",                            val: form.puede_ver,    set: setPuedeVer },
-                { key: "puede_editar", label: "Puede editar", desc: "Crear y modificar evaluaciones (implica puede ver)", val: form.puede_editar, set: setPuedeEditar },
+                { key: "puede_ver",      label: "Puede ver",      desc: "Lectura (implica ver)",                              val: form.puede_ver,      set: setPuedeVer      },
+                { key: "puede_editar",   label: "Puede editar",   desc: "Crear y modificar (implica puede ver)",              val: form.puede_editar,   set: setPuedeEditar   },
+                { key: "puede_eliminar", label: "Puede eliminar", desc: "Borrar registros (implica puede editar y puede ver)", val: form.puede_eliminar, set: setPuedeEliminar },
               ] as const).map((cap) => (
                 <label key={cap.key} className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-muted/30">
                   <div>
