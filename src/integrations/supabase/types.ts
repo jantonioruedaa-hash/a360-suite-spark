@@ -2043,6 +2043,10 @@ export type Database = {
         Args: { _cargo_id: string; _modulo: string; _necesita_editar?: boolean }
         Returns: boolean
       }
+      has_pum_access: {
+        Args: { _campo: string; _cliente_id: string; _modulo: string }
+        Returns: boolean
+      }
       has_pum_edit: {
         Args: { _area_id: string; _cliente_id: string; _modulo: string }
         Returns: boolean
