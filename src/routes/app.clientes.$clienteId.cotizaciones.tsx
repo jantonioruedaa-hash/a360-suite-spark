@@ -72,11 +72,30 @@ const EMPTY: Partial<Cotizacion> = {
 
 function Cotizaciones() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/cotizaciones" });
-  const { user, profile } = useAuth();
+  const { user, profile, role } = useAuth();
+  const isClientRole = role === "cliente" || role === "participante";
   const [list, setList] = useState<Cotizacion[]>([]);
   const [cliente, setCliente] = useState<ClienteData | null>(null);
   const [contactos, setContactos] = useState<ContactoLite[]>([]);
   const [editing, setEditing] = useState<Partial<Cotizacion> | null>(null);
+  const [cotizadorPerms, setCotizadorPerms] = useState({ puede_editar: true, puede_eliminar: true });
+
+  useEffect(() => {
+    if (!isClientRole || !user) return;
+    (async () => {
+      const { data: pum } = await (supabase as any)
+        .from("permisos_usuario_modulo")
+        .select("puede_editar, puede_eliminar")
+        .eq("user_id", user.id)
+        .eq("cliente_id", clienteId)
+        .eq("modulo", "cotizador")
+        .maybeSingle();
+      setCotizadorPerms({
+        puede_editar: pum?.puede_editar ?? false,
+        puede_eliminar: pum?.puede_eliminar ?? false,
+      });
+    })();
+  }, [isClientRole, user?.id, clienteId]);
 
   const reload = async () => {
     const [{ data: cs }, { data: cli }, { data: cts }] = await Promise.all([
@@ -101,6 +120,14 @@ function Cotizaciones() {
       tasa: list.length ? Math.round((cerradas / list.length) * 100) : 0,
     };
   }, [list]);
+
+  const deleteCotizacion = async (id: string) => {
+    if (!confirm("¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
+    const { error } = await supabase.from("cliente_cotizaciones").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Cotización eliminada");
+    reload();
+  };
 
   const exportar = (c: Cotizacion) => {
     const ct = contactos.find((x) => x.id === c.contacto_id);
@@ -176,9 +203,11 @@ function Cotizaciones() {
     <div className="space-y-4 max-w-6xl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="font-display text-2xl text-navy">Cotizaciones y contratos</h2>
-        <Button onClick={() => setEditing(EMPTY)} className="bg-navy hover:bg-navy/90">
-          <Plus className="w-4 h-4 mr-1" /> Nueva cotización
-        </Button>
+        {cotizadorPerms.puede_editar && (
+          <Button onClick={() => setEditing(EMPTY)} className="bg-navy hover:bg-navy/90">
+            <Plus className="w-4 h-4 mr-1" /> Nueva cotización
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -220,7 +249,12 @@ function Cotizaciones() {
                     <td className="px-4 py-3 text-right">
                       <Button size="sm" variant="ghost" onClick={() => exportarPropuesta(c)} title="Generar Propuesta Comercial PDF"><FileBadge className="w-3.5 h-3.5 text-gold" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => exportar(c)} title="Exportar Cotización PDF"><Download className="w-3.5 h-3.5" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title="Editar"><Pencil className="w-3.5 h-3.5" /></Button>
+                      {cotizadorPerms.puede_editar && (
+                        <Button size="sm" variant="ghost" onClick={() => setEditing(c)} title="Editar"><Pencil className="w-3.5 h-3.5" /></Button>
+                      )}
+                      {cotizadorPerms.puede_eliminar && (
+                        <Button size="sm" variant="ghost" onClick={() => deleteCotizacion(c.id)} title="Eliminar"><Trash2 className="w-3.5 h-3.5 text-red-500" /></Button>
+                      )}
                     </td>
                   </tr>
                 );

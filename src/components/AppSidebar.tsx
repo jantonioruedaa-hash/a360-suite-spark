@@ -17,7 +17,7 @@ import { useAppSettings } from "@/lib/app-settings";
 import { getModuleColor } from "@/lib/module-colors";
 import { toast } from "sonner";
 
-type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean; modulo?: string; clienteUrl?: string };
+type Item = { title: string; url: string; icon: typeof Activity; upcoming?: boolean; modulo?: string; clienteUrl?: string; clienteOnly?: boolean };
 type Section = { label: string; items: Item[]; consultorOnly?: boolean };
 
 const sections: Section[] = [
@@ -71,6 +71,7 @@ const sections: Section[] = [
       { title: "Marketing Digital", url: "/app/crecimiento", icon: Megaphone, modulo: "marketing_digital", clienteUrl: "/app/crecimiento" },
       { title: "Suite Financiera", url: "#", icon: Calculator, upcoming: true },
       { title: "WMS Inventarios", url: "#", icon: Package, upcoming: true },
+      { title: "Cotizaciones", url: "#", icon: FileText, modulo: "cotizador", clienteUrl: "/app/clientes/{id}/cotizaciones", clienteOnly: true },
     ],
   },
   {
@@ -157,7 +158,7 @@ export function AppSidebar() {
   }, [isClientRole, user?.id]);
 
   const visibleSections = isConsultorOrAdmin
-    ? sections
+    ? sections.map((s) => ({ ...s, items: s.items.filter((i) => !i.clienteOnly) })).filter((s) => s.items.length > 0)
     : allowedModules === null
       ? []
       : sections
