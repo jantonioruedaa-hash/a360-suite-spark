@@ -6,6 +6,8 @@ export interface CotizacionPDFData {
   titulo: string;
   descripcion?: string | null;
   plan?: string | null;
+  nivelAcompanamiento?: string | null;
+  planPlataformaNombre?: string | null;
   fechaEmision?: string | null;
   fechaVencimiento?: string | null;
   validezDias?: number;
@@ -90,6 +92,8 @@ export function generarCotizacionPDF(data: CotizacionPDFData): jsPDF {
     ["Vencimiento", data.fechaVencimiento ?? "—"],
     ["Validez", `${data.validezDias ?? 30} días`],
     ["Plan", data.plan ?? "—"],
+    ...(data.nivelAcompanamiento ? [["Nivel", data.nivelAcompanamiento]] : []),
+    ...(data.planPlataformaNombre ? [["Plataforma", data.planPlataformaNombre]] : []),
   ];
   detalles.forEach(([k, v]) => {
     doc.setTextColor(...MUTED);
