@@ -613,6 +613,7 @@ function TabUsuarios() {
 const EMPTY_FORM = {
   email: "", password: "", name: "", company: "", specialty: "",
   role: "cliente" as AppRole, clienteId: "", posicionId: "",
+  rolEmpresa: "colaborador", areaId: "",
 };
 
 function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, onSubmit }: {
@@ -624,16 +625,18 @@ function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, 
   onSubmit: (input: {
     email: string; password?: string; name?: string; company?: string;
     specialty?: string; role: AppRole; clienteId?: string; posicionId?: string;
+    rolEmpresa?: string; areaId?: string;
   }) => Promise<void>;
 }) {
   const [form, setForm]     = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
   const [posiciones, setPosiciones] = useState([]);
+  const [areas, setAreas] = useState([]);
   const listPosFn = useServerFn(adminListPosiciones);
 
   useEffect(() => {
-    if (open) { setForm(EMPTY_FORM); setTouched(false); setPosiciones([]); }
+    if (open) { setForm(EMPTY_FORM); setTouched(false); setPosiciones([]); setAreas([]); }
   }, [open]);
 
   useEffect(() => {
@@ -642,6 +645,13 @@ function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, 
       .then((data) => setPosiciones(data ?? []))
       .catch(() => setPosiciones([]));
   }, [form.clienteId, form.role, accessToken]);
+
+  useEffect(() => {
+    if (!form.clienteId || form.role !== "cliente") { setAreas([]); return; }
+    supabase.from("manual_areas").select("id, nombre").eq("cliente_id", form.clienteId)
+      .then(({ data }) => setAreas(data ?? []))
+      .catch(() => setAreas([]));
+  }, [form.clienteId, form.role]);
 
   const emailErr = touched ? validarEmail(form.email) : null;
   const pwd = evaluarPassword(form.password);
@@ -662,6 +672,8 @@ function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, 
         role: form.role,
         clienteId: form.clienteId || undefined,
         posicionId: form.posicionId || undefined,
+        rolEmpresa: (form.role === "cliente" && form.clienteId) ? form.rolEmpresa || undefined : undefined,
+        areaId: (form.rolEmpresa === "jefe_area" && form.areaId) ? form.areaId : undefined,
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error");
@@ -742,7 +754,7 @@ function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, 
               <Label className="text-xs">Rol</Label>
               <Select
                 value={form.role}
-                onValueChange={(v) => setForm({ ...form, role: v as AppRole, clienteId: "", posicionId: "" })}
+                onValueChange={(v) => setForm({ ...form, role: v as AppRole, clienteId: "", posicionId: "", rolEmpresa: "colaborador", areaId: "" })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -752,7 +764,7 @@ function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, 
             </div>
             <div>
               <Label className="text-xs">Empresa asignada</Label>
-              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v, posicionId: "" })}>
+              <Select value={form.clienteId || "__none__"} onValueChange={(v) => setForm({ ...form, clienteId: v === "__none__" ? "" : v, posicionId: "", areaId: "" })}>
                 <SelectTrigger><SelectValue placeholder="— Sin vincular —" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— Sin vincular —</SelectItem>
@@ -770,6 +782,36 @@ function CrearOInvitarDialog({ open, mode, clientes, accessToken, onOpenChange, 
                 <SelectContent>
                   <SelectItem value="__none__">— Sin posición —</SelectItem>
                   {posiciones.map((p) => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {form.role === "cliente" && form.clienteId && (
+            <div>
+              <Label className="text-xs">Rol en la empresa</Label>
+              <Select
+                value={form.rolEmpresa}
+                onValueChange={(v) => setForm({ ...form, rolEmpresa: v, areaId: v !== "jefe_area" ? "" : form.areaId })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="colaborador">Colaborador</SelectItem>
+                  <SelectItem value="jefe_area">Jefe de área</SelectItem>
+                  <SelectItem value="dueño">Dueño</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {form.role === "cliente" && form.clienteId && form.rolEmpresa === "jefe_area" && (
+            <div>
+              <Label className="text-xs">Área asignada</Label>
+              <Select value={form.areaId || "__none__"} onValueChange={(v) => setForm({ ...form, areaId: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="— Seleccionar área —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Seleccionar área —</SelectItem>
+                  {areas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
