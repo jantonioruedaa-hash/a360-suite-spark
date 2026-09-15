@@ -47,6 +47,8 @@ interface Cotizacion {
   entregables: EntregableItem[];
   objetivos_propuesta: string[];
   diagnostico_resumen: string | null;
+  nivel_acompanamiento: string | null;
+  plan_plataforma_id: string | null;
 }
 
 interface ClienteData {
@@ -56,6 +58,7 @@ interface ClienteData {
   direccion: string | null;
   ciudad: string | null;
   pais: string | null;
+  plan_licencia: string | null;
 }
 
 interface ContactoLite { id: string; nombre: string; apellido: string; email: string | null; telefono_oficina?: string | null; celular?: string | null }
@@ -68,6 +71,14 @@ const EMPTY: Partial<Cotizacion> = {
   notas: "", condiciones: "El presente documento tiene validez de 30 días desde su emisión.",
   contacto_id: null, ime_estimado: null, justificacion_programa: null,
   entregables: [], objetivos_propuesta: [], diagnostico_resumen: null,
+  nivel_acompanamiento: null, plan_plataforma_id: null,
+};
+
+const NIVEL_LABELS: Record<string, string> = {
+  autogestionado: "Autogestionado",
+  guiado: "Guiado",
+  acompanado: "Acompañado",
+  advisory: "Advisory",
 };
 
 function Cotizaciones() {
@@ -79,6 +90,14 @@ function Cotizaciones() {
   const [contactos, setContactos] = useState<ContactoLite[]>([]);
   const [editing, setEditing] = useState<Partial<Cotizacion> | null>(null);
   const [cotizadorPerms, setCotizadorPerms] = useState({ puede_editar: true, puede_eliminar: true });
+  const [planesDisponibles, setPlanesDisponibles] = useState<Array<{ id: string; nombre: string }>>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any).from("planes").select("id, nombre").order("nombre");
+      setPlanesDisponibles(data ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isClientRole || !user) return;
@@ -100,7 +119,7 @@ function Cotizaciones() {
   const reload = async () => {
     const [{ data: cs }, { data: cli }, { data: cts }] = await Promise.all([
       supabase.from("cliente_cotizaciones").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false }),
-      supabase.from("clientes").select("nombre_empresa,nombre_comercial,sector,direccion,ciudad,pais").eq("id", clienteId).maybeSingle(),
+      supabase.from("clientes").select("nombre_empresa,nombre_comercial,sector,direccion,ciudad,pais,plan_licencia").eq("id", clienteId).maybeSingle(),
       supabase.from("cliente_contactos").select("id,nombre,apellido,email,telefono_oficina,celular").eq("cliente_id", clienteId).eq("activo", true),
     ]);
     setList((cs ?? []) as unknown as Cotizacion[]);
@@ -137,6 +156,8 @@ function Cotizaciones() {
       titulo: c.titulo,
       descripcion: c.descripcion,
       plan: c.plan ? PLANES_PRESET[c.plan]?.label ?? c.plan : null,
+      nivelAcompanamiento: c.nivel_acompanamiento ? NIVEL_LABELS[c.nivel_acompanamiento] ?? c.nivel_acompanamiento : null,
+      planPlataformaNombre: c.plan_plataforma_id ? planesDisponibles.find((p) => p.id === c.plan_plataforma_id)?.nombre ?? null : null,
       fechaEmision: c.fecha_emision,
       fechaVencimiento: c.fecha_vencimiento,
       validezDias: c.validez_dias,
@@ -178,6 +199,8 @@ function Cotizaciones() {
       numero: c.numero_cotizacion, titulo: c.titulo,
       fechaEmision: c.fecha_emision, fechaVencimiento: c.fecha_vencimiento, validezDias: c.validez_dias, moneda: c.moneda,
       plan: c.plan, planLabel: c.plan ? PLANES_PRESET[c.plan]?.label ?? c.plan : null,
+      nivelAcompanamiento: c.nivel_acompanamiento ? NIVEL_LABELS[c.nivel_acompanamiento] ?? c.nivel_acompanamiento : null,
+      planPlataformaNombre: c.plan_plataforma_id ? planesDisponibles.find((p) => p.id === c.plan_plataforma_id)?.nombre ?? null : null,
       cliente: {
         empresa: cliente.nombre_empresa, nombreComercial: cliente.nombre_comercial, sector: cliente.sector,
         contacto: ct ? `${ct.nombre} ${ct.apellido}` : null, email: ct?.email ?? null,
@@ -270,6 +293,8 @@ function Cotizaciones() {
           contactos={contactos}
           clienteId={clienteId}
           consultorId={user?.id ?? null}
+          cliente={cliente}
+          planes={planesDisponibles}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); reload(); }}
         />
@@ -278,11 +303,13 @@ function Cotizaciones() {
   );
 }
 
-function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, onSaved }: {
+function CotizacionEditor({ value, contactos, clienteId, consultorId, cliente, planes, onClose, onSaved }: {
   value: Partial<Cotizacion>;
   contactos: ContactoLite[];
   clienteId: string;
   consultorId: string | null;
+  cliente: ClienteData | null;
+  planes: Array<{ id: string; nombre: string }>;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -442,6 +469,8 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       entregables: form.entregables ?? [],
       objetivos_propuesta: form.objetivos_propuesta ?? [],
       diagnostico_resumen: form.diagnostico_resumen || null,
+      nivel_acompanamiento: form.nivel_acompanamiento || null,
+      plan_plataforma_id: form.plan_plataforma_id || null,
     };
     const { error } = form.id
       ? await supabase.from("cliente_cotizaciones").update(payload as never).eq("id", form.id)
@@ -456,6 +485,13 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{form.id ? `Editar ${form.numero_cotizacion}` : "Nueva cotización"}</DialogTitle></DialogHeader>
 
+        {cliente && (
+          <div className="text-xs text-muted-foreground">
+            <span className="font-medium text-navy">Plan actual del cliente:</span>{" "}
+            <Badge variant="outline" className="text-xs">{cliente.plan_licencia ?? "Sin plan asignado"}</Badge>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Plan</Label>
             <Select value={form.plan ?? ""} onValueChange={cargarPlan}>
@@ -469,6 +505,23 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, onClose, o
             <Select value={form.estado ?? "borrador"} onValueChange={(v) => setForm({ ...form, estado: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{ESTADOS_COTIZACION.map((e) => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div><Label>Nivel de acompañamiento</Label>
+            <Select value={form.nivel_acompanamiento ?? ""} onValueChange={(v) => setForm({ ...form, nivel_acompanamiento: v || null })}>
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(NIVEL_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Plan de plataforma cotizado <span className="text-muted-foreground text-xs font-normal">(opcional)</span></Label>
+            <Select value={form.plan_plataforma_id ?? ""} onValueChange={(v) => setForm({ ...form, plan_plataforma_id: v || null })}>
+              <SelectTrigger><SelectValue placeholder="Sin plan cotizado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Sin plan cotizado</SelectItem>
+                {planes.map((p) => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div className="col-span-2"><Label>Título *</Label><Input value={form.titulo ?? ""} onChange={(e) => setForm({ ...form, titulo: e.target.value })} /></div>

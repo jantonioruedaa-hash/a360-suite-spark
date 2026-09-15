@@ -14,6 +14,8 @@ export interface PropuestaPDFData {
   moneda: string;
   plan?: string | null;
   planLabel?: string | null;
+  nivelAcompanamiento?: string | null;
+  planPlataformaNombre?: string | null;
   // Cliente
   cliente: {
     empresa: string;
@@ -94,6 +96,11 @@ export function generarPropuestaComercialPDF(d: PropuestaPDFData): jsPDF {
   if (d.planLabel) {
     doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(...GOLD);
     doc.text(d.planLabel.toUpperCase(), 40, y); y += 18;
+  }
+  if (d.nivelAcompanamiento || d.planPlataformaNombre) {
+    const extras = [d.nivelAcompanamiento, d.planPlataformaNombre].filter(Boolean).join(" · ");
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...MUTED);
+    doc.text(extras, 40, y); y += 14;
   }
   doc.setTextColor(...MUTED); doc.setFontSize(10);
   const meta = [
