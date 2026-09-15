@@ -101,6 +101,8 @@ export async function createAdminUser(data: {
   specialty?: string;
   role: AdminRole;
   clienteId?: string;
+  rolEmpresa?: RolEmpresa;
+  areaId?: string;
 }, adminUserId: string) {
   await ensureAdmin(adminUserId);
   const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
@@ -128,7 +130,7 @@ export async function createAdminUser(data: {
         );
       }
     }
-    await linkUserToCliente(uid, data.role, data.clienteId);
+    await linkUserToCliente(uid, data.role, data.clienteId, data.rolEmpresa, data.areaId);
   }
   return { id: uid };
 }

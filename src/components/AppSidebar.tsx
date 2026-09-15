@@ -266,7 +266,20 @@ export function AppSidebar() {
 
       <SidebarFooter className="bg-sidebar border-t border-sidebar-border/60">
         <SidebarMenu>
-          {/* Panel Admin (admin-simple) oculto — legacy con @ts-nocheck, no maneja rol_empresa/area_id. Ver app.configuracion.tsx. */}
+          {role === "admin" && (
+            <SidebarMenuItem style={path.startsWith("/app/admin") ? { borderLeft: `3px solid ${moduleColor.accent}` } : { borderLeft: "3px solid transparent" }}>
+              <SidebarMenuButton
+                asChild
+                isActive={path.startsWith("/app/admin")}
+                className="text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-gold data-[active=true]:bg-sidebar-accent data-[active=true]:text-gold data-[active=true]:font-medium"
+              >
+                <Link to="/app/admin-simple">
+                  <ShieldCheck className="w-4 h-4" style={path.startsWith("/app/admin") ? { color: moduleColor.accent } : undefined} />
+                  <span>🛡️ Panel Admin</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           {user ? (
             <>
               <SidebarMenuItem>

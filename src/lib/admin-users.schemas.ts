@@ -15,7 +15,12 @@ export const CreateUserSchema = z.object({
   specialty: z.string().optional(),
   role: RoleEnum,
   clienteId: z.string().uuid().optional(),
-});
+  rolEmpresa: RolEmpresaEnum.optional(),
+  areaId: z.string().uuid().optional(),
+}).refine(
+  (d) => d.rolEmpresa !== "jefe_area" || !!d.areaId,
+  { message: "areaId es requerido cuando rolEmpresa es 'jefe_area'", path: ["areaId"] }
+);
 
 export const InviteUserSchema = z.object({
   accessToken: AccessTokenSchema,
