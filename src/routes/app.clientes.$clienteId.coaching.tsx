@@ -152,6 +152,7 @@ function CoachingClienteWorkspace() {
   const [clienteNombre, setClienteNombre] = useState<string>("Cliente");
   const [activeTab, setActiveTab] = useState<CoachingTab>("resumen");
   const [filtroEtapa, setFiltroEtapa] = useState<string>("");
+  const tabsBarRef = useRef<HTMLDivElement>(null);
 
   const cargar = async () => {
     setLoading(true);
@@ -175,6 +176,11 @@ function CoachingClienteWorkspace() {
   }, [clienteId, esCliente]);
 
   const puedeVerInterpretacion = !esCliente || accesoInterpretacion;
+
+  const irAHerramientas = () => {
+    setActiveTab("herramientas");
+    tabsBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const progreso = useMemo(() => progresoPorEtapa(sesiones), [sesiones]);
   const etapa = useMemo(() => etapaActual(sesiones), [sesiones]);
@@ -264,8 +270,8 @@ function CoachingClienteWorkspace() {
 
           {/* Actions */}
           <div className="flex gap-3.5 flex-wrap mb-12">
-            <button style={BTN_PRIMARY} onClick={() => setActiveTab("herramientas")}>
-              Iniciar sesión →
+            <button style={BTN_PRIMARY} onClick={irAHerramientas}>
+              Ver metodología y herramientas →
             </button>
             <button style={BTN_GHOST} onClick={() => setActiveTab("ia")}>
               🤖 Ver análisis IA
@@ -294,6 +300,7 @@ function CoachingClienteWorkspace() {
 
       {/* ── 2. TABS BAR ─────────────────────────────────────────────────────── */}
       <div
+        ref={tabsBarRef}
         className="bg-white flex gap-0 overflow-x-auto"
         style={{ borderBottom: "1px solid #E0E7FF", padding: "0 24px" }}
       >
@@ -538,7 +545,7 @@ function CoachingClienteWorkspace() {
             </div>
             {puedeIniciarSesion && (
               <div className="relative z-10 shrink-0">
-                <button style={{ ...BTN_PRIMARY, fontSize: "15px", padding: "16px 36px" }} onClick={() => setActiveTab("herramientas")}>
+                <button style={{ ...BTN_PRIMARY, fontSize: "15px", padding: "16px 36px" }} onClick={irAHerramientas}>
                   Iniciar próxima sesión →
                 </button>
                 <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginTop: "12px", textAlign: "right" }}>
@@ -901,7 +908,7 @@ function CoachingClienteWorkspace() {
                 <p style={{ fontSize: "15px", color: "#64748B", lineHeight: 1.75, maxWidth: "440px", margin: "0 auto 28px", textAlign: "justify" as const }}>
                   Registra y guarda tu primera herramienta de coaching para que la IA pueda generar análisis de patrones, evolución y recomendaciones personalizadas.
                 </p>
-                <button style={BTN_PRIMARY} onClick={() => setActiveTab("herramientas")}>
+                <button style={BTN_PRIMARY} onClick={irAHerramientas}>
                   Ir a herramientas →
                 </button>
               </div>
