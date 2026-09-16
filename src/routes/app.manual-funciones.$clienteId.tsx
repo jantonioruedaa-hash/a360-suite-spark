@@ -474,7 +474,8 @@ function ManualFuncionesViewer() {
             .select("id")
             .eq("user_id", user.id)
             .eq("cliente_id", clienteId)
-            .eq("modulo", "manual_funciones_cargos")
+            .eq("modulo", "manual_funciones")
+            .eq("seccion", "cargos")
             .eq("puede_editar", true)
             .limit(1),
           supabase
