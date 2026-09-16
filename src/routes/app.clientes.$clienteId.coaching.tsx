@@ -1332,7 +1332,7 @@ function DialogoSesion({
         )}
 
         {/* ── Contenido del editor ── */}
-        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px", ...(esCliente ? { pointerEvents: "none" as const } : {}) }}>
+        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: "16px", ...((esCliente && !(rolEmpresa === "dueño" && !existing)) ? { pointerEvents: "none" as const } : {}) }}>
           {h.tipo === "radar" && <RadarEditor datos={datos} setDatos={setDatos} />}
           {h.tipo === "creencias" && <CreenciasInstrumentado datos={datos} setDatos={setDatos} />}
           {h.tipo === "perfil" && <ContextoInstrumentado datos={datos} setDatos={setDatos} />}
