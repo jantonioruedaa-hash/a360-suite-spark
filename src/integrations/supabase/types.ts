@@ -635,6 +635,7 @@ export type Database = {
           num_empleados: number | null
           origen: string | null
           pais: string | null
+          plan_id: string | null
           plan_licencia: string
           sector: string | null
           subsector: string | null
@@ -668,6 +669,7 @@ export type Database = {
           num_empleados?: number | null
           origen?: string | null
           pais?: string | null
+          plan_id?: string | null
           plan_licencia?: string
           sector?: string | null
           subsector?: string | null
@@ -701,6 +703,7 @@ export type Database = {
           num_empleados?: number | null
           origen?: string | null
           pais?: string | null
+          plan_id?: string | null
           plan_licencia?: string
           sector?: string | null
           subsector?: string | null
@@ -708,7 +711,15 @@ export type Database = {
           updated_at?: string
           web?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clientes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coaching_sesiones: {
         Row: {
