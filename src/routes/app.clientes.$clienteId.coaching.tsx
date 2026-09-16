@@ -129,8 +129,21 @@ function CoachingPremiumGate() {
 // ── Componente principal ───────────────────────────────────────────────────────
 function CoachingClienteWorkspace() {
   const { clienteId } = useParams({ from: "/app/clientes/$clienteId/coaching" });
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const esCliente = role === "cliente" || role === "participante";
+  const [rolEmpresa, setRolEmpresa] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!esCliente || !user) return;
+    supabase.from("empresa_usuarios")
+      .select("rol_empresa")
+      .eq("user_id", user.id)
+      .eq("cliente_id", clienteId)
+      .maybeSingle()
+      .then(({ data }) => setRolEmpresa(data?.rol_empresa ?? null));
+  }, [esCliente, user?.id, clienteId]);
+
+  const puedeIniciarSesion = !esCliente || rolEmpresa === "dueño";
   const [accesoInterpretacion, setAccesoInterpretacion] = useState(false);
   const [sesiones, setSesiones] = useState<SesionCoaching[]>([]);
   const [loading, setLoading] = useState(true);
@@ -456,7 +469,7 @@ function CoachingClienteWorkspace() {
                     <div style={{ fontSize: "20px", fontWeight: 900, color: "#0C4A6E", marginBottom: "6px", letterSpacing: "-0.01em" }}>{proximaHerramienta.nombre}</div>
                     <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.75, textAlign: "justify" as const, margin: 0 }}>{proximaHerramienta.descripcion}</p>
                   </div>
-                  {!esCliente && (
+                  {puedeIniciarSesion && (
                     <button onClick={() => setOpenNueva({ herramientaId: proximaHerramienta.id })} style={{ padding: "14px 28px", borderRadius: "12px", background: etapaActiveGrad(etapaInfo?.color ?? "#0EA5E9"), color: "white", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: `0 4px 20px ${etapaInfo?.color ?? "#0EA5E9"}35`, flexShrink: 0 }}>
                       Iniciar herramienta →
                     </button>
@@ -523,7 +536,7 @@ function CoachingClienteWorkspace() {
                 {totalCompletadas} de {HERRAMIENTAS_A360.length} herramientas completadas. Cada sesión es un punto de inflexión.
               </p>
             </div>
-            {!esCliente && (
+            {puedeIniciarSesion && (
               <div className="relative z-10 shrink-0">
                 <button style={{ ...BTN_PRIMARY, fontSize: "15px", padding: "16px 36px" }} onClick={() => setActiveTab("herramientas")}>
                   Iniciar próxima sesión →
@@ -552,7 +565,7 @@ function CoachingClienteWorkspace() {
                   {totalCompletadas} de <span style={GRADIENT_TEXT}>{HERRAMIENTAS_A360.length}</span> herramientas completadas
                 </h2>
               </div>
-              {!esCliente && (
+              {puedeIniciarSesion && (
                 <button style={{ ...BTN_PRIMARY, fontSize: "13px", padding: "11px 22px" }} onClick={() => setOpenNueva({ herramientaId: HERRAMIENTAS_A360[0]?.id ?? "" })}>
                   + Nueva sesión
                 </button>
@@ -649,7 +662,7 @@ function CoachingClienteWorkspace() {
                             {ultima && <span>· {new Date(ultima.created_at).toLocaleDateString("es", { day: "numeric", month: "short" })}</span>}
                           </div>
                           <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                            {!esCliente && (
+                            {puedeIniciarSesion && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setOpenNueva({ herramientaId: h.id }); }}
                                 style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: completa ? "#059669" : etapaActiveGrad(et.color), color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${et.color}30`, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
@@ -1128,6 +1141,7 @@ function CoachingClienteWorkspace() {
           onSaved={() => { setOpenNueva(null); cargar(); }}
           esCliente={esCliente}
           puedeVerInterpretacion={puedeVerInterpretacion}
+          rolEmpresa={rolEmpresa}
         />
       )}
       {editing && (
@@ -1139,6 +1153,7 @@ function CoachingClienteWorkspace() {
           onSaved={() => { setEditing(null); cargar(); }}
           esCliente={esCliente}
           puedeVerInterpretacion={puedeVerInterpretacion}
+          rolEmpresa={rolEmpresa}
         />
       )}
     </div>
@@ -1149,7 +1164,7 @@ function CoachingClienteWorkspace() {
 // Diálogo nueva/editar sesión — lógica sin cambios
 // ─────────────────────────────────────────────────────────────────────────────
 function DialogoSesion({
-  clienteId, herramientaId, existing, onClose, onSaved, esCliente = false, puedeVerInterpretacion = true,
+  clienteId, herramientaId, existing, onClose, onSaved, esCliente = false, puedeVerInterpretacion = true, rolEmpresa = null,
 }: {
   clienteId: string;
   herramientaId: string;
@@ -1158,6 +1173,7 @@ function DialogoSesion({
   onSaved: () => void;
   esCliente?: boolean;
   puedeVerInterpretacion?: boolean;
+  rolEmpresa?: string | null;
 }) {
   const h = getHerramienta(herramientaId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1212,11 +1228,14 @@ function DialogoSesion({
         await actualizarSesion(existing.id, { datos, completada });
         toast.success("Sesión actualizada");
       } else {
+        const datosFinales = (esCliente && rolEmpresa === "dueño")
+          ? { ...datos, solicitud_cliente: "Sesión solicitada por el cliente" }
+          : datos;
         await crearSesion({
           cliente_id: clienteId,
           herramienta_id: h.id,
           etapa: h.etapa,
-          datos,
+          datos: datosFinales,
           completada,
         });
         toast.success("Sesión registrada");
