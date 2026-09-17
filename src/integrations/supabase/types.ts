@@ -263,41 +263,82 @@ export type Database = {
       cliente_compromisos: {
         Row: {
           actividad_id: string | null
+          area: string | null
+          bloqueo: string | null
           cliente_id: string
           created_at: string
           descripcion: string
           estado: string
           fecha_limite: string | null
           id: string
+          kpi_id: string | null
+          modulo_origen: string | null
+          objetivo_relacionado: string | null
           origen: string
+          porcentaje_avance: number | null
+          presupuesto: number | null
+          prioridad: string | null
           responsable: string | null
+          riesgo: string | null
+          tipo: string | null
+          titulo: string | null
           updated_at: string
         }
         Insert: {
           actividad_id?: string | null
+          area?: string | null
+          bloqueo?: string | null
           cliente_id: string
           created_at?: string
           descripcion: string
           estado?: string
           fecha_limite?: string | null
           id?: string
+          kpi_id?: string | null
+          modulo_origen?: string | null
+          objetivo_relacionado?: string | null
           origen?: string
+          porcentaje_avance?: number | null
+          presupuesto?: number | null
+          prioridad?: string | null
           responsable?: string | null
+          riesgo?: string | null
+          tipo?: string | null
+          titulo?: string | null
           updated_at?: string
         }
         Update: {
           actividad_id?: string | null
+          area?: string | null
+          bloqueo?: string | null
           cliente_id?: string
           created_at?: string
           descripcion?: string
           estado?: string
           fecha_limite?: string | null
           id?: string
+          kpi_id?: string | null
+          modulo_origen?: string | null
+          objetivo_relacionado?: string | null
           origen?: string
+          porcentaje_avance?: number | null
+          presupuesto?: number | null
+          prioridad?: string | null
           responsable?: string | null
+          riesgo?: string | null
+          tipo?: string | null
+          titulo?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cliente_compromisos_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cliente_contactos: {
         Row: {
@@ -502,6 +543,82 @@ export type Database = {
             columns: ["plan_plataforma_id"]
             isOneToOne: false
             referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_hallazgos: {
+        Row: {
+          actividad_id: string | null
+          area: string | null
+          cliente_id: string
+          compromiso_id: string | null
+          created_at: string
+          estado: string
+          evidencia: string | null
+          id: string
+          impacto: string | null
+          modulo_origen: string | null
+          situacion: string | null
+          tipo: string | null
+          titulo: string
+          updated_at: string
+          urgencia: string | null
+        }
+        Insert: {
+          actividad_id?: string | null
+          area?: string | null
+          cliente_id: string
+          compromiso_id?: string | null
+          created_at?: string
+          estado?: string
+          evidencia?: string | null
+          id?: string
+          impacto?: string | null
+          modulo_origen?: string | null
+          situacion?: string | null
+          tipo?: string | null
+          titulo: string
+          updated_at?: string
+          urgencia?: string | null
+        }
+        Update: {
+          actividad_id?: string | null
+          area?: string | null
+          cliente_id?: string
+          compromiso_id?: string | null
+          created_at?: string
+          estado?: string
+          evidencia?: string | null
+          id?: string
+          impacto?: string | null
+          modulo_origen?: string | null
+          situacion?: string | null
+          tipo?: string | null
+          titulo?: string
+          updated_at?: string
+          urgencia?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_hallazgos_actividad_id_fkey"
+            columns: ["actividad_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_actividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_hallazgos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_hallazgos_compromiso_id_fkey"
+            columns: ["compromiso_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_compromisos"
             referencedColumns: ["id"]
           },
         ]
@@ -762,6 +879,60 @@ export type Database = {
           },
         ]
       }
+      cotizador_parametros: {
+        Row: {
+          descuento_anual_plataforma_pct: number
+          descuento_prepago_acompanado_pct: number
+          descuento_prepago_advisory_pct: number
+          descuento_prepago_guiado_pct: number
+          factor_segmento_corporativo: number
+          factor_segmento_esencial: number
+          factor_segmento_premium: number
+          factor_segmento_profesional: number
+          factor_tamano_grande: number
+          factor_tamano_mediana: number
+          factor_tamano_pequena: number
+          id: string
+          tarifa_coaching: number
+          tarifa_consultoria_estrategica: number
+          updated_at: string
+        }
+        Insert: {
+          descuento_anual_plataforma_pct?: number
+          descuento_prepago_acompanado_pct?: number
+          descuento_prepago_advisory_pct?: number
+          descuento_prepago_guiado_pct?: number
+          factor_segmento_corporativo?: number
+          factor_segmento_esencial?: number
+          factor_segmento_premium?: number
+          factor_segmento_profesional?: number
+          factor_tamano_grande?: number
+          factor_tamano_mediana?: number
+          factor_tamano_pequena?: number
+          id?: string
+          tarifa_coaching?: number
+          tarifa_consultoria_estrategica?: number
+          updated_at?: string
+        }
+        Update: {
+          descuento_anual_plataforma_pct?: number
+          descuento_prepago_acompanado_pct?: number
+          descuento_prepago_advisory_pct?: number
+          descuento_prepago_guiado_pct?: number
+          factor_segmento_corporativo?: number
+          factor_segmento_esencial?: number
+          factor_segmento_premium?: number
+          factor_segmento_profesional?: number
+          factor_tamano_grande?: number
+          factor_tamano_mediana?: number
+          factor_tamano_pequena?: number
+          id?: string
+          tarifa_coaching?: number
+          tarifa_consultoria_estrategica?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       empresa_invitaciones: {
         Row: {
           cliente_id: string
@@ -947,6 +1118,213 @@ export type Database = {
             columns: ["area_id"]
             isOneToOne: false
             referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpis_catalogo: {
+        Row: {
+          activo: boolean
+          area: string | null
+          cliente_id: string
+          created_at: string
+          descripcion: string | null
+          direccion_mejora: string | null
+          formula: string | null
+          frecuencia: string | null
+          fuente_datos: string | null
+          id: string
+          interpretacion_base: string | null
+          meta_minima: number | null
+          meta_objetivo: number | null
+          meta_stretch: number | null
+          modulo_origen: string | null
+          nivel: string | null
+          nombre: string
+          plantilla_origen_id: string | null
+          responsable: string | null
+          unidad: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          area?: string | null
+          cliente_id: string
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre: string
+          plantilla_origen_id?: string | null
+          responsable?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          area?: string | null
+          cliente_id?: string
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre?: string
+          plantilla_origen_id?: string | null
+          responsable?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpis_catalogo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpis_catalogo_plantilla_origen_id_fkey"
+            columns: ["plantilla_origen_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_plantilla"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpis_plantilla: {
+        Row: {
+          activo: boolean
+          area: string | null
+          created_at: string
+          descripcion: string | null
+          direccion_mejora: string | null
+          formula: string | null
+          frecuencia: string | null
+          fuente_datos: string | null
+          id: string
+          interpretacion_base: string | null
+          meta_minima: number | null
+          meta_objetivo: number | null
+          meta_stretch: number | null
+          modulo_origen: string | null
+          nivel: string | null
+          nombre: string
+          responsable_sugerido: string | null
+          unidad: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          area?: string | null
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre: string
+          responsable_sugerido?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          area?: string | null
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre?: string
+          responsable_sugerido?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kpis_valores: {
+        Row: {
+          actividad_id: string | null
+          created_at: string
+          fecha_medicion: string
+          id: string
+          interpretacion: string | null
+          kpi_id: string
+          observacion: string | null
+          semaforo: string | null
+          updated_at: string
+          valor_actual: number | null
+        }
+        Insert: {
+          actividad_id?: string | null
+          created_at?: string
+          fecha_medicion?: string
+          id?: string
+          interpretacion?: string | null
+          kpi_id: string
+          observacion?: string | null
+          semaforo?: string | null
+          updated_at?: string
+          valor_actual?: number | null
+        }
+        Update: {
+          actividad_id?: string | null
+          created_at?: string
+          fecha_medicion?: string
+          id?: string
+          interpretacion?: string | null
+          kpi_id?: string
+          observacion?: string | null
+          semaforo?: string | null
+          updated_at?: string
+          valor_actual?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpis_valores_actividad_id_fkey"
+            columns: ["actividad_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_actividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpis_valores_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_catalogo"
             referencedColumns: ["id"]
           },
         ]
