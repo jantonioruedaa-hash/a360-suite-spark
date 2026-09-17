@@ -24,9 +24,10 @@ import {
   Loader2, ShieldCheck, RefreshCw, UserPlus, Send,
   Pencil, KeyRound, Lock, Unlock, Trash2, Users, BarChart3, Briefcase, ChevronDown,
   CreditCard, Plus, Layers, ScanSearch, Compass, HeartHandshake,
-  GraduationCap, TrendingUp, Megaphone, ClipboardList, History, BookOpen, Network,
+  GraduationCap, TrendingUp, Megaphone, ClipboardList, History, BookOpen, Network, Sliders,
 } from "lucide-react";
 import { MODULOS_PERMISO } from "@/routes/app.configuracion";
+import { useCotizadorParametros, COTIZADOR_DEFAULTS, type CotizadorParametros } from "@/lib/cotizador-parametros";
 import {
   adminListPosiciones, adminCreatePosicion, adminUpdatePosicionModulos,
   adminDeletePosicion, adminAplicarPosicion,
@@ -157,7 +158,8 @@ const TABS = [
   { id: "clientes",  label: "Clientes",   icon: Briefcase },
   { id: "planes",    label: "Planes",     icon: CreditCard},
   { id: "modulos",   label: "Módulos",    icon: Layers    },
-  { id: "posiciones",label: "Posiciones", icon: Network   },
+  { id: "posiciones", label: "Posiciones",  icon: Network  },
+  { id: "parametros", label: "Parámetros", icon: Sliders  },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -222,7 +224,8 @@ function AdminPage() {
       {tab === "clientes"  && <TabClientes />}
       {tab === "planes"    && <TabPlanes />}
       {tab === "modulos"   && <TabModulos />}
-      {tab === "posiciones"&& <TabPosiciones />}
+      {tab === "posiciones" && <TabPosiciones />}
+      {tab === "parametros" && <TabParametros />}
     </div>
   );
 }
@@ -2332,5 +2335,98 @@ function EditModulosDialog({ posicion, onClose, onSave }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ─── Tab: Parámetros de cotización ────────────────────────────────────────────
+
+function TabParametros() {
+  const { parametros, loading, save } = useCotizadorParametros();
+  const [form, setForm] = useState<CotizadorParametros>(COTIZADOR_DEFAULTS);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!loading) setForm(parametros);
+  }, [loading, parametros]);
+
+  const field = (key: keyof CotizadorParametros, label: string, step = "0.01") => (
+    <div key={key}>
+      <Label className="text-xs">{label}</Label>
+      <Input
+        type="number"
+        step={step}
+        min="0"
+        value={form[key]}
+        onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value === "" ? 0 : Number(e.target.value) }))}
+      />
+    </div>
+  );
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await save(form);
+    if (error) toast.error(error);
+    else toast.success("Parámetros guardados");
+    setSaving(false);
+  };
+
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-navy" /></div>;
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {/* Tarifas base */}
+      <div className="rounded-xl border border-border bg-background p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-semibold" style={{ color: "var(--h-from)" }}>Tarifas base (USD / hora)</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {field("tarifa_coaching", "Coaching")}
+          {field("tarifa_consultoria_estrategica", "Consultoría estratégica")}
+        </div>
+      </div>
+
+      {/* Factores de tamaño y segmento */}
+      <div className="rounded-xl border border-border bg-background p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-semibold" style={{ color: "var(--h-from)" }}>Factores de tamaño y segmento</h3>
+        <div>
+          <Label className="text-xs block mb-2 text-muted-foreground uppercase tracking-wide">Tamaño empresa</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {field("factor_tamano_pequena", "Pequeña")}
+            {field("factor_tamano_mediana", "Mediana")}
+            {field("factor_tamano_grande", "Grande")}
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs block mb-2 text-muted-foreground uppercase tracking-wide">Segmento plan</Label>
+          <div className="grid grid-cols-2 gap-3">
+            {field("factor_segmento_esencial", "Esencial")}
+            {field("factor_segmento_profesional", "Profesional")}
+            {field("factor_segmento_corporativo", "Corporativo")}
+            {field("factor_segmento_premium", "Premium")}
+          </div>
+        </div>
+      </div>
+
+      {/* Descuentos */}
+      <div className="rounded-xl border border-border bg-background p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-semibold" style={{ color: "var(--h-from)" }}>Descuentos (%)</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {field("descuento_anual_plataforma_pct", "Anual plataforma", "1")}
+          {field("descuento_prepago_guiado_pct", "Prepago Guiado", "1")}
+          {field("descuento_prepago_acompanado_pct", "Prepago Acompañado", "1")}
+          {field("descuento_prepago_advisory_pct", "Prepago Advisory", "1")}
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-2">
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="text-white hover:opacity-90 transition-opacity"
+          style={{ background: "var(--h-from)" }}
+        >
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          Guardar cambios
+        </Button>
+      </div>
+    </div>
   );
 }
