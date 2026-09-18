@@ -59,6 +59,8 @@ interface ClienteData {
   ciudad: string | null;
   pais: string | null;
   plan_licencia: string | null;
+  num_empleados: number | null;
+  es_grupo_empresarial: boolean;
 }
 
 interface ContactoLite { id: string; nombre: string; apellido: string; email: string | null; telefono_oficina?: string | null; celular?: string | null }
@@ -119,7 +121,7 @@ function Cotizaciones() {
   const reload = async () => {
     const [{ data: cs }, { data: cli }, { data: cts }] = await Promise.all([
       supabase.from("cliente_cotizaciones").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false }),
-      supabase.from("clientes").select("nombre_empresa,nombre_comercial,sector,direccion,ciudad,pais,plan_licencia").eq("id", clienteId).maybeSingle(),
+      supabase.from("clientes").select("nombre_empresa,nombre_comercial,sector,direccion,ciudad,pais,plan_licencia,num_empleados,es_grupo_empresarial").eq("id", clienteId).maybeSingle(),
       supabase.from("cliente_contactos").select("id,nombre,apellido,email,telefono_oficina,celular").eq("cliente_id", clienteId).eq("activo", true),
     ]);
     setList((cs ?? []) as unknown as Cotizacion[]);
@@ -314,6 +316,7 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, cliente, p
   onSaved: () => void;
 }) {
   const [form, setForm] = useState<Partial<Cotizacion>>(value);
+  const [sugerenciaInicial, setSugerenciaInicial] = useState<{ plan: string; nivel: string; planId: string | null } | null>(null);
   const [paisCode, setPaisCode] = useState<string>(() => {
     const p = PAISES_LATAM.find((x) => x.moneda === (value.moneda ?? "USD"));
     return p?.code ?? "USD";
@@ -335,6 +338,39 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, cliente, p
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.servicios, form.descuento_porcentaje]);
+
+  useEffect(() => {
+    if (value.id) return; // solo cotizaciones nuevas
+    let cancelled = false;
+    (async () => {
+      const { data: sesion } = await (supabase as any)
+        .from("side_sesiones")
+        .select("scores, ime_score")
+        .eq("cliente_id", clienteId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled || !sesion) return;
+      const { contarBrechasCriticas, sugerirPlanYNivel } = await import("@/lib/cotizador-motor-reglas");
+      const brechasCriticas = contarBrechasCriticas(sesion.scores ?? {});
+      const sugerencia = sugerirPlanYNivel({
+        numEmpleados: cliente?.num_empleados ?? null,
+        esGrupoEmpresarial: cliente?.es_grupo_empresarial ?? false,
+        imeGeneral: sesion.ime_score ?? 0,
+        brechasCriticas,
+      });
+      const planMatch = planes.find((p) => p.nombre.toLowerCase() === sugerencia.plan.toLowerCase()) ?? null;
+      const planId = planMatch?.id ?? null;
+      setSugerenciaInicial({ plan: sugerencia.plan, nivel: sugerencia.nivel, planId });
+      setForm((f) => ({
+        ...f,
+        nivel_acompanamiento: f.nivel_acompanamiento ?? sugerencia.nivel,
+        plan_plataforma_id: f.plan_plataforma_id ?? planId,
+      }));
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const cargarPlan = (plan: string) => {
     const preset = PLANES_PRESET[plan];
@@ -514,15 +550,21 @@ function CotizacionEditor({ value, contactos, clienteId, consultorId, cliente, p
                 {Object.entries(NIVEL_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
               </SelectContent>
             </Select>
+            {sugerenciaInicial && !!form.nivel_acompanamiento && form.nivel_acompanamiento !== sugerenciaInicial.nivel && (
+              <p className="text-xs text-amber-600 mt-1">⚠ Ajustado manualmente (sugerencia: {NIVEL_LABELS[sugerenciaInicial.nivel] ?? sugerenciaInicial.nivel})</p>
+            )}
           </div>
           <div><Label>Plan de plataforma cotizado <span className="text-muted-foreground text-xs font-normal">(opcional)</span></Label>
-            <Select value={form.plan_plataforma_id ?? ""} onValueChange={(v) => setForm({ ...form, plan_plataforma_id: v || null })}>
+            <Select value={form.plan_plataforma_id ?? "__ninguno__"} onValueChange={(v) => setForm({ ...form, plan_plataforma_id: v === "__ninguno__" ? null : v })}>
               <SelectTrigger><SelectValue placeholder="Sin plan cotizado" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin plan cotizado</SelectItem>
+                <SelectItem value="__ninguno__">Sin plan cotizado</SelectItem>
                 {planes.map((p) => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
               </SelectContent>
             </Select>
+            {sugerenciaInicial && !!form.plan_plataforma_id && form.plan_plataforma_id !== sugerenciaInicial.planId && (
+              <p className="text-xs text-amber-600 mt-1">⚠ Ajustado manualmente (sugerencia: {sugerenciaInicial.plan.charAt(0).toUpperCase() + sugerenciaInicial.plan.slice(1)})</p>
+            )}
           </div>
           <div className="col-span-2"><Label>Título *</Label><Input value={form.titulo ?? ""} onChange={(e) => setForm({ ...form, titulo: e.target.value })} /></div>
           <div className="col-span-2"><Label>Descripción</Label><Textarea rows={2} value={form.descripcion ?? ""} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} /></div>
