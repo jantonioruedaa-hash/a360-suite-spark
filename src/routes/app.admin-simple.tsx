@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { MODULOS_PERMISO } from "@/routes/app.configuracion";
 import { useCotizadorParametros, COTIZADOR_DEFAULTS, type CotizadorParametros } from "@/lib/cotizador-parametros";
+import { MODULOS, moduloLabel } from "@/lib/modulos-catalogo";
 import {
   adminListPosiciones, adminCreatePosicion, adminUpdatePosicionModulos,
   adminDeletePosicion, adminAplicarPosicion,
@@ -95,31 +96,7 @@ const PLANES_LICENCIA = [
   { value: "personalizado", label: "Personalizado" },
 ] as const;
 
-// IMPORTANTE: al agregar un modulo_slug nuevo a plan_modulos en Supabase,
-// añadirlo también aquí para que sea visible y toggleable en el Panel Admin.
-const MODULOS: {
-  slug: string;
-  label: string;
-  descripcion: string;
-  icon: LucideIcon;
-}[] = [
-  { slug: "side",                 label: "Diagnóstico SIDE",    descripcion: "Diagnóstico integral empresarial",          icon: ScanSearch      },
-  { slug: "side_historial",       label: "Historial SIDE",      descripcion: "Historial completo de diagnósticos SIDE",   icon: History         },
-  { slug: "plan_estrategico",     label: "Plan Estratégico",    descripcion: "Planeación estratégica con BSC",            icon: Compass         },
-  { slug: "coaching",             label: "Coaching A360",       descripcion: "Acompañamiento ejecutivo",                  icon: HeartHandshake  },
-  { slug: "coaching_metodologia", label: "Metodología Coaching",descripcion: "Acceso a la metodología del programa",      icon: BookOpen        },
-  { slug: "coaching_resultados",  label: "Resultados Coaching", descripcion: "Delta Radar + progreso por etapa",          icon: TrendingUp      },
-  { slug: "lee",                  label: "Programa LEE",        descripcion: "Liderazgo Empresarial Evolutivo",           icon: GraduationCap   },
-  { slug: "kpis",                 label: "Seguimiento KPIs",    descripcion: "Tablero de indicadores y BSC",              icon: TrendingUp      },
-  { slug: "marketing_digital",    label: "Marketing Digital",   descripcion: "Estrategia de crecimiento digital",         icon: Megaphone       },
-  { slug: "manual_funciones",     label: "Manual de Funciones", descripcion: "Descripción de cargos y competencias",      icon: ClipboardList   },
-];
-
 type ModuloSlug = string;
-
-function moduloLabel(slug: string): string {
-  return MODULOS.find((m) => m.slug === slug)?.label ?? slug;
-}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -2413,6 +2390,17 @@ function TabParametros() {
           {field("descuento_prepago_guiado_pct", "Prepago Guiado", "1")}
           {field("descuento_prepago_acompanado_pct", "Prepago Acompañado", "1")}
           {field("descuento_prepago_advisory_pct", "Prepago Advisory", "1")}
+        </div>
+      </div>
+
+      {/* Precio por usuario adicional */}
+      <div className="rounded-xl border border-border bg-background p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-semibold" style={{ color: "var(--h-from)" }}>Precio por usuario adicional (USD/mes)</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {field("precio_usuario_adicional_esencial", "Esencial", "1")}
+          {field("precio_usuario_adicional_profesional", "Profesional", "1")}
+          {field("precio_usuario_adicional_corporativo", "Corporativo", "1")}
+          {field("precio_usuario_adicional_premium", "Premium", "1")}
         </div>
       </div>
 
