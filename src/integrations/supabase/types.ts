@@ -739,6 +739,7 @@ export type Database = {
           creditos_ia_usados: number
           descripcion: string | null
           direccion: string | null
+          es_grupo_empresarial: boolean
           estado: string | null
           facturacion_anual: number | null
           fecha_inicio_relacion: string | null
@@ -773,6 +774,7 @@ export type Database = {
           creditos_ia_usados?: number
           descripcion?: string | null
           direccion?: string | null
+          es_grupo_empresarial?: boolean
           estado?: string | null
           facturacion_anual?: number | null
           fecha_inicio_relacion?: string | null
@@ -807,6 +809,7 @@ export type Database = {
           creditos_ia_usados?: number
           descripcion?: string | null
           direccion?: string | null
+          es_grupo_empresarial?: boolean
           estado?: string | null
           facturacion_anual?: number | null
           fecha_inicio_relacion?: string | null
