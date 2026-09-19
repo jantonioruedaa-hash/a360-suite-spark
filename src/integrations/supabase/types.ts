@@ -896,6 +896,10 @@ export type Database = {
           factor_tamano_mediana: number
           factor_tamano_pequena: number
           id: string
+          precio_usuario_adicional_corporativo: number
+          precio_usuario_adicional_esencial: number
+          precio_usuario_adicional_premium: number
+          precio_usuario_adicional_profesional: number
           tarifa_coaching: number
           tarifa_consultoria_estrategica: number
           updated_at: string
@@ -913,6 +917,10 @@ export type Database = {
           factor_tamano_mediana?: number
           factor_tamano_pequena?: number
           id?: string
+          precio_usuario_adicional_corporativo?: number
+          precio_usuario_adicional_esencial?: number
+          precio_usuario_adicional_premium?: number
+          precio_usuario_adicional_profesional?: number
           tarifa_coaching?: number
           tarifa_consultoria_estrategica?: number
           updated_at?: string
@@ -930,6 +938,10 @@ export type Database = {
           factor_tamano_mediana?: number
           factor_tamano_pequena?: number
           id?: string
+          precio_usuario_adicional_corporativo?: number
+          precio_usuario_adicional_esencial?: number
+          precio_usuario_adicional_premium?: number
+          precio_usuario_adicional_profesional?: number
           tarifa_coaching?: number
           tarifa_consultoria_estrategica?: number
           updated_at?: string
