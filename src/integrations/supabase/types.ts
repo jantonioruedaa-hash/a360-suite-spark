@@ -263,41 +263,82 @@ export type Database = {
       cliente_compromisos: {
         Row: {
           actividad_id: string | null
+          area: string | null
+          bloqueo: string | null
           cliente_id: string
           created_at: string
           descripcion: string
           estado: string
           fecha_limite: string | null
           id: string
+          kpi_id: string | null
+          modulo_origen: string | null
+          objetivo_relacionado: string | null
           origen: string
+          porcentaje_avance: number | null
+          presupuesto: number | null
+          prioridad: string | null
           responsable: string | null
+          riesgo: string | null
+          tipo: string | null
+          titulo: string | null
           updated_at: string
         }
         Insert: {
           actividad_id?: string | null
+          area?: string | null
+          bloqueo?: string | null
           cliente_id: string
           created_at?: string
           descripcion: string
           estado?: string
           fecha_limite?: string | null
           id?: string
+          kpi_id?: string | null
+          modulo_origen?: string | null
+          objetivo_relacionado?: string | null
           origen?: string
+          porcentaje_avance?: number | null
+          presupuesto?: number | null
+          prioridad?: string | null
           responsable?: string | null
+          riesgo?: string | null
+          tipo?: string | null
+          titulo?: string | null
           updated_at?: string
         }
         Update: {
           actividad_id?: string | null
+          area?: string | null
+          bloqueo?: string | null
           cliente_id?: string
           created_at?: string
           descripcion?: string
           estado?: string
           fecha_limite?: string | null
           id?: string
+          kpi_id?: string | null
+          modulo_origen?: string | null
+          objetivo_relacionado?: string | null
           origen?: string
+          porcentaje_avance?: number | null
+          presupuesto?: number | null
+          prioridad?: string | null
           responsable?: string | null
+          riesgo?: string | null
+          tipo?: string | null
+          titulo?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cliente_compromisos_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cliente_contactos: {
         Row: {
@@ -401,10 +442,14 @@ export type Database = {
           ime_estimado: string | null
           justificacion_programa: string | null
           moneda: string
+          nivel_acompanamiento:
+            | Database["public"]["Enums"]["nivel_acompanamiento_enum"]
+            | null
           notas: string | null
           numero_cotizacion: string | null
           objetivos_propuesta: Json
           plan: string | null
+          plan_plataforma_id: string | null
           servicios: Json
           subtotal: number
           titulo: string
@@ -430,10 +475,14 @@ export type Database = {
           ime_estimado?: string | null
           justificacion_programa?: string | null
           moneda?: string
+          nivel_acompanamiento?:
+            | Database["public"]["Enums"]["nivel_acompanamiento_enum"]
+            | null
           notas?: string | null
           numero_cotizacion?: string | null
           objetivos_propuesta?: Json
           plan?: string | null
+          plan_plataforma_id?: string | null
           servicios?: Json
           subtotal?: number
           titulo: string
@@ -459,10 +508,14 @@ export type Database = {
           ime_estimado?: string | null
           justificacion_programa?: string | null
           moneda?: string
+          nivel_acompanamiento?:
+            | Database["public"]["Enums"]["nivel_acompanamiento_enum"]
+            | null
           notas?: string | null
           numero_cotizacion?: string | null
           objetivos_propuesta?: Json
           plan?: string | null
+          plan_plataforma_id?: string | null
           servicios?: Json
           subtotal?: number
           titulo?: string
@@ -483,6 +536,89 @@ export type Database = {
             columns: ["contacto_id"]
             isOneToOne: false
             referencedRelation: "cliente_contactos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_cotizaciones_plan_plataforma_id_fkey"
+            columns: ["plan_plataforma_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_hallazgos: {
+        Row: {
+          actividad_id: string | null
+          area: string | null
+          cliente_id: string
+          compromiso_id: string | null
+          created_at: string
+          estado: string
+          evidencia: string | null
+          id: string
+          impacto: string | null
+          modulo_origen: string | null
+          situacion: string | null
+          tipo: string | null
+          titulo: string
+          updated_at: string
+          urgencia: string | null
+        }
+        Insert: {
+          actividad_id?: string | null
+          area?: string | null
+          cliente_id: string
+          compromiso_id?: string | null
+          created_at?: string
+          estado?: string
+          evidencia?: string | null
+          id?: string
+          impacto?: string | null
+          modulo_origen?: string | null
+          situacion?: string | null
+          tipo?: string | null
+          titulo: string
+          updated_at?: string
+          urgencia?: string | null
+        }
+        Update: {
+          actividad_id?: string | null
+          area?: string | null
+          cliente_id?: string
+          compromiso_id?: string | null
+          created_at?: string
+          estado?: string
+          evidencia?: string | null
+          id?: string
+          impacto?: string | null
+          modulo_origen?: string | null
+          situacion?: string | null
+          tipo?: string | null
+          titulo?: string
+          updated_at?: string
+          urgencia?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_hallazgos_actividad_id_fkey"
+            columns: ["actividad_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_actividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_hallazgos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_hallazgos_compromiso_id_fkey"
+            columns: ["compromiso_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_compromisos"
             referencedColumns: ["id"]
           },
         ]
@@ -591,6 +727,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          acceso_interpretacion: boolean
           activo: boolean
           ciudad: string | null
           cliente_user_id: string | null
@@ -602,6 +739,7 @@ export type Database = {
           creditos_ia_usados: number
           descripcion: string | null
           direccion: string | null
+          es_grupo_empresarial: boolean
           estado: string | null
           facturacion_anual: number | null
           fecha_inicio_relacion: string | null
@@ -615,6 +753,7 @@ export type Database = {
           num_empleados: number | null
           origen: string | null
           pais: string | null
+          plan_id: string | null
           plan_licencia: string
           sector: string | null
           subsector: string | null
@@ -623,6 +762,7 @@ export type Database = {
           web: string | null
         }
         Insert: {
+          acceso_interpretacion?: boolean
           activo?: boolean
           ciudad?: string | null
           cliente_user_id?: string | null
@@ -634,6 +774,7 @@ export type Database = {
           creditos_ia_usados?: number
           descripcion?: string | null
           direccion?: string | null
+          es_grupo_empresarial?: boolean
           estado?: string | null
           facturacion_anual?: number | null
           fecha_inicio_relacion?: string | null
@@ -647,6 +788,7 @@ export type Database = {
           num_empleados?: number | null
           origen?: string | null
           pais?: string | null
+          plan_id?: string | null
           plan_licencia?: string
           sector?: string | null
           subsector?: string | null
@@ -655,6 +797,7 @@ export type Database = {
           web?: string | null
         }
         Update: {
+          acceso_interpretacion?: boolean
           activo?: boolean
           ciudad?: string | null
           cliente_user_id?: string | null
@@ -666,6 +809,7 @@ export type Database = {
           creditos_ia_usados?: number
           descripcion?: string | null
           direccion?: string | null
+          es_grupo_empresarial?: boolean
           estado?: string | null
           facturacion_anual?: number | null
           fecha_inicio_relacion?: string | null
@@ -679,6 +823,7 @@ export type Database = {
           num_empleados?: number | null
           origen?: string | null
           pais?: string | null
+          plan_id?: string | null
           plan_licencia?: string
           sector?: string | null
           subsector?: string | null
@@ -686,7 +831,15 @@ export type Database = {
           updated_at?: string
           web?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clientes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coaching_sesiones: {
         Row: {
@@ -729,6 +882,509 @@ export type Database = {
           },
         ]
       }
+      cotizador_parametros: {
+        Row: {
+          descuento_anual_plataforma_pct: number
+          descuento_prepago_acompanado_pct: number
+          descuento_prepago_advisory_pct: number
+          descuento_prepago_guiado_pct: number
+          factor_segmento_corporativo: number
+          factor_segmento_esencial: number
+          factor_segmento_premium: number
+          factor_segmento_profesional: number
+          factor_tamano_grande: number
+          factor_tamano_mediana: number
+          factor_tamano_pequena: number
+          id: string
+          precio_usuario_adicional_corporativo: number
+          precio_usuario_adicional_esencial: number
+          precio_usuario_adicional_premium: number
+          precio_usuario_adicional_profesional: number
+          tarifa_coaching: number
+          tarifa_consultoria_estrategica: number
+          updated_at: string
+        }
+        Insert: {
+          descuento_anual_plataforma_pct?: number
+          descuento_prepago_acompanado_pct?: number
+          descuento_prepago_advisory_pct?: number
+          descuento_prepago_guiado_pct?: number
+          factor_segmento_corporativo?: number
+          factor_segmento_esencial?: number
+          factor_segmento_premium?: number
+          factor_segmento_profesional?: number
+          factor_tamano_grande?: number
+          factor_tamano_mediana?: number
+          factor_tamano_pequena?: number
+          id?: string
+          precio_usuario_adicional_corporativo?: number
+          precio_usuario_adicional_esencial?: number
+          precio_usuario_adicional_premium?: number
+          precio_usuario_adicional_profesional?: number
+          tarifa_coaching?: number
+          tarifa_consultoria_estrategica?: number
+          updated_at?: string
+        }
+        Update: {
+          descuento_anual_plataforma_pct?: number
+          descuento_prepago_acompanado_pct?: number
+          descuento_prepago_advisory_pct?: number
+          descuento_prepago_guiado_pct?: number
+          factor_segmento_corporativo?: number
+          factor_segmento_esencial?: number
+          factor_segmento_premium?: number
+          factor_segmento_profesional?: number
+          factor_tamano_grande?: number
+          factor_tamano_mediana?: number
+          factor_tamano_pequena?: number
+          id?: string
+          precio_usuario_adicional_corporativo?: number
+          precio_usuario_adicional_esencial?: number
+          precio_usuario_adicional_premium?: number
+          precio_usuario_adicional_profesional?: number
+          tarifa_coaching?: number
+          tarifa_consultoria_estrategica?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      empresa_invitaciones: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          email: string
+          estado: string
+          expira_at: string
+          id: string
+          invitado_por: string | null
+          removido_at: string | null
+          removido_por: string | null
+          rol_empresa: string
+          token: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          email: string
+          estado?: string
+          expira_at?: string
+          id?: string
+          invitado_por?: string | null
+          removido_at?: string | null
+          removido_por?: string | null
+          rol_empresa: string
+          token?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          email?: string
+          estado?: string
+          expira_at?: string
+          id?: string
+          invitado_por?: string | null
+          removido_at?: string | null
+          removido_por?: string | null
+          rol_empresa?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_invitaciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_plan: {
+        Row: {
+          activo: boolean
+          created_at: string
+          empresa_id: string
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          licencias_adicionales: number
+          plan_id: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          empresa_id: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          licencias_adicionales?: number
+          plan_id: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          empresa_id?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          licencias_adicionales?: number
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_plan_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "empresa_plan_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_posiciones: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_posiciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresa_usuarios: {
+        Row: {
+          area_id: string | null
+          cliente_id: string
+          created_at: string
+          id: string
+          invitado_por: string | null
+          posicion_id: string | null
+          rol_empresa: string
+          user_id: string
+        }
+        Insert: {
+          area_id?: string | null
+          cliente_id: string
+          created_at?: string
+          id?: string
+          invitado_por?: string | null
+          posicion_id?: string | null
+          rol_empresa: string
+          user_id: string
+        }
+        Update: {
+          area_id?: string | null
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          invitado_por?: string | null
+          posicion_id?: string | null
+          rol_empresa?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresa_usuarios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "empresa_usuarios_posicion_id_fkey"
+            columns: ["posicion_id"]
+            isOneToOne: false
+            referencedRelation: "empresa_posiciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eu_area_cliente_fk"
+            columns: ["cliente_id", "area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["cliente_id", "id"]
+          },
+          {
+            foreignKeyName: "eu_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpis_catalogo: {
+        Row: {
+          activo: boolean
+          area: string | null
+          cliente_id: string
+          created_at: string
+          descripcion: string | null
+          direccion_mejora: string | null
+          formula: string | null
+          frecuencia: string | null
+          fuente_datos: string | null
+          id: string
+          interpretacion_base: string | null
+          meta_minima: number | null
+          meta_objetivo: number | null
+          meta_stretch: number | null
+          modulo_origen: string | null
+          nivel: string | null
+          nombre: string
+          plantilla_origen_id: string | null
+          responsable: string | null
+          unidad: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          area?: string | null
+          cliente_id: string
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre: string
+          plantilla_origen_id?: string | null
+          responsable?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          area?: string | null
+          cliente_id?: string
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre?: string
+          plantilla_origen_id?: string | null
+          responsable?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpis_catalogo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpis_catalogo_plantilla_origen_id_fkey"
+            columns: ["plantilla_origen_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_plantilla"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpis_plantilla: {
+        Row: {
+          activo: boolean
+          area: string | null
+          created_at: string
+          descripcion: string | null
+          direccion_mejora: string | null
+          formula: string | null
+          frecuencia: string | null
+          fuente_datos: string | null
+          id: string
+          interpretacion_base: string | null
+          meta_minima: number | null
+          meta_objetivo: number | null
+          meta_stretch: number | null
+          modulo_origen: string | null
+          nivel: string | null
+          nombre: string
+          responsable_sugerido: string | null
+          unidad: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          area?: string | null
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre: string
+          responsable_sugerido?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          area?: string | null
+          created_at?: string
+          descripcion?: string | null
+          direccion_mejora?: string | null
+          formula?: string | null
+          frecuencia?: string | null
+          fuente_datos?: string | null
+          id?: string
+          interpretacion_base?: string | null
+          meta_minima?: number | null
+          meta_objetivo?: number | null
+          meta_stretch?: number | null
+          modulo_origen?: string | null
+          nivel?: string | null
+          nombre?: string
+          responsable_sugerido?: string | null
+          unidad?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kpis_valores: {
+        Row: {
+          actividad_id: string | null
+          created_at: string
+          fecha_medicion: string
+          id: string
+          interpretacion: string | null
+          kpi_id: string
+          observacion: string | null
+          semaforo: string | null
+          updated_at: string
+          valor_actual: number | null
+        }
+        Insert: {
+          actividad_id?: string | null
+          created_at?: string
+          fecha_medicion?: string
+          id?: string
+          interpretacion?: string | null
+          kpi_id: string
+          observacion?: string | null
+          semaforo?: string | null
+          updated_at?: string
+          valor_actual?: number | null
+        }
+        Update: {
+          actividad_id?: string | null
+          created_at?: string
+          fecha_medicion?: string
+          id?: string
+          interpretacion?: string | null
+          kpi_id?: string
+          observacion?: string | null
+          semaforo?: string | null
+          updated_at?: string
+          valor_actual?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpis_valores_actividad_id_fkey"
+            columns: ["actividad_id"]
+            isOneToOne: false
+            referencedRelation: "cliente_actividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpis_valores_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lee_historial_versiones: {
+        Row: {
+          capitulo_numero: number
+          created_at: string
+          etiqueta: string | null
+          id: string
+          origen: string
+          programa_id: string
+          sesion_id: string | null
+          snapshot: Json
+        }
+        Insert: {
+          capitulo_numero: number
+          created_at?: string
+          etiqueta?: string | null
+          id?: string
+          origen: string
+          programa_id: string
+          sesion_id?: string | null
+          snapshot?: Json
+        }
+        Update: {
+          capitulo_numero?: number
+          created_at?: string
+          etiqueta?: string | null
+          id?: string
+          origen?: string
+          programa_id?: string
+          sesion_id?: string | null
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lee_historial_versiones_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "lee_programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lee_programas: {
         Row: {
           capitulos_desbloqueados: number[]
@@ -757,6 +1413,44 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lee_workbook_html: {
+        Row: {
+          capitulo_numero: number
+          completado: boolean
+          created_at: string
+          id: string
+          programa_id: string
+          respuestas: Json
+          updated_at: string
+        }
+        Insert: {
+          capitulo_numero: number
+          completado?: boolean
+          created_at?: string
+          id?: string
+          programa_id: string
+          respuestas?: Json
+          updated_at?: string
+        }
+        Update: {
+          capitulo_numero?: number
+          completado?: boolean
+          created_at?: string
+          id?: string
+          programa_id?: string
+          respuestas?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lee_workbook_html_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "lee_programas"
             referencedColumns: ["id"]
           },
         ]
@@ -805,45 +1499,518 @@ export type Database = {
           },
         ]
       }
-      marketing_sesiones: {
+      manual_areas: {
         Row: {
-          cliente_id: string | null
-          completada: boolean
-          consultor_id: string | null
+          cliente_id: string
           created_at: string
-          empresa: Json
           id: string
-          modulos: Json
-          nombre_sesion: string
-          reporte_config: Json
-          score_total: number
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_areas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_cargos: {
+        Row: {
+          aceptacion_cargo: string | null
+          aceptacion_fecha: string | null
+          aceptacion_nombre: string | null
+          aceptacion_texto: string | null
+          aprobado_por: string | null
+          area: string
+          area_id: string
+          cargo: string
+          cliente_id: string
+          codigo: string | null
+          competencias_blandas: Json | null
+          competencias_tecnicas: Json | null
+          condiciones: Json | null
+          consultor_id: string | null
+          created_at: string | null
+          elaborado_por: string | null
+          estado: string | null
+          fecha_elaboracion: string | null
+          fecha_revision: string | null
+          funciones: Json | null
+          id: string
+          jefe_inmediato: string | null
+          kpis: Json | null
+          objetivo: string | null
+          plan_carrera: string | null
+          relaciones_externas: Json | null
+          relaciones_internas: Json | null
+          requisitos: Json | null
+          resultados_esperados: Json
+          revisado_por: string | null
+          supervisa_a: Json | null
+          updated_at: string | null
+          vacante: boolean | null
+          version: string | null
+        }
+        Insert: {
+          aceptacion_cargo?: string | null
+          aceptacion_fecha?: string | null
+          aceptacion_nombre?: string | null
+          aceptacion_texto?: string | null
+          aprobado_por?: string | null
+          area: string
+          area_id: string
+          cargo: string
+          cliente_id: string
+          codigo?: string | null
+          competencias_blandas?: Json | null
+          competencias_tecnicas?: Json | null
+          condiciones?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          elaborado_por?: string | null
+          estado?: string | null
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json | null
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json | null
+          objetivo?: string | null
+          plan_carrera?: string | null
+          relaciones_externas?: Json | null
+          relaciones_internas?: Json | null
+          requisitos?: Json | null
+          resultados_esperados?: Json
+          revisado_por?: string | null
+          supervisa_a?: Json | null
+          updated_at?: string | null
+          vacante?: boolean | null
+          version?: string | null
+        }
+        Update: {
+          aceptacion_cargo?: string | null
+          aceptacion_fecha?: string | null
+          aceptacion_nombre?: string | null
+          aceptacion_texto?: string | null
+          aprobado_por?: string | null
+          area?: string
+          area_id?: string
+          cargo?: string
+          cliente_id?: string
+          codigo?: string | null
+          competencias_blandas?: Json | null
+          competencias_tecnicas?: Json | null
+          condiciones?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          elaborado_por?: string | null
+          estado?: string | null
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json | null
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json | null
+          objetivo?: string | null
+          plan_carrera?: string | null
+          relaciones_externas?: Json | null
+          relaciones_internas?: Json | null
+          requisitos?: Json | null
+          resultados_esperados?: Json
+          revisado_por?: string | null
+          supervisa_a?: Json | null
+          updated_at?: string | null
+          vacante?: boolean | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_cargos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_funciones_cargos_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mf_cargos_area_cliente_fk"
+            columns: ["cliente_id", "area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["cliente_id", "id"]
+          },
+          {
+            foreignKeyName: "mf_cargos_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_config: {
+        Row: {
+          cliente_id: string
+          logo_url: string | null
+          nombre_empresa: string | null
           updated_at: string
         }
         Insert: {
-          cliente_id?: string | null
-          completada?: boolean
-          consultor_id?: string | null
-          created_at?: string
-          empresa?: Json
-          id?: string
-          modulos?: Json
-          nombre_sesion?: string
-          reporte_config?: Json
-          score_total?: number
+          cliente_id: string
+          logo_url?: string | null
+          nombre_empresa?: string | null
           updated_at?: string
         }
         Update: {
-          cliente_id?: string | null
-          completada?: boolean
+          cliente_id?: string
+          logo_url?: string | null
+          nombre_empresa?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_config_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_evaluaciones: {
+        Row: {
+          cargo_data_hash: string | null
+          cargo_id: string
+          competencias_evaluadas: Json | null
+          consultor_id: string | null
+          created_at: string | null
+          evaluador: string | null
+          fecha_evaluacion: string | null
+          firmas: Json
+          id: string
+          indice_global: number | null
+          nombre_evaluado: string | null
+          observacion_general: string | null
+          plan_desarrollo: Json | null
+          proxima_revision: string | null
+          requisitos_evaluados: Json
+          semaforo: string | null
+        }
+        Insert: {
+          cargo_data_hash?: string | null
+          cargo_id: string
+          competencias_evaluadas?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          evaluador?: string | null
+          fecha_evaluacion?: string | null
+          firmas?: Json
+          id?: string
+          indice_global?: number | null
+          nombre_evaluado?: string | null
+          observacion_general?: string | null
+          plan_desarrollo?: Json | null
+          proxima_revision?: string | null
+          requisitos_evaluados?: Json
+          semaforo?: string | null
+        }
+        Update: {
+          cargo_data_hash?: string | null
+          cargo_id?: string
+          competencias_evaluadas?: Json | null
+          consultor_id?: string | null
+          created_at?: string | null
+          evaluador?: string | null
+          fecha_evaluacion?: string | null
+          firmas?: Json
+          id?: string
+          indice_global?: number | null
+          nombre_evaluado?: string | null
+          observacion_general?: string | null
+          plan_desarrollo?: Json | null
+          proxima_revision?: string | null
+          requisitos_evaluados?: Json
+          semaforo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "manual_funciones_cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_funciones_evaluaciones_desempeno: {
+        Row: {
+          cargo_id: string
+          comp_scores: Json
+          cond_scores: Json
+          consultor_id: string | null
+          created_at: string
+          evaluador: string | null
+          fecha_evaluacion: string
+          fecha_firma: string | null
+          firma_rrhh: string | null
+          firmas: Json | null
+          id: string
+          kpi_scores: Json
+          nombre_evaluado: string | null
+          objetivos: Json
+          observacion_evaluado: string | null
+          observacion_evaluador: string | null
+          observacion_rrhh: string | null
+          periodo: string | null
+          plan_mejora: Json
+          score_total: number | null
+          semaforo: string | null
+        }
+        Insert: {
+          cargo_id: string
+          comp_scores?: Json
+          cond_scores?: Json
           consultor_id?: string | null
           created_at?: string
-          empresa?: Json
+          evaluador?: string | null
+          fecha_evaluacion?: string
+          fecha_firma?: string | null
+          firma_rrhh?: string | null
+          firmas?: Json | null
           id?: string
-          modulos?: Json
+          kpi_scores?: Json
+          nombre_evaluado?: string | null
+          objetivos?: Json
+          observacion_evaluado?: string | null
+          observacion_evaluador?: string | null
+          observacion_rrhh?: string | null
+          periodo?: string | null
+          plan_mejora?: Json
+          score_total?: number | null
+          semaforo?: string | null
+        }
+        Update: {
+          cargo_id?: string
+          comp_scores?: Json
+          cond_scores?: Json
+          consultor_id?: string | null
+          created_at?: string
+          evaluador?: string | null
+          fecha_evaluacion?: string
+          fecha_firma?: string | null
+          firma_rrhh?: string | null
+          firmas?: Json | null
+          id?: string
+          kpi_scores?: Json
+          nombre_evaluado?: string | null
+          objetivos?: Json
+          observacion_evaluado?: string | null
+          observacion_evaluador?: string | null
+          observacion_rrhh?: string | null
+          periodo?: string | null
+          plan_mejora?: Json
+          score_total?: number | null
+          semaforo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_desempeno_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "manual_funciones_cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_funciones_evaluaciones_desempeno_consultor_id_fkey"
+            columns: ["consultor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_plantilla_areas: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: []
+      }
+      manual_plantilla_cargos: {
+        Row: {
+          aprobado_por: string | null
+          cargo: string
+          codigo: string | null
+          competencias_blandas: Json
+          competencias_tecnicas: Json
+          condiciones: Json
+          created_at: string
+          elaborado_por: string | null
+          estado: string
+          fecha_elaboracion: string | null
+          fecha_revision: string | null
+          funciones: Json
+          id: string
+          jefe_inmediato: string | null
+          kpis: Json
+          objetivo: string | null
+          plan_carrera: string | null
+          plantilla_area_id: string
+          relaciones_externas: Json
+          relaciones_internas: Json
+          requisitos: Json
+          resultados_esperados: Json
+          supervisa_a: Json
+          vacante: boolean
+          version: string
+        }
+        Insert: {
+          aprobado_por?: string | null
+          cargo: string
+          codigo?: string | null
+          competencias_blandas?: Json
+          competencias_tecnicas?: Json
+          condiciones?: Json
+          created_at?: string
+          elaborado_por?: string | null
+          estado?: string
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json
+          objetivo?: string | null
+          plan_carrera?: string | null
+          plantilla_area_id: string
+          relaciones_externas?: Json
+          relaciones_internas?: Json
+          requisitos?: Json
+          resultados_esperados?: Json
+          supervisa_a?: Json
+          vacante?: boolean
+          version?: string
+        }
+        Update: {
+          aprobado_por?: string | null
+          cargo?: string
+          codigo?: string | null
+          competencias_blandas?: Json
+          competencias_tecnicas?: Json
+          condiciones?: Json
+          created_at?: string
+          elaborado_por?: string | null
+          estado?: string
+          fecha_elaboracion?: string | null
+          fecha_revision?: string | null
+          funciones?: Json
+          id?: string
+          jefe_inmediato?: string | null
+          kpis?: Json
+          objetivo?: string | null
+          plan_carrera?: string | null
+          plantilla_area_id?: string
+          relaciones_externas?: Json
+          relaciones_internas?: Json
+          requisitos?: Json
+          resultados_esperados?: Json
+          supervisa_a?: Json
+          vacante?: boolean
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_plantilla_cargos_plantilla_area_id_fkey"
+            columns: ["plantilla_area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_plantilla_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_sesiones: {
+        Row: {
+          cliente_id: string | null
+          completada: boolean | null
+          consultor_id: string | null
+          created_at: string | null
+          empresa: Json | null
+          id: string
+          modulos: Json | null
+          nombre_sesion: string
+          reporte_config: Json | null
+          score_total: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          completada?: boolean | null
+          consultor_id?: string | null
+          created_at?: string | null
+          empresa?: Json | null
+          id?: string
+          modulos?: Json | null
           nombre_sesion?: string
-          reporte_config?: Json
-          score_total?: number
-          updated_at?: string
+          reporte_config?: Json | null
+          score_total?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          completada?: boolean | null
+          consultor_id?: string | null
+          created_at?: string | null
+          empresa?: Json | null
+          id?: string
+          modulos?: Json | null
+          nombre_sesion?: string
+          reporte_config?: Json | null
+          score_total?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -861,6 +2028,119 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      permisos_usuario_modulo: {
+        Row: {
+          alcance_area_id: string | null
+          alcance_tipo: string
+          cliente_id: string
+          created_at: string
+          id: string
+          modulo: string
+          puede_editar: boolean
+          puede_eliminar: boolean
+          puede_ver: boolean
+          seccion: string | null
+          user_id: string
+        }
+        Insert: {
+          alcance_area_id?: string | null
+          alcance_tipo: string
+          cliente_id: string
+          created_at?: string
+          id?: string
+          modulo: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          seccion?: string | null
+          user_id: string
+        }
+        Update: {
+          alcance_area_id?: string | null
+          alcance_tipo?: string
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          modulo?: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          seccion?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permisos_usuario_modulo_alcance_area_id_fkey"
+            columns: ["alcance_area_id"]
+            isOneToOne: false
+            referencedRelation: "manual_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permisos_usuario_modulo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_modulos: {
+        Row: {
+          activo: boolean
+          modulo_slug: string
+          plan_id: string
+        }
+        Insert: {
+          activo?: boolean
+          modulo_slug: string
+          plan_id: string
+        }
+        Update: {
+          activo?: boolean
+          modulo_slug?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_modulos_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planes: {
+        Row: {
+          activo: boolean
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          num_licencias: number
+          precio: number | null
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          num_licencias?: number
+          precio?: number | null
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          num_licencias?: number
+          precio?: number | null
+        }
+        Relationships: []
       }
       planes_estrategicos: {
         Row: {
@@ -957,6 +2237,44 @@ export type Database = {
           },
         ]
       }
+      posicion_modulos_default: {
+        Row: {
+          id: string
+          modulo: string
+          posicion_id: string
+          puede_editar: boolean
+          puede_eliminar: boolean
+          puede_ver: boolean
+          seccion: string | null
+        }
+        Insert: {
+          id?: string
+          modulo: string
+          posicion_id: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          seccion?: string | null
+        }
+        Update: {
+          id?: string
+          modulo?: string
+          posicion_id?: string
+          puede_editar?: boolean
+          puede_eliminar?: boolean
+          puede_ver?: boolean
+          seccion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posicion_modulos_default_posicion_id_fkey"
+            columns: ["posicion_id"]
+            isOneToOne: false
+            referencedRelation: "empresa_posiciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -996,10 +2314,12 @@ export type Database = {
           cliente_id: string
           cof_score: number | null
           cof_scores: Json | null
+          comentario_consultor: string | null
           completada: boolean
           consultor_id: string | null
           created_at: string
           datos_financieros: Json | null
+          estado_revision: string
           id: string
           idf_score: number | null
           idf_scores: Json | null
@@ -1007,6 +2327,8 @@ export type Database = {
           ivee_score: number | null
           ivee_scores: Json | null
           nombre_sesion: string | null
+          revisado_en: string | null
+          revisado_por: string | null
           scores: Json
           updated_at: string
         }
@@ -1015,10 +2337,12 @@ export type Database = {
           cliente_id: string
           cof_score?: number | null
           cof_scores?: Json | null
+          comentario_consultor?: string | null
           completada?: boolean
           consultor_id?: string | null
           created_at?: string
           datos_financieros?: Json | null
+          estado_revision?: string
           id?: string
           idf_score?: number | null
           idf_scores?: Json | null
@@ -1026,6 +2350,8 @@ export type Database = {
           ivee_score?: number | null
           ivee_scores?: Json | null
           nombre_sesion?: string | null
+          revisado_en?: string | null
+          revisado_por?: string | null
           scores?: Json
           updated_at?: string
         }
@@ -1034,10 +2360,12 @@ export type Database = {
           cliente_id?: string
           cof_score?: number | null
           cof_scores?: Json | null
+          comentario_consultor?: string | null
           completada?: boolean
           consultor_id?: string | null
           created_at?: string
           datos_financieros?: Json | null
+          estado_revision?: string
           id?: string
           idf_score?: number | null
           idf_scores?: Json | null
@@ -1045,6 +2373,8 @@ export type Database = {
           ivee_score?: number | null
           ivee_scores?: Json | null
           nombre_sesion?: string | null
+          revisado_en?: string | null
+          revisado_por?: string | null
           scores?: Json
           updated_at?: string
         }
@@ -1085,6 +2415,10 @@ export type Database = {
     }
     Functions: {
       can_access_cliente: { Args: { _cliente_id: string }; Returns: boolean }
+      clonar_plantilla_manual_funciones: {
+        Args: { p_cliente_id: string }
+        Returns: undefined
+      }
       current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1109,6 +2443,18 @@ export type Database = {
           vistas: number
         }[]
       }
+      has_modulo_permission: {
+        Args: { _cargo_id: string; _modulo: string; _necesita_editar?: boolean }
+        Returns: boolean
+      }
+      has_pum_access: {
+        Args: { _campo: string; _cliente_id: string; _modulo: string }
+        Returns: boolean
+      }
+      has_pum_edit: {
+        Args: { _area_id: string; _cliente_id: string; _modulo: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1116,6 +2462,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_dueno_de_cliente: { Args: { _cliente_id: string }; Returns: boolean }
       registrar_vista_compartido: {
         Args: { _ip?: string; _token: string }
         Returns: undefined
@@ -1123,6 +2470,11 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "consultor" | "cliente" | "participante"
+      nivel_acompanamiento_enum:
+        | "autogestionado"
+        | "guiado"
+        | "acompanado"
+        | "advisory"
       plan_nivel: "esencial" | "avanzado" | "corporativo"
     }
     CompositeTypes: {
@@ -1252,6 +2604,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "consultor", "cliente", "participante"],
+      nivel_acompanamiento_enum: [
+        "autogestionado",
+        "guiado",
+        "acompanado",
+        "advisory",
+      ],
       plan_nivel: ["esencial", "avanzado", "corporativo"],
     },
   },
