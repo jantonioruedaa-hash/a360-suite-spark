@@ -15,6 +15,10 @@ export type CotizadorParametros = {
   descuento_prepago_guiado_pct: number;
   descuento_prepago_acompanado_pct: number;
   descuento_prepago_advisory_pct: number;
+  precio_usuario_adicional_esencial: number;
+  precio_usuario_adicional_profesional: number;
+  precio_usuario_adicional_corporativo: number;
+  precio_usuario_adicional_premium: number;
 };
 
 export const COTIZADOR_DEFAULTS: CotizadorParametros = {
@@ -31,6 +35,10 @@ export const COTIZADOR_DEFAULTS: CotizadorParametros = {
   descuento_prepago_guiado_pct: 8,
   descuento_prepago_acompanado_pct: 12,
   descuento_prepago_advisory_pct: 15,
+  precio_usuario_adicional_esencial: 10,
+  precio_usuario_adicional_profesional: 10,
+  precio_usuario_adicional_corporativo: 8,
+  precio_usuario_adicional_premium: 8,
 };
 
 export function useCotizadorParametros() {
